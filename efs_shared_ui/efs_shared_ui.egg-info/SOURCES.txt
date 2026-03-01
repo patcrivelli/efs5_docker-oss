@@ -1,0 +1,16 @@
+pyproject.toml
+efs_shared_ui/__init__.py
+efs_shared_ui/apps.py
+efs_shared_ui/context_processors.py
+efs_shared_ui/urls.py
+efs_shared_ui/views.py
+efs_shared_ui.egg-info/PKG-INFO
+efs_shared_ui.egg-info/SOURCES.txt
+efs_shared_ui.egg-info/dependency_links.txt
+efs_shared_ui.egg-info/requires.txt
+efs_shared_ui.egg-info/top_level.txt
+efs_shared_ui/templates/efs_shared_ui/_sidebar.html
+efs_shared_ui/templates/efs_shared_ui/base.backup.html
+efs_shared_ui/templates/efs_shared_ui/base.html
+efs_shared_ui/templatetags/__init__.py
+efs_shared_ui/templatetags/nav.py

@@ -1,0 +1,399 @@
+<!-- efs_apis/templates/apis.html -->
+<style>
+    .apis-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .apis-card {
+      background: #fafafa;
+      border: 1px solid #e6e6e6;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .apis-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    .apis-table th, .apis-table td {
+      border: 1px solid #e6e6e6;
+      padding: 8px;
+      vertical-align: middle;
+      font-size: 14px;
+    }
+    .apis-table thead th {
+      background: #f5f5f5;
+      text-align: left;
+    }
+    .btn {
+      padding: 6px 10px;
+      border: 1px solid #d1d1d1;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #fff;
+    }
+    .btn-primary {
+      background: #0e76a8;
+      color: #fff;
+      border-color: #0e76a8;
+    }
+    .btn-link {
+      border: none;
+      background: transparent;
+      color: #444;
+      text-decoration: underline;
+      padding: 0;
+      cursor: pointer;
+    }
+    .muted { color:#666; }
+    .status-ok { color: #0a7b2f; font-weight: 600; }
+    .status-err { color: #a00; font-weight: 600; }
+    .right { text-align: right; }
+  </style>
+  
+  <div>
+    <div class="apis-grid">
+      <div class="apis-card">
+        <h3 style="margin:0 0 8px;">Application Details</h3>
+        <ul style="margin:0;padding-left:18px;line-height:1.6;">
+          <li><strong>Contact Name:</strong> <span id="contact-name" class="muted">—</span></li>
+          <li><strong>Transaction ID:</strong> <span id="transaction-id">{{ tx }}</span></li>
+          <li><strong>ABN:</strong> <span id="abn">{{ abn }}</span></li>
+          <li><strong>ACN:</strong> <span id="acn" class="muted">—</span></li>
+          <li><strong>Email:</strong> <span id="email" class="muted">—</span></li>
+          <!---<li><strong>Bureau Token:</strong> <span id="bureau-token" data-token="" class="muted">—</span></li> -->
+          <li><strong>Application Time:</strong> <span id="application-time" class="muted">—</span></li>
+          <li><strong>Originator:</strong> <span id="originator">{{ originator }}</span></li>
+          <li><strong>Product:</strong> <span id="product">{{ product }}</span></li>
+        </ul>
+      </div>
+  
+      <div class="apis-card">
+        <h3 style="margin:0 0 8px;">Actions</h3>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="run-all" class="btn btn-primary">Run all checks</button>
+          <button id="close-modal" class="btn">Close</button>
+        </div>
+        <p class="muted" style="margin-top:8px;">Results stream will appear per row below. Uploads are optional overrides.</p>
+      </div>
+    </div>
+  
+    <table class="apis-table">
+      <thead>
+        <tr>
+          <th style="width:180px;">Section</th>
+          <th style="width:140px;">Action</th>
+          <th>Status</th>
+          <th style="width:180px;">Date Fetched</th>
+          <th style="width:220px;">File Upload</th>
+        </tr>
+      </thead>
+      <tbody>
+      <!-- add (or keep) the Bureau row — optional accept=".pdf" -->
+      <tr data-section="bureau">
+        <td>Bureau Data</td>
+        <td><button class="btn btn-primary js-fetch" data-section="bureau">Fetch</button></td>
+        <td id="status-bureau" class="muted">—</td>
+        <td id="date-fetched-bureau" class="muted">—</td>
+        <td>
+          <button class="btn js-upload" data-section="bureau">Upload</button>
+          <input type="file" class="file-input" data-section="bureau" style="display:none;" accept=".pdf">
+          <div class="file-name muted" data-section="bureau"></div>
+        </td>
+      </tr>
+
+  
+        <tr data-section="datablock">
+          <td>DataBlock</td>
+          <td><button class="btn btn-primary js-fetch" data-section="datablock">Fetch</button></td>
+          <td id="status-datablock" class="muted">—</td>
+          <td id="date-fetched-datablock" class="muted">—</td>
+          <td>
+            <button class="btn js-upload" data-section="datablock">Upload</button>
+            <input type="file" class="file-input" data-section="datablock" style="display:none;">
+            <div class="file-name muted" data-section="datablock"></div>
+          </td>
+        </tr>
+  
+        <tr data-section="company">
+          <td>Company Data</td>
+          <td><button class="btn btn-primary js-fetch" data-section="company">Fetch</button></td>
+          <td id="status-company" class="muted">—</td>
+          <td id="date-fetched-company" class="muted">—</td>
+          <td>
+            <button class="btn js-upload" data-section="company">Upload</button>
+            <input type="file" class="file-input" data-section="company" style="display:none;">
+            <div class="file-name muted" data-section="company"></div>
+          </td>
+        </tr>
+  
+        <tr data-section="bankstatements">
+          <td>Bank Statements</td>
+          <td><button class="btn btn-primary js-fetch" data-section="bankstatements">Fetch</button></td>
+          <td id="status-bankstatements" class="muted">—</td>
+          <td id="date-fetched-bankstatements" class="muted">—</td>
+          <td>
+            <button class="btn js-upload" data-section="bankstatements">Upload</button>
+            <input type="file" class="file-input" data-section="bankstatements" style="display:none;" accept=".json">
+            <div class="file-name muted" data-section="bankstatements"></div>
+          </td>
+        </tr>
+  
+        <tr data-section="accounting">
+          <td>Accounting Data</td>
+          <td><button class="btn btn-primary js-fetch" data-section="accounting">Fetch</button></td>
+          <td id="status-accounting-review" class="muted">—</td>
+          <td id="date-fetched-accounting-review" class="muted">—</td>
+          <td>
+            <button class="btn js-upload" data-section="accounting">Upload</button>
+            <input type="file" class="file-input" data-section="accounting" style="display:none;" accept=".csv">
+            <div class="file-name muted" data-section="accounting"></div>
+          </td>
+        </tr>
+  
+        <tr data-section="ppsr">
+          <td>PPSR Data</td>
+          <td><button class="btn btn-primary js-fetch" data-section="ppsr">Fetch</button></td>
+          <td id="status-ppsr" class="muted">—</td>
+          <td id="date-fetched-ppsr" class="muted">—</td>
+          <td>
+            <button class="btn js-upload" data-section="ppsr">Upload</button>
+            <input type="file" class="file-input" data-section="ppsr" style="display:none;" accept=".xml,.pdf">
+
+                 <div class="file-name muted" data-section="ppsr"></div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <script>
+  (function () {
+    // Template context
+    const abn        = "{{ abn|escapejs }}";
+    const tx         = "{{ tx|escapejs }}";
+    const originator = "{{ originator|escapejs }}";
+    const product    = "{{ product|escapejs }}";
+  
+    // Helpers
+    function getCookie(name) {
+      const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? decodeURIComponent(m.pop()) : '';
+    }
+    function setStatus(id, ok, msg) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = msg || (ok ? "Data fetched" : "Failed");
+      el.classList.remove('status-ok', 'status-err', 'muted');
+      el.classList.add(ok ? 'status-ok' : 'status-err');
+    }
+    function setWhen(id) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = new Date().toLocaleString();
+    }
+    function safeToken() {
+      const t = document.getElementById('bureau-token');
+      return (t && (t.dataset.token || t.textContent)) || "";
+    }
+  
+    // Try to hydrate extra details (optional BFF endpoint)
+    (async () => {
+      try {
+        const r = await fetch(window.urlSales(`apis/application-details?tx=${encodeURIComponent(tx)}`), { credentials: 'same-origin' });
+        if (!r.ok) return; // silently ignore if not implemented
+        const data = await r.json();
+        if (!data || !data.application) return;
+  
+        const a = data.application;
+        const assign = (id, v) => { const el = document.getElementById(id); if (el && v) { el.textContent = v; el.classList.remove('muted'); } };
+        assign('contact-name', a.contact_name);
+        assign('acn', a.acn);
+        assign('email', a.contact_email);
+        assign('application-time', a.application_time);
+        assign('product', a.product);
+        if (a.bureau_token) {
+          const bt = document.getElementById('bureau-token');
+          bt.textContent = a.bureau_token;
+          bt.dataset.token = a.bureau_token;
+          bt.classList.remove('muted');
+        }
+      } catch (_) {
+        /* no-op */
+      }
+    })();
+  
+    // Map section -> BFF endpoint (through /sales)
+    // If your URLs differ, adjust strings on the right only.
+    const API_BASE = "http://localhost:8017";
+    const digitsOnly = s => String(s || '').replace(/[^\d]/g, '');
+    const ABN_CLEAN  = digitsOnly(abn);
+
+    const FETCH_ENDPOINTS = {
+      bureau:        `${API_BASE}/apis/fetch-bureau-data/`,
+      datablock:     `${API_BASE}/apis/fetch-datablock-data/`,
+      company:       `${API_BASE}/apis/fetch-company-data/`,
+      bankstatements:`${API_BASE}/apis/fetch-bank-statements/`,
+      accounting:    `${API_BASE}/apis/fetch-accounting-data/`,
+      ppsr:          `${API_BASE}/apis/fetch-ppsr-data/`
+    };
+  
+    async function runFetch(section) {
+      const csrftoken = getCookie('csrftoken');
+
+      const bodyCommon = {
+        abn: ABN_CLEAN,
+        transaction_id: tx,
+        originator,
+        product,
+        bureau_token: safeToken()
+      };
+
+      const acnText   = document.getElementById('acn')?.textContent.trim() || '';
+      const ACN_CLEAN = digitsOnly(acnText);
+
+      const url = FETCH_ENDPOINTS[section];
+      let payload;
+
+      if (section === 'company') {
+        // ✅ Prefer ACN if available; otherwise use ABN
+        payload = ACN_CLEAN
+          ? { acn: ACN_CLEAN, ...bodyCommon }
+          : { abn: ABN_CLEAN, ...bodyCommon, id_type: 'ABN' };
+      } else if (section === 'ppsr') {
+        payload = { abn: ABN_CLEAN, originator, transaction_id: tx };
+      } else {
+        payload = bodyCommon;
+      }
+
+      const statusId = section === 'accounting' ? 'status-accounting-review' : `status-${section}`;
+      const dateId   = section === 'accounting' ? 'date-fetched-accounting-review' : `date-fetched-${section}`;
+      setStatus(statusId, true, 'Running…');
+
+      try {
+        let data = {};
+        if (section === 'bureau') {
+          const r = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+          });
+          data = await r.json().catch(() => ({}));
+
+          await fetch('http://localhost:8018/api/bureau/store-credit-report-data/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              transaction_id: tx,
+              abn,
+              product,
+              originator,
+              credit_report: data.credit_report || {},
+              credit_score:  data.credit_score  || {}
+            })
+          });
+        } else {
+          const r = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+          });
+          data = await r.json().catch(() => ({}));
+        }
+
+        const ok = (data && (data.success === undefined ? true : !!data.success));
+        setStatus(statusId, ok, ok ? 'Data stored' : (data.message || 'Failed'));
+        setWhen(dateId);
+      } catch (e) {
+        setStatus(statusId, false, 'Error');
+        setWhen(dateId);
+        console.error('Fetch error (' + section + '):', e);
+      }
+    }
+
+
+
+
+    // Wire all Fetch buttons (per row)
+    document.querySelectorAll('.js-fetch').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const section = btn.dataset.section;
+        if (!FETCH_ENDPOINTS[section]) return alert('Unknown section: ' + section);
+        runFetch(section);
+      });
+    });
+  
+    // Run all
+    document.getElementById('run-all')?.addEventListener('click', async () => {
+      const order = ['bureau','datablock','company','bankstatements','accounting','ppsr'];
+      for (const s of order) { // serial on purpose; change to Promise.all if your backend can handle concurrency
+        await runFetch(s);
+      }
+    });
+  
+    // Uploads
+    document.querySelectorAll('.js-upload').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const section = btn.dataset.section;
+        const input = document.querySelector(`.file-input[data-section="${section}"]`);
+        input && input.click();
+      });
+    });
+  
+    document.querySelectorAll('.file-input').forEach(input => {
+      input.addEventListener('change', async function () {
+        const section = this.dataset.section;
+        const file = this.files?.[0];
+        if (!file) return;
+
+        const csrftoken = getCookie('csrftoken');
+
+        const form = new FormData();
+        form.append('file', file);
+        form.append('abn', abn);
+        form.append('originator', originator);
+        form.append('transaction_id', tx);   // <-- IMPORTANT: page TX
+        if (section === 'accounting') form.append('data_type', 'ar_ledger');
+
+        const uploadMap = {
+          bureau:        'upload-bureau-data/',
+          bankstatements:'upload-bank-statements/',
+          accounting:    'upload-accounting-data/',
+          ppsr:          'upload-ppsr-data/'
+        };
+        const url = window.urlSales(uploadMap[section]);
+        const statusId = section === 'accounting' ? 'status-accounting-review' : `status-${section}`;
+        const dateId   = section === 'accounting' ? 'date-fetched-accounting-review' : `date-fetched-${section}`;
+  
+        setStatus(statusId, true, 'Uploading…');
+  
+        try {
+          const r = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken },
+            credentials: 'same-origin',
+            body: form
+          });
+          const data = await r.json().catch(() => ({}));
+          const ok = r.ok && !!data.success;
+          setStatus(statusId, ok, ok ? 'Upload successful' : (data.message || 'Upload failed'));
+          setWhen(dateId);
+        } catch (e) {
+          setStatus(statusId, false, 'Upload error');
+          setWhen(dateId);
+          console.error('Upload error ('+ section +'):', e);
+        }
+      });
+    });
+  
+    // Close button inside content (the modal also has an × in the shell)
+    document.getElementById('close-modal')?.addEventListener('click', () => {
+      if (typeof window.closeRemoteModal === 'function') window.closeRemoteModal();
+    });
+  })();
+  </script>
+  

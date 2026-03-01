@@ -1,0 +1,119 @@
+{% extends "efs_shared_ui/base.html" %}
+
+
+{% block title %}Loan Management System{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 id="originator-heading" style="flex-grow: 1;">
+        {% if selected_originator %}
+            {{ selected_originator.originator }} Loan Management System
+        {% else %}
+        Loan Management System for All Originators
+        {% endif %}
+    </h2>
+
+    <!-- Insert the JavaScript variable -->
+    <script type="text/javascript">
+        const selected_originator = "{{ selected_originator.originator }}";  // Ensure selected_originator is available in the template
+    </script>
+
+
+  {% load humanize %}
+
+
+
+
+   <!-- Centered Container for Loan Tiles Section -->
+   <div class="centered-container">
+       <div class="tile-container">
+   
+            <div class="tile">
+                <h3>SCF</h3>
+                <p>${{ remaining_amount|intcomma }}</p>
+            </div>
+            <div class="tile">
+                <h3>Invoice Finance</h3>
+                <p>${{ invoice_finance_remaining|intcomma }}</p>
+            </div>
+            <div class="tile">
+                <h3>Trade Finance</h3>
+                <p>${{ trade_finance_remaining|intcomma }}</p>
+            </div>
+            
+           <div class="tile">
+               <h3>Term Loan</h3>
+               <p>${{ 0|intcomma }}</p>
+           </div>
+           <div class="tile">
+               <h3>Overdraft</h3>
+               <p>${{ 0|intcomma }}</p>
+           </div>
+           <div class="tile">
+               <h3>Asset Finance</h3>
+               <p>${{ 0|intcomma }}</p>
+           </div>
+       </div>
+   </div>
+
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+   /* Centered Container */
+   .centered-container {
+       display: flex;
+       justify-content: center;
+       margin-top: 20px;
+   }
+
+   .tile-container {
+       display: flex;
+       flex-wrap: wrap;
+       justify-content: center;
+       gap: 20px; /* Adjusts spacing between tiles */
+       width: 100%; /* Use full width of the container */
+   }
+
+   .tile {
+       flex: 1 1 calc(30% - 20px); /* Adjust width dynamically, keeping gaps in mind */
+       background-color: #f4f4f4;
+       padding: 20px;
+       text-align: center;
+       border: 1px solid #ccc;
+       border-radius: 8px;
+       box-sizing: border-box; /* Include padding in width calculation */
+   }
+
+   .tile h3 {
+       margin-bottom: 10px;
+       font-size: calc(1rem + 0.5vw); /* Dynamic font size */
+   }
+
+   .tile p {
+       font-size: calc(1.2rem + 0.5vw); /* Dynamic font size for amounts */
+       font-weight: bold;
+   }
+
+   /* Responsive design for smaller screens */
+   @media (max-width: 768px) {
+       .tile {
+           flex: 1 1 calc(45% - 20px); /* Adjust to two columns */
+       }
+   }
+
+   @media (max-width: 480px) {
+       .tile {
+           flex: 1 1 100%; /* Full width for smaller screens */
+       }
+
+       .tile h3 {
+           font-size: 1rem; /* Smaller font size for headings */
+       }
+
+       .tile p {
+           font-size: 1.2rem; /* Smaller font size for amounts */
+       }
+   }
+</style>
+{% endblock %}

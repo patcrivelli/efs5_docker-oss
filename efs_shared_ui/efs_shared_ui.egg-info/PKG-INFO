@@ -1,0 +1,6 @@
+Metadata-Version: 2.4
+Name: efs-shared-ui
+Version: 0.1.0
+Summary: Shared sidebar/base templates and static for EFS services
+Requires-Python: >=3.10
+Requires-Dist: Django>=4.2

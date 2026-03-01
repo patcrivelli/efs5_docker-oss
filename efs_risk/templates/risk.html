@@ -1,0 +1,522 @@
+{% extends "efs_shared_ui/base.html" %}
+{% block title %}Risk{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;">
+  <h2 id="originator-heading" style="flex-grow:1;">
+    {% if selected_originator %}
+      {{ selected_originator.originator }} Risk
+    {% else %}
+      Risk for All Originators
+    {% endif %}
+  </h2>
+  <script>
+    const selected_originator = "{{ selected_originator.originator|default_if_none:'' }}";
+  </script>
+</div>
+
+<div class="main-tab-container">
+  <ul class="main-tabs">
+    <li class="main-tab-link active" data-tab="live-applications">Live Applications</li>
+    <li class="main-tab-link" data-tab="completed-applications">Completed Applications</li>
+  </ul>
+</div>
+
+<div style="margin:10px 0;">
+  <button onclick="creditAction()"     class="pill-btn">Credit</button>
+  <button onclick="bankAction()"       class="pill-btn">Bank</button>
+  <button onclick="financialAction()"  class="pill-btn">Financial</button>
+  <button onclick="ppsrAction()"       class="pill-btn">PPSR</button>
+  <button onclick="xSellAction()"      class="pill-btn">X-sell</button>
+  <button onclick="decisionAction()"   class="pill-btn">Decision</button>
+</div>
+
+<div id="live-applications" class="tab-content active">
+  <h3>Live Applications</h3>
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>ABN</th>
+        <th>Tasks</th>
+        <th>Transaction ID</th>
+        <th>Company Name</th>
+        <th>Originator</th>
+        <th>Credit Report</th>
+        <th>Date Submitted</th>
+        <th>State</th>
+        <th>Product</th>
+        <th>Terms</th>
+        <th>Decision</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for app in live_risk_review_applications %}
+      <tr class="application-row"
+          data-abn="{{ app.abn }}"
+          data-transaction-id="{{ app.transaction_id }}"
+          data-product="{{ app.product }}">
+        <td>{{ app.abn }}</td>
+        <td>
+          <button onclick="event.stopPropagation(); openTaskModal('{{ app.transaction_id }}','{{ app.abn }}','risk')"
+                  class="pill-btn">Tasks</button>
+        </td>
+        <td>{{ app.transaction_id }}</td>
+        <td>{{ app.contact_name|default:"—" }}</td>
+        <td>{{ app.originator|default:"—" }}</td>
+        <td>
+          <a href="#" onclick="event.preventDefault(); openCreditReportModal('{{ app.abn }}','{{ app.transaction_id }}')">
+            View report
+          </a>
+        </td>
+        <td>{{ app.application_time|date:"Y-m-d H:i" }}</td>
+        <td>{{ app.state }}</td>
+        <td>{{ app.product }}</td>
+        <td><a href="#">Terms</a></td>
+        <td>
+          <div class="decision-buttons">
+            <button onclick="event.stopPropagation(); approveAction('{{ app.transaction_id }}')" class="decision-button approve">Approve</button>
+            <button onclick="event.stopPropagation(); rejectAction('{{ app.transaction_id }}')"  class="decision-button reject">Reject</button>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="11">No live applications.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div id="completed-applications" class="tab-content">
+  <h3>Completed Applications</h3>
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>ABN</th>
+        <th>Tasks</th>
+        <th>Transaction ID</th>
+        <th>Company Name</th>
+        <th>Originator</th>
+        <th>Credit Report</th>
+        <th>Date Submitted</th>
+        <th>State</th>
+        <th>Product</th>
+        <th>Terms</th>
+        <th>Decision</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for app in completed_risk_review_applications %}
+      <tr class="application-row"
+          data-abn="{{ app.abn }}"
+          data-transaction-id="{{ app.transaction_id }}"
+          data-product="{{ app.product }}">
+        <td>{{ app.abn }}</td>
+        <td>
+          <button onclick="event.stopPropagation(); openTaskModal('{{ app.transaction_id }}','{{ app.abn }}','risk')"
+                  class="pill-btn">Tasks</button>
+        </td>
+        <td>{{ app.transaction_id }}</td>
+        <td>{{ app.contact_name|default:"—" }}</td>
+        <td>{{ app.originator|default:"—" }}</td>
+        <td>
+          <a href="#" onclick="event.preventDefault(); openCreditReportModal('{{ app.abn }}','{{ app.transaction_id }}')">
+            View report
+          </a>
+        </td>
+        <td>{{ app.application_time|date:"Y-m-d H:i" }}</td>
+        <td>{{ app.state }}</td>
+        <td>{{ app.product }}</td>
+        <td><a href="#">Terms</a></td>
+        <td><button disabled class="decision-button complete">Completed</button></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="11">No completed applications.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Credit Report Modal -->
+<div id="creditReportModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close" onclick="closeCreditReportModal()">&times;</span>
+    <h2>Credit Report for ABN: <span id="modal-abn"></span></h2>
+    <div id="credit-report-container">
+      <p>Loading credit report...</p>
+    </div>
+  </div>
+</div>
+
+<!-- Tasks Modal -->
+<div id="task-modal" class="modal" style="display:none;">
+  <div id="task-modal-content"></div>
+</div>
+
+
+<style>
+  .pill-btn{padding:6px 12px;background:#0e76a8;color:#fff;border:none;border-radius:4px;cursor:pointer;margin-left:10px;}
+</style>
+
+<script>
+  // --- CSRF helper (if not using @csrf_exempt) ---
+  function getCookie(name){
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+    return '';
+  }
+
+  // --- Custom alerts (same as your version) ---
+  function createModalOverlay(){ let o=document.getElementById('customModalOverlay'); if(!o){o=document.createElement('div'); o.id='customModalOverlay'; o.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.6);display:flex;justify-content:center;align-items:center;z-index:1000;'; document.body.appendChild(o);} return o;}
+  function showCustomAlert(message,cb=null){const o=createModalOverlay(); o.innerHTML=`<div style="background:#fff;padding:25px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.2);text-align:center;max-width:420px;"><p style="margin-bottom:20px;font-size:1.05em;">${message}</p><button id="customAlertOk" class="pill-btn" style="margin-left:0;">OK</button></div>`; document.getElementById('customAlertOk').onclick=function(){o.remove(); if(cb) cb();};}
+  function showCustomConfirm(message,onConfirm,onCancel=null){const o=createModalOverlay(); o.innerHTML=`<div style="background:#fff;padding:25px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.2);text-align:center;max-width:420px;"><p style="margin-bottom:20px;font-size:1.05em;">${message}</p><button id="customConfirmYes" class="pill-btn" style="background:#28a745;margin-right:12px;">Yes</button><button id="customConfirmNo" class="pill-btn" style="background:#dc3545;">No</button></div>`; document.getElementById('customConfirmYes').onclick=function(){o.remove(); onConfirm();}; document.getElementById('customConfirmNo').onclick=function(){o.remove(); if(onCancel) onCancel();};}
+
+  // --- Tabs ---
+  document.addEventListener("DOMContentLoaded", function () {
+    const tabs = document.querySelectorAll('.main-tab-link');
+    const contents = document.querySelectorAll('.tab-content');
+    tabs.forEach(t=>{
+      t.addEventListener('click', function(){
+        tabs.forEach(x=>x.classList.remove('active'));
+        contents.forEach(c=>c.classList.remove('active'));
+        this.classList.add('active');
+        document.getElementById(this.dataset.tab).classList.add('active');
+      });
+    });
+  });
+
+  // --- Button placeholders (optional) ---
+  function creditAction(){showCustomAlert("Credit Action triggered! (Placeholder)");}
+  function bankAction(){showCustomAlert("Bank Action triggered! (Placeholder)");}
+  function financialAction(){showCustomAlert("Financial Action triggered! (Placeholder)");}
+  function ppsrAction(){showCustomAlert("PPSR Action triggered! (Placeholder)");}
+  function xSellAction(){showCustomAlert("X-sell Action triggered! (Placeholder)");}
+  function decisionAction(){showCustomAlert("Decision Action triggered! (Placeholder)");}
+
+  // --- Approve / Reject -> your risk API ---
+  function approveAction(transactionId){
+    showCustomConfirm(`Approve transaction ${transactionId}?`, () => {
+      const headers = {'Content-Type':'application/json'};
+      const csrftoken = getCookie('csrftoken'); if (csrftoken) headers['X-CSRFToken']=csrftoken;
+      fetch('/api/approve_transaction/', {
+        method:'POST', headers, credentials:'same-origin',
+        body: JSON.stringify({transaction_id: transactionId, decision:'approve'})
+      })
+      .then(r=>r.ok?r.json():r.text().then(t=>Promise.reject({status:r.status,text:t})))
+      .then(()=>{ showCustomAlert('Approved.', ()=>window.location.reload()); })
+      .catch(err=>showCustomAlert('Approve failed: '+(err.text||err)));
+    });
+  }
+
+  function rejectAction(transactionId){
+    showCustomConfirm(`Reject transaction ${transactionId}?`, () => {
+      const headers = {'Content-Type':'application/json'};
+      const csrftoken = getCookie('csrftoken'); if (csrftoken) headers['X-CSRFToken']=csrftoken;
+      fetch('/api/approve_transaction/', {
+        method:'POST', headers, credentials:'same-origin',
+        body: JSON.stringify({transaction_id: transactionId, decision:'reject'})
+      })
+      .then(r=>r.ok?r.json():r.text().then(t=>Promise.reject({status:r.status,text:t})))
+      .then(()=>{ showCustomAlert('Rejected.', ()=>window.location.reload()); })
+      .catch(err=>showCustomAlert('Reject failed: '+(err.text||err)));
+    });
+  }
+
+  // --- Credit report modal (calls risk endpoint that returns normalized report JSON) ---
+  function openCreditReportModal(abn, tx){
+    document.getElementById('creditReportModal').style.display='block';
+    document.getElementById('modal-abn').textContent=abn;
+    const container = document.getElementById('credit-report-container');
+    container.innerHTML = '<p>Loading credit report...</p>';
+    fetch(`/api/credit-report?abn=${encodeURIComponent(abn)}`)
+      .then(r=>r.ok?r.json():Promise.reject(r))
+      .then(data=>{
+        container.innerHTML = `
+          <pre style="white-space:pre-wrap;text-wrap:wrap;border:1px solid #eee;padding:10px;border-radius:6px;background:#fafafa;">${JSON.stringify(data, null, 2)}</pre>
+        `;
+      })
+      .catch(()=>{ container.innerHTML = '<p style="color:#c00;">Failed to load report.</p>'; });
+  }
+  function closeCreditReportModal(){ document.getElementById('creditReportModal').style.display='none'; }
+
+  // --- Tasks modal (placeholder) ---
+  function openTaskModal(transactionId, abn, stage){
+  const modal = document.getElementById("task-modal");
+  const content = document.getElementById("task-modal-content");
+
+  // show immediately with loading state
+  modal.style.display = "flex";
+  content.innerHTML = `
+    <div class="modal-content">
+      <span class="close" onclick="closeTaskModal()">&times;</span>
+      <h3>Loading tasks...</h3>
+    </div>
+  `;
+
+  // ✅ BFF endpoint in efs_risk
+  const cleanAbn = (abn || "").normalize("NFKC").replace(/[^\d]/g, "");
+  const url = `/risk/modal/tasks/?abn=${encodeURIComponent(cleanAbn)}&tx=${encodeURIComponent(transactionId)}`;
+  
+  fetch(url, { credentials: "same-origin" })
+    .then(r => r.ok ? r.text() : r.text().then(t => Promise.reject({status: r.status, text: t})))
+    .then(html => {
+      content.innerHTML = html;
+
+      // Optional: if your modal HTML expects init
+      // const modalRoot = content.querySelector(".modal-content");
+      // if (modalRoot && window.initTasksModal) window.initTasksModal(modalRoot);
+    })
+    .catch(err => {
+      content.innerHTML = `
+        <div class="modal-content">
+          <span class="close" onclick="closeTaskModal()">&times;</span>
+          <h3>Failed to load tasks</h3>
+          <pre style="white-space:pre-wrap;">${(err && (err.text || err.status)) || err}</pre>
+        </div>
+      `;
+    });
+}
+
+function closeTaskModal(){
+  const modal = document.getElementById("task-modal");
+  const content = document.getElementById("task-modal-content");
+  modal.style.display = "none";
+  content.innerHTML = "";
+}
+
+  // --- Row click quick summary ---
+  function handleRowClick(row){
+
+  }
+
+  // Close modals when clicking outside
+  window.onclick = function(ev){
+  const tm = document.getElementById('task-modal');
+  const cr = document.getElementById('creditReportModal');
+  if (ev.target === cr) cr.style.display='none';
+  if (ev.target === tm) closeTaskModal();
+  };
+</script>
+
+
+
+
+
+
+
+
+
+<style>
+    /* Main Tab styling */
+    .main-tab-container {
+        margin-top: 20px;
+    }
+
+    .main-tabs {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .main-tabs li {
+        margin-right: 15px;
+        padding: 10px 20px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+        border-bottom: none;
+    }
+
+    .main-tabs li.active {
+        background-color: #f4f4f4;
+        border-top: 2px solid #333;
+        border-left: 2px solid #333;
+        border-right: 2px solid #333;
+    }
+
+    .tab-content {
+        display: none;
+        padding: 20px;
+        background-color: #f4f4f4;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Tab container and styles for modal */
+    .modal-tab-container { /* New class to distinguish from main tabs if needed */
+        margin-top: 20px;
+    }
+
+    .modal-tab-container .tabs { /* Reusing 'tabs' class but scoped */
+        list-style: none;
+        padding: 0;
+        display: flex;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .modal-tab-container .tabs li { /* Reusing 'tabs li' class but scoped */
+        margin-right: 15px;
+        padding: 10px 20px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+        border-bottom: none;
+    }
+
+    .modal-tab-container .tabs li.active { /* Reusing 'tabs li.active' class but scoped */
+        background-color: #f4f4f4;
+        border-top: 2px solid #333;
+        border-left: 2px solid #333;
+        border-right: 2px solid #333;
+    }
+
+    /* Modal styling */
+    .modal {
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+        display: flex; /* Use flexbox for centering */
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background-color: #fff;
+        margin: auto; /* Centering with auto margins when using flex */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 900px; /* Max width for better large-screen appearance */
+        border-radius: 8px; /* Rounded corners */
+        position: relative; /* For positioning the close button */
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2); /* Soft shadow */
+    }
+
+    .close {
+        color: #aaa;
+        float: right; /* Use absolute positioning for better control */
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute; /* Position relative to modal-content */
+        top: 10px;
+        right: 15px;
+        cursor: pointer;
+    }
+
+    .close:hover, .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Table styling - neutral greyscale theme */
+    .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .styled-table th,
+    .styled-table td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ddd;
+    }
+
+    .styled-table th {
+        background-color: #f2f2f2;  /* ✅ Grey header */
+        color: #333;
+        font-weight: 600;
+    }
+
+    .styled-table tr:nth-child(even) {
+        background-color: #fafafa;
+    }
+
+    .styled-table tr:hover {
+        background-color: #eee;
+    }
+    /* Ensure decision buttons are aligned horizontally */
+    .styled-table td .decision-button {
+        display: inline-block;
+        margin-right: 6px;
+        margin-bottom: 0;
+        padding: 5px 10px;
+        border: 1px solid #333;
+        background-color: white;
+        color: #333;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .styled-table td .decision-button:hover {
+        background-color: #f0f0f0;
+    }
+    /* Wrap decision buttons in a flexbox row */
+    .styled-table td .decision-buttons {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        justify-content: flex-start;
+        align-items: center;
+        white-space: nowrap;
+    }
+
+    /* Button appearance */
+    .styled-table td .decision-button {
+        padding: 5px 10px;
+        border: 1px solid #333;
+        background-color: white;
+        color: #333;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .styled-table td .decision-button:hover {
+        background-color: #f0f0f0;
+    }
+
+  /* Full-screen overlay */
+  #task-modal.modal {
+    position: fixed;
+    inset: 0;                       /* top/right/bottom/left = 0 */
+    background: rgba(0,0,0,.45);
+    display: none;                  /* becomes flex when opened */
+    justify-content: center;
+    align-items: center;
+    z-index: 5000;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+
+  /* Container that receives injected HTML */
+  #task-modal-content {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* The actual modal card coming from efs_agents */
+  #task-modal .modal-content {
+    width: min(1100px, 96vw);       /* ✅ this is what makes it look like screenshot 2 */
+    max-height: 92vh;
+    overflow: auto;
+    margin: 0 auto;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 18px 60px rgba(0,0,0,.25);
+  }
+</style>
+
+
+{% endblock %}
+

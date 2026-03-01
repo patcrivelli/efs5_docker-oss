@@ -1,0 +1,12 @@
+{% load nav %}
+<nav>
+  <ul>
+    <li class="{% is_active 'client' %}"><a href="{{ EFS_SERVICES.client }}/">Client</a></li>
+.content { flex:1; padding:24px; }
+    <li class="{% is_active 'sales' %}"><a href="{{ EFS_SERVICES.sales }}/">Sales</a></li>
+    <li class="{% is_active 'ops' %}"><a href="{{ EFS_SERVICES.ops }}/">Operations</a></li>
+    <li class="{% is_active 'risk' %}"><a href="{{ EFS_SERVICES.risk }}/">Risk</a></li>
+    <li class="{% is_active 'finance' %}"><a href="{{ EFS_SERVICES.finance }}/">Finance</a></li>
+    <li class="{% is_active 'lms' %}"><a href="{{ EFS_SERVICES.lms }}/">LMS</a></li>
+  </ul>
+</nav>

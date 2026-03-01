@@ -1,0 +1,3229 @@
+
+{% extends "efs_shared_ui/base.html" %}
+
+
+{% block title %}Sales{% endblock %}
+
+{% block content %}
+
+<!-- HEADER ROW (unchanged layout) -->
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 id="originator-heading" style="flex-grow: 1;">
+        {% if selected_originator %}
+            {{ selected_originator.originator }} Sales
+        {% else %}
+            Sales for All Originators
+        {% endif %}
+    </h2>
+
+    <button id="create-deal-btn"
+        onclick="openCreateDealModal()"
+        style="padding:8px 14px;background:#0e76a8;color:#fff;border:none;border-radius:6px;cursor:pointer;">
+        + Create deal
+    </button>
+
+    <form style="display:none">{% csrf_token %}</form>
+
+    <button id="link-entities-btn"
+        onclick="openLinkEntitiesModal()"
+        style="padding:8px 14px;background:#555;color:#fff;border:none;border-radius:6px;cursor:pointer;margin-left:8px;">
+        Link entities
+    </button>
+</div>
+
+<!-- HIDDEN MODAL (does NOT affect layout because it's position:fixed) -->
+<div id="linkEntitiesModal"
+     style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.35);">
+  <div style="max-width:720px;margin:60px auto;background:#fff;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.25);overflow:hidden;">
+    <div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;">
+      <h3 style="margin:0;">Link entities</h3>
+      <button onclick="closeLinkEntitiesModal()"
+              style="border:none;background:transparent;font-size:20px;cursor:pointer;">×</button>
+    </div>
+
+    <div style="padding:16px;">
+      <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+
+        <!-- === LEFT SIDE (A) === -->
+        <div style="flex:1;min-width:220px;">
+          <!-- dynamic label row: switch + label text -->
+          <div class="toggle-wrapper">
+            <label class="switch" title="Toggle ABN / ACN">
+              <!-- unchecked = ABN, checked = ACN -->
+              <input type="checkbox" id="toggle-abn-acn-a">
+              <div class="slider-pill">
+                <div class="slider-knob"></div>
+              </div>
+            </label>
+            <span id="label-abn-a-text" class="toggle-label-text">ABN (A)</span>
+          </div>
+
+          <select id="link-abn-a"
+                  style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;"></select>
+                  <div id="link-meta-a" style="margin-top:6px;color:#666;font-size:12px;"></div>
+
+        </div>
+
+        <div style="flex:1;min-width:180px;">
+          <label for="link-nature-a"
+                 style="display:block;font-weight:600;margin-bottom:6px;">Nature of link (A)</label>
+                 <select id="link-nature-a"
+                        style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;">
+                  <option value="trust">trust</option>
+                  <option value="trustee">trustee</option>
+                  <option value="shareholder">shareholder</option>
+                  <option value="cross_shareholder">cross shareholder</option>
+                  <option value="holding_company">parent company</option>
+                  <option value="subsidiary">subsidiary</option>
+                  <option value="cross_sell">cross sell</option>
+                  <option value="parent_company">parent company</option>
+                </select>
+        </div>
+
+        <div style="align-self:center;font-weight:700;">LINK</div>
+
+        <!-- === RIGHT SIDE (B) === -->
+        <div style="flex:1;min-width:220px;">
+          <!-- dynamic label row: switch + label text -->
+          <div class="toggle-wrapper">
+            <label class="switch" title="Toggle ABN / ACN">
+              <!-- unchecked = ABN, checked = ACN -->
+              <input type="checkbox" id="toggle-abn-acn-b">
+              <div class="slider-pill">
+                 <div class="slider-knob"></div>
+              </div>
+            </label>
+            <span id="label-abn-b-text" class="toggle-label-text">ABN (B)</span>
+          </div>
+
+          <select id="link-abn-b"
+                  style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;"></select>
+                  <div id="link-meta-b" style="margin-top:6px;color:#666;font-size:12px;"></div>
+
+        </div>
+
+        <div style="flex:1;min-width:180px;">
+          <label for="link-nature-b"
+                 style="display:block;font-weight:600;margin-bottom:6px;">Nature of link (B)</label>
+          <select id="link-nature-b"
+                  style="width:100%;padding:8px;border:1px solid #ccc;border-radius:6px;">
+                  <option value="trust">trust</option>
+                  <option value="trustee">trustee</option>
+                  <option value="shareholder">shareholder</option>
+                  <option value="cross_shareholder">cross shareholder</option>
+                  <option value="holding_company">parent company</option>
+                  <option value="subsidiary">subsidiary</option>
+                  <option value="cross_sell">cross sell</option>
+                  <option value="parent_company">parent company</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <small style="color:#666;">
+          Tip: both sides’ “nature of link” are saved independently—use the wording that best reflects each entity’s role.
+        </small>
+      </div>
+
+      <div style="margin-top:18px;display:flex;gap:10px;justify-content:flex-end;">
+        <button onclick="closeLinkEntitiesModal()"
+                style="padding:8px 14px;border:1px solid #ccc;border-radius:6px;background:#f6f6f6;cursor:pointer;">
+          Cancel
+        </button>
+        <button onclick="saveLinkEntities()"
+                style="padding:8px 14px;border:none;border-radius:6px;background:#0e76a8;color:#fff;cursor:pointer;">
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ⛔ NOTICE: no extra </div> here. We are done with that block. -->
+
+<!-- Tab bar stays exactly like before -->
+<div class="tab-container">
+    <ul class="tabs">
+        <li class="tab-link active" data-tab="tab-2">Review</li>
+        <li class="tab-link" data-tab="tab-3">Status</li>
+    </ul>
+</div>
+
+<!-- Linked Entities search row sits UNDER the tabs -->
+<div id="linked-search-row"
+     style="margin-top:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:flex-end;">
+  
+  <div style="display:flex; flex-direction:column;">
+    <label for="linked-abn-input"
+           style="font-weight:600;font-size:0.85rem;">
+      Find linked entities by ABN
+    </label>
+
+    <input id="linked-abn-input"
+           type="text"
+           placeholder=""
+           style="padding:6px 8px;border:1px solid #ccc;border-radius:6px;min-width:180px;">
+  </div>
+
+  <button onclick="searchLinkedEntities()"
+          style="padding:8px 14px;background:#0e76a8;color:#fff;border:none;border-radius:6px;cursor:pointer;">
+    Find Linked
+  </button>
+
+  <button onclick="showLinkedNetworkModal()"
+          style="padding:8px 14px;background:#444;color:#fff;border:none;border-radius:6px;cursor:pointer;">
+    Show Links
+  </button>
+</div>
+
+<!-- Inline summary panel -->
+<div id="linked-results"
+     style="margin-top:10px;padding:10px;border:1px solid #ddd;border-radius:6px;display:none;background:#fafafa;">
+</div>
+
+
+
+   
+<div id="tab-2" class="tab-content active">
+    <h3>Review</h3>
+    <div style="margin: 10px 0;">
+        <button onclick="creditAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            Credit
+        </button>
+        <button onclick="bankAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            Bank
+        </button>
+        <button onclick="financialAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            Financial
+        </button>
+        <button onclick="ppsrAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            PPSR
+        </button>
+        <button onclick="xSellAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            X-sell
+        </button>
+        <button onclick="decisionAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            Decision
+        </button>
+    </div>
+    <table>
+          <thead>
+            <tr>
+                <th>Data</th>
+                <th>Tasks</th>
+        
+                <!-- ✅ new columns -->
+                <th>Company</th>
+                <th>ABN</th>
+                <th>ACN</th>
+                <th>Credit Score</th>
+                <th>Bank Statements</th>
+                <th>Financials</th>
+                <th>PPSR</th>
+                <th>X-sell/Refer</th>
+                <th>Credit Decision</th>
+                <th>Terms</th>
+                <th>Product</th>
+                <th>Confirm/Review</th>
+            </tr>
+        </thead>
+
+
+        <tbody>
+
+         <!--   {# ============================ #
+             Invoice Finance / default
+             review_applications_with_scores
+             ============================ #}-->
+
+
+
+              <td>
+
+
+          {% for item in review_applications_with_scores %}
+          <tr class="application-row"
+              data-abn="{{ item.application.abn }}"
+              data-acn="{{ item.application.acn }}"
+              data-company-name="{{ item.application.company_name|default_if_none:'' }}"
+              data-originator-id="{{ item.application.originator_id }}"
+              data-originator-name="{{ item.application.originator }}"
+              data-product="{{ item.application.product }}"
+              data-score="{{ item.credit_score }}"
+              data-id="{{ item.application.transaction_id }}"
+              data-transaction-id="{{ item.application.transaction_id }}"
+              onclick="handleRowClick(this)">
+      
+              <!-- Data -->
+              <td>
+                  <button onclick="event.stopPropagation(); openApiModal(
+                      '{{ item.application.abn }}',
+                      '{{ item.application.transaction_id }}',
+                      '{{ item.application.originator }}',
+                      '{{ item.application.product }}'
+                  )">API's</button>
+              </td>
+      
+              <!-- Tasks -->
+              <td>
+                  <button onclick="event.stopPropagation(); openTaskModal('{{ item.application.transaction_id }}', '{{ item.application.abn }}')"
+                          style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                      Tasks
+                  </button>
+              </td>
+      
+              <!-- Company (NEW COLUMN 1) -->
+              <td>
+                  {{ item.application.company_name|default_if_none:"" }}
+              </td>
+      
+              <!-- ABN (NEW COLUMN 2) -->
+              <td>
+                  <a href="#"
+                     onclick="event.stopPropagation(); openModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                      {{ item.application.abn|default:"N/A" }}
+                  </a>
+              </td>
+      
+              <!-- ACN (NEW COLUMN 3) -->
+              <td>
+                  {{ item.application.acn|default_if_none:"" }}
+              </td>
+      
+              <!-- Credit Score -->
+              <td>
+                  <a href="#"
+                     class="credit-score-link"
+                     data-abn="{{ item.application.abn }}"
+                     data-tx="{{ item.application.transaction_id }}"
+                     onclick="event.stopPropagation(); openCreditScoreModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                     <span class="credit-score-text">{{ item.credit_score|default:"…" }}</span>
+                  </a>
+              </td>
+      
+              <!-- Bank Statements -->
+              <td>
+                <a href="#" onclick="event.stopPropagation(); openBankStatementsModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                  View Statements
+                  </a>
+              </td>
+      
+              <!-- Financials -->
+              <!-- Financials -->
+              <td>
+                {% if item.application.abn and item.application.abn != "na" %}
+                  <a href="#"
+                    onclick="event.stopPropagation(); openFinancialsModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                    View Financials
+                  </a>
+                {% elif item.application.acn %}
+                  <a href="#"
+                    onclick="event.stopPropagation(); openFinancialsModal('{{ item.application.acn }}', '{{ item.application.transaction_id }}')">
+                    View Financials
+                  </a>
+                {% else %}
+                  <a href="#"
+                    onclick="event.stopPropagation(); openFinancialsModal('', '{{ item.application.transaction_id }}')">
+                    View Financials
+                  </a>
+                {% endif %}
+              </td>
+              
+      
+              <!-- PPSR -->
+              <td>
+                  <a href="#" onclick="event.stopPropagation(); openPPSRModal('{{ item.application.transaction_id }}')">
+                      View PPSR
+                  </a>
+              </td>
+      
+              <!-- X-sell/Refer -->
+              <td>
+                  <button onclick="event.stopPropagation(); openXSellReferModal('{{ item.application.transaction_id }}')">
+                      x-sell
+                  </button>
+              </td>
+      
+              <!-- Credit Decision -->
+              <td>
+                  <a href="#"
+                     onclick="event.stopPropagation(); openCreditDecisionModal('{{ item.id }}', '{{ item.application.transaction_id }}')">
+                     Review Required
+                  </a>
+              </td>
+      
+              <!-- Terms -->
+              <td>
+                  <a href="#" class="terms-link">Terms</a>
+              </td>
+      
+              <!-- Product -->
+              <td>
+                  {{ item.application.product }}
+              </td>
+      
+              <!-- Confirm/Review -->
+              <td>
+                  <div style="display: flex; gap: 6px;">
+                      <button onclick="event.stopPropagation(); approveAction('{{ item.application.transaction_id }}')">Submit</button>
+                      <button onclick="event.stopPropagation(); deleteAction('{{ item.application.transaction_id }}', '{{ item.application.product }}', this)">Delete</button>
+                    </div>
+              </td>
+          </tr>
+          {% endfor %}
+      
+         <!-- 
+          {# ============================ #
+             Trade Finance
+             review_tf_applications_with_scores
+             ============================ #}--> 
+
+
+          {% for item in review_tf_applications_with_scores %}
+          <tr class="application-row"
+              data-abn="{{ item.application.abn }}"
+              data-acn="{{ item.application.acn }}"
+              data-company-name="{{ item.application.company_name|default_if_none:'' }}"
+              data-originator-id="{{ item.application.originator_id }}"
+              data-originator-name="{{ item.application.originator }}"
+              data-product="{{ item.application.product }}"
+              data-score="{{ item.credit_score }}"
+              data-id="{{ item.application.transaction_id }}"
+              data-transaction-id="{{ item.application.transaction_id }}"
+              onclick="handleRowClick(this)">
+      
+              <td>
+                  <button onclick="event.stopPropagation(); openApiModal(
+                      '{{ item.application.abn }}',
+                      '{{ item.application.transaction_id }}',
+                      '{{ item.application.originator }}',
+                      '{{ item.application.product }}'
+                  )">API's</button>
+              </td>
+      
+              <td>
+                  <button onclick="event.stopPropagation(); openTaskModal('{{ item.application.transaction_id }}', '{{ item.application.abn }}')"
+                          style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                      Tasks
+                  </button>
+              </td>
+      
+              <td>
+                  {{ item.application.company_name|default_if_none:"" }}
+              </td>
+      
+              <td>
+                  <a href="#"
+                     onclick="event.stopPropagation(); openModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                      {{ item.application.abn }}
+                  </a>
+              </td>
+      
+              <td>
+                  {{ item.application.acn|default_if_none:"" }}
+              </td>
+      
+              <td>
+                  <a href="#"
+                     class="credit-score-link"
+                     data-abn="{{ item.application.abn }}"
+                     data-tx="{{ item.application.transaction_id }}"
+                     onclick="event.stopPropagation(); openCreditScoreModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                     <span class="credit-score-text">{{ item.credit_score|default:"…" }}</span>
+                  </a>
+              </td>
+      
+              <td><a href="#" onclick="event.stopPropagation(); openBankStatementsModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">View Statements</a></td>
+              <td><a href="#" onclick="event.stopPropagation(); openFinancialsModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">View Financials</a></td>
+              <td><a href="#" onclick="event.stopPropagation(); openPPSRModal('{{ item.application.transaction_id }}')">View PPSR</a></td>
+              <td><button onclick="event.stopPropagation(); openXSellReferModal('{{ item.application.transaction_id }}')">x-sell</button></td>
+              <td><a href="#" onclick="event.stopPropagation(); openCreditDecisionModal('{{ item.id }}', '{{ item.application.transaction_id }}')">Review Required</a></td>
+              <td><a href="#" class="terms-link">Terms</a></td>
+              <td>{{ item.application.product }}</td>
+              <td>
+                  <div style="display: flex; gap: 6px;">
+                      <button onclick="event.stopPropagation(); approveAction('{{ item.application.transaction_id }}')">Submit</button>
+                      <button onclick="event.stopPropagation(); deleteAction('{{ item.application.transaction_id }}', '{{ item.application.product }}', this)">Delete</button>
+                    </div>
+              </td>
+          </tr>
+          {% endfor %}
+      
+      
+           <!--   {# ============================ #
+             SCF
+             review_scf_applications_with_scores
+             ============================ #}   ---> 
+
+
+
+          {% for item in review_scf_applications_with_scores %}
+          <tr class="application-row"
+              data-abn="{{ item.application.abn }}"
+              data-acn="{{ item.application.acn }}"
+              data-company-name="{{ item.application.company_name|default_if_none:'' }}"
+              data-originator-id="{{ item.application.originator_id }}"
+              data-originator-name="{{ item.application.originator }}"
+              data-product="{{ item.application.product }}"
+              data-score="{{ item.credit_score }}"
+              data-id="{{ item.application.transaction_id }}"
+              data-transaction-id="{{ item.application.transaction_id }}"
+              onclick="handleRowClick(this)">
+      
+              <td>
+                  <button onclick="event.stopPropagation(); openApiModal(
+                      '{{ item.application.abn }}',
+                      '{{ item.application.transaction_id }}',
+                      '{{ item.application.originator }}',
+                      '{{ item.application.product }}'
+                  )">API's</button>
+              </td>
+      
+              <td>
+                  <button onclick="event.stopPropagation(); openTaskModal('{{ item.application.transaction_id }}', '{{ item.application.abn }}')"
+                          style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                      Tasks
+                  </button>
+              </td>
+      
+              <td>
+                  {{ item.application.company_name|default_if_none:"" }}
+              </td>
+      
+              <td>
+                  <a href="#"
+                     onclick="event.stopPropagation(); openModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                      {{ item.application.abn }}
+                  </a>
+              </td>
+      
+              <td>
+                  {{ item.application.acn|default_if_none:"" }}
+              </td>
+      
+              <td>
+                  <a href="#"
+                     class="credit-score-link"
+                     data-abn="{{ item.application.abn }}"
+                     data-tx="{{ item.application.transaction_id }}"
+                     onclick="event.stopPropagation(); openCreditScoreModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                     <span class="credit-score-text">{{ item.credit_score|default:"…" }}</span>
+                  </a>
+              </td>
+      
+              <td><a href="#" onclick="event.stopPropagation(); openBankStatementsModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">View Statements</a></td>
+              <td><a href="#" onclick="event.stopPropagation(); openFinancialsModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">View Financials</a></td>
+              <td><a href="#" onclick="event.stopPropagation(); openPPSRModal('{{ item.application.transaction_id }}')">View PPSR</a></td>
+              <td><button onclick="event.stopPropagation(); openXSellReferModal('{{ item.application.transaction_id }}')">x-sell</button></td>
+              <td><a href="#" onclick="event.stopPropagation(); openCreditDecisionModal('{{ item.id }}', '{{ item.application.transaction_id }}')">Review Required</a></td>
+              <td><a href="#" class="terms-link">Terms</a></td>
+              <td>{{ item.application.product }}</td>
+              <td>
+                  <div style="display: flex; gap: 6px;">
+                      <button onclick="event.stopPropagation(); approveAction('{{ item.application.transaction_id }}')">Submit</button>
+                      <button onclick="event.stopPropagation(); deleteAction('{{ item.application.transaction_id }}', '{{ item.application.product }}', this)">Delete</button>
+                    </div>
+              </td>
+          </tr>
+          {% endfor %}
+      
+      
+            <!--  # ============================ #
+             IPF
+             review_ipf_applications_with_scores
+             ============================ #  --> 
+
+          {% for item in review_ipf_applications_with_scores %}
+          <tr class="application-row"
+              data-abn="{{ item.application.abn }}"
+              data-acn="{{ item.application.acn }}"
+              data-company-name="{{ item.application.company_name|default_if_none:'' }}"
+              data-originator-id="{{ item.application.originator_id }}"
+              data-originator-name="{{ item.application.originator }}"
+              data-product="{{ item.application.product }}"
+              data-score="{{ item.credit_score }}"
+              data-id="{{ item.application.transaction_id }}"
+              data-transaction-id="{{ item.application.transaction_id }}"
+              onclick="handleRowClick(this)">
+      
+              <td>
+                  <button onclick="event.stopPropagation(); openApiModal(
+                      '{{ item.application.abn }}',
+                      '{{ item.application.transaction_id }}',
+                      '{{ item.application.originator }}',
+                      '{{ item.application.product }}'
+                  )">API's</button>
+              </td>
+      
+              <td>
+                  <button onclick="event.stopPropagation(); openTaskModal('{{ item.application.transaction_id }}', '{{ item.application.abn }}')"
+                          style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                      Tasks
+                  </button>
+              </td>
+      
+              <td>
+                  {{ item.application.company_name|default_if_none:"" }}
+              </td>
+      
+              <td>
+                  <a href="#"
+                     onclick="event.stopPropagation(); openModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                      {{ item.application.abn }}
+                  </a>
+              </td>
+      
+              <td>
+                  {{ item.application.acn|default_if_none:"" }}
+              </td>
+      
+              <td>
+                  <a href="#"
+                     class="credit-score-link"
+                     data-abn="{{ item.application.abn }}"
+                     data-tx="{{ item.application.transaction_id }}"
+                     onclick="event.stopPropagation(); openCreditScoreModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                     <span class="credit-score-text">{{ item.credit_score|default:"…" }}</span>
+                  </a>
+              </td>
+      
+              <td><a href="#" onclick="event.stopPropagation(); openBankStatementsModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">View Statements</a></td>
+              <td><a href="#" onclick="event.stopPropagation(); openFinancialsModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">View Financials</a></td>
+              <td><a href="#" onclick="event.stopPropagation(); openPPSRModal('{{ item.application.transaction_id }}')">View PPSR</a></td>
+              <td><button onclick="event.stopPropagation(); openXSellReferModal('{{ item.application.transaction_id }}')">x-sell</button></td>
+              <td><a href="#" onclick="event.stopPropagation(); openCreditDecisionModal('{{ item.id }}', '{{ item.application.transaction_id }}')">Review Required</a></td>
+              <td><a href="#" class="terms-link">Terms</a></td>
+              <td>{{ item.application.product }}</td>
+              <td>
+                  <div style="display: flex; gap: 6px;">
+                      <button onclick="event.stopPropagation(); approveAction('{{ item.application.transaction_id }}')">Submit</button>
+                      <button onclick="event.stopPropagation(); deleteAction('{{ item.application.transaction_id }}', '{{ item.application.product }}', this)">Delete</button>
+                    </div>
+              </td>
+          </tr>
+          {% endfor %}
+      
+      
+          {# --- after the 4 for-loops --- #}
+
+          {% if review_applications_with_scores %}
+          {% elif review_tf_applications_with_scores %}
+          {% elif review_scf_applications_with_scores %}
+          {% elif review_ipf_applications_with_scores %}
+              {# at least one list has data, so nothing to add #}
+          {% else %}
+              <tr>
+                  <td colspan="14">No applications available in the "Review" tab.</td>
+              </tr>
+          {% endif %}
+      </tbody>
+      
+      
+
+
+    </table>
+</div>
+
+<div id="tab-3" class="tab-content">
+    <h3>Status</h3>
+    <div style="margin: 10px 0;">
+        <button onclick="creditActionStatus()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            Credit
+        </button>
+        <button onclick="bankAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            Bank
+        </button>
+        <button onclick="financialAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            Financial
+        </button>
+        <button onclick="ppsrActionStatus()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            PPSR
+        </button>
+        <button onclick="xSellAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            X-sell
+        </button>
+        <button onclick="decisionAction()" style="padding: 6px 12px; background-color: #0e76a8; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+            Decision
+        </button>
+    </div>
+    <table>
+          <thead>
+            <tr>
+                <th>Company</th>
+                <th>ABN</th>
+                <th>ACN</th>
+                <th>Credit Score</th>
+                <th>Bank Statements</th>
+                <th>Financials</th>
+                <th>PPSR</th>
+                <th>X-sell/Refer</th>
+                <th>Terms</th>
+                <th>Product</th>
+                <th>Credit Decision</th>
+            </tr>
+        </thead>
+    
+        <tbody>
+            {% if approved_applications_with_scores or approved_tf_applications_with_scores or approved_scf_applications_with_scores %}
+                
+                {# ✅ Standard Invoice Finance Applications #}
+                {% for item in approved_applications_with_scores %}
+                <tr class="status-application-row"
+                    data-abn="{{ item.application.abn }}"
+                    data-acn="{{ item.application.acn }}"
+                    data-company-name="{{ item.application.company_name|default_if_none:'' }}"
+                    data-product="{{ item.application.product }}"
+                    data-score="{{ item.credit_score }}"
+                    data-id="{{ item.application.transaction_id }}"
+                    onclick="handleRowClick(this)">
+                
+                    <!-- ✅ Company -->
+                    <td class="table-company">
+                        {{ item.application.company_name|default_if_none:"" }}
+                    </td>
+                
+                    <!-- ✅ ABN -->
+                    <td class="table-abn">
+                        <a href="#" onclick="openModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                            {{ item.application.abn }}
+                        </a>
+                    </td>
+                
+                    <!-- ✅ ACN -->
+                    <td class="table-acn">
+                        {{ item.application.acn|default_if_none:"" }}
+                    </td>
+                
+                    <!-- Credit Score -->
+                    <td>
+                        <a href="#"
+                          class="credit-score-link"
+                          data-abn="{{ item.application.abn }}"
+                          data-tx="{{ item.application.transaction_id }}"
+                          onclick="event.stopPropagation(); openCreditScoreModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                          <span class="credit-score-text">{{ item.credit_score|default:"…" }}</span>
+                        </a>
+                    </td>
+                
+                    <td><a href="#" onclick="openBankStatementsModal('{{ item.application.abn }}')">View Statements</a></td>
+                    <td><a href="#" onclick="openFinancialsModal('{{ item.application.abn }}')">View Financials</a></td>
+                    <td><a href="#" onclick="openPPSRModal('{{ item.application.transaction_id }}')">View PPSR</a></td>
+                    <td><button onclick="openXSellReferModal('{{ item.application.transaction_id }}')">x-sell</button></td>
+                    <td><a href="#" class="terms-link">Terms</a></td>
+                    <td>{{ item.application.product }}</td>
+                    <td>
+                        <a href="#" onclick="openCreditDecisionModal('{{ item.id }}', '{{ item.application.transaction_id }}')">
+                            Review Required
+                        </a>
+                    </td>
+                </tr>
+            
+                {% endfor %}
+        
+                {# ✅ Trade Finance Applications #}
+                {% for item in approved_tf_applications_with_scores %}
+                <tr class="status-application-row"
+                    data-abn="{{ item.application.abn }}"
+                    data-acn="{{ item.application.acn }}"
+                    data-company-name="{{ item.application.company_name|default_if_none:'' }}"
+                    data-product="{{ item.application.product }}"
+                    data-score="{{ item.credit_score }}"
+                    data-id="{{ item.application.transaction_id }}"
+                    onclick="handleRowClick(this)">
+                
+                    <!-- ✅ Company -->
+                    <td class="table-company">
+                        {{ item.application.company_name|default_if_none:"" }}
+                    </td>
+                
+                    <!-- ✅ ABN -->
+                    <td class="table-abn">
+                        <a href="#" onclick="openModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                            {{ item.application.abn }}
+                        </a>
+                    </td>
+                
+                    <!-- ✅ ACN -->
+                    <td class="table-acn">
+                        {{ item.application.acn|default_if_none:"" }}
+                    </td>
+                
+                    <!-- Credit Score -->
+                    <td>
+                        <a href="#"
+                          class="credit-score-link"
+                          data-abn="{{ item.application.abn }}"
+                          data-tx="{{ item.application.transaction_id }}"
+                          onclick="event.stopPropagation(); openCreditScoreModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                          <span class="credit-score-text">{{ item.credit_score|default:"…" }}</span>
+                        </a>
+                    </td>
+                
+                    <td><a href="#" onclick="openBankStatementsModal('{{ item.application.abn }}')">View Statements</a></td>
+                    <td><a href="#" onclick="openFinancialsModal('{{ item.application.abn }}')">View Financials</a></td>
+                    <td><a href="#" onclick="openPPSRModal('{{ item.application.transaction_id }}')">View PPSR</a></td>
+                    <td><button onclick="openXSellReferModal('{{ item.application.transaction_id }}')">x-sell</button></td>
+                    <td><a href="#" class="terms-link">Terms</a></td>
+                    <td>{{ item.application.product }}</td>
+                    <td>
+                        <a href="#" onclick="openCreditDecisionModal('{{ item.id }}', '{{ item.application.transaction_id }}')">
+                            Review Required
+                        </a>
+                    </td>
+                </tr>
+                
+                {% endfor %}
+
+                {# ✅ SCF Applications #}
+                {% for item in approved_scf_applications_with_scores %}
+                <tr class="status-application-row"
+                    data-abn="{{ item.application.abn }}"
+                    data-acn="{{ item.application.acn }}"
+                    data-company-name="{{ item.application.company_name|default_if_none:'' }}"
+                    data-product="{{ item.application.product }}"
+                    data-score="{{ item.credit_score }}"
+                    data-id="{{ item.application.transaction_id }}"
+                    onclick="handleRowClick(this)">
+                
+                    <!-- ✅ Company -->
+                    <td class="table-company">
+                        {{ item.application.company_name|default_if_none:"" }}
+                    </td>
+                
+                    <!-- ✅ ABN -->
+                    <td class="table-abn">
+                        <a href="#" onclick="openModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                            {{ item.application.abn }}
+                        </a>
+                    </td>
+                
+                    <!-- ✅ ACN -->
+                    <td class="table-acn">
+                        {{ item.application.acn|default_if_none:"" }}
+                    </td>
+                
+                    <!-- Credit Score -->
+                    <td>
+                        <a href="#"
+                          class="credit-score-link"
+                          data-abn="{{ item.application.abn }}"
+                          data-tx="{{ item.application.transaction_id }}"
+                          onclick="event.stopPropagation(); openCreditScoreModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                          <span class="credit-score-text">{{ item.credit_score|default:"…" }}</span>
+                        </a>
+                    </td>
+                
+                    <td><a href="#" onclick="openBankStatementsModal('{{ item.application.abn }}')">View Statements</a></td>
+                    <td><a href="#" onclick="openFinancialsModal('{{ item.application.abn }}')">View Financials</a></td>
+                    <td><a href="#" onclick="openPPSRModal('{{ item.application.transaction_id }}')">View PPSR</a></td>
+                    <td><button onclick="openXSellReferModal('{{ item.application.transaction_id }}')">x-sell</button></td>
+                    <td><a href="#" class="terms-link">Terms</a></td>
+                    <td>{{ item.application.product }}</td>
+                    <td>
+                        <a href="#" onclick="openCreditDecisionModal('{{ item.id }}', '{{ item.application.transaction_id }}')">
+                            Review Required
+                        </a>
+                    </td>
+                </tr>
+            
+                {% endfor %}
+
+                {% for item in approved_ipf_applications_with_scores %}
+                <tr class="status-application-row"
+                    data-abn="{{ item.application.abn }}"
+                    data-acn="{{ item.application.acn }}"
+                    data-company-name="{{ item.application.company_name|default_if_none:'' }}"
+                    data-product="{{ item.application.product }}"
+                    data-score="{{ item.credit_score }}"
+                    data-id="{{ item.application.transaction_id }}"
+                    onclick="handleRowClick(this)">
+                
+                    <!-- ✅ Company -->
+                    <td class="table-company">
+                        {{ item.application.company_name|default_if_none:"" }}
+                    </td>
+                
+                    <!-- ✅ ABN -->
+                    <td class="table-abn">
+                        <a href="#" onclick="openModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                            {{ item.application.abn }}
+                        </a>
+                    </td>
+                
+                    <!-- ✅ ACN -->
+                    <td class="table-acn">
+                        {{ item.application.acn|default_if_none:"" }}
+                    </td>
+                
+                    <!-- Credit Score -->
+                    <td>
+                        <a href="#"
+                          class="credit-score-link"
+                          data-abn="{{ item.application.abn }}"
+                          data-tx="{{ item.application.transaction_id }}"
+                          onclick="event.stopPropagation(); openCreditScoreModal('{{ item.application.abn }}', '{{ item.application.transaction_id }}')">
+                          <span class="credit-score-text">{{ item.credit_score|default:"…" }}</span>
+                        </a>
+                    </td>
+                
+                    <td><a href="#" onclick="openBankStatementsModal('{{ item.application.abn }}')">View Statements</a></td>
+                    <td><a href="#" onclick="openFinancialsModal('{{ item.application.abn }}')">View Financials</a></td>
+                    <td><a href="#" onclick="openPPSRModal('{{ item.application.transaction_id }}')">View PPSR</a></td>
+                    <td><button onclick="openXSellReferModal('{{ item.application.transaction_id }}')">x-sell</button></td>
+                    <td><a href="#" class="terms-link">Terms</a></td>
+                    <td>{{ item.application.product }}</td>
+                    <td>
+                        <a href="#" onclick="openCreditDecisionModal('{{ item.id }}', '{{ item.application.transaction_id }}')">
+                            Review Required
+                        </a>
+                    </td>
+                </tr>
+            
+                {% endfor %}
+                
+
+
+
+        
+            {% else %}
+                <tr>
+                    <td colspan="9">No applications available in the "Status" tab.</td>
+                </tr>
+            {% endif %}
+        </tbody>
+        
+    </table>
+</div>
+    
+</div>
+
+
+<script>
+  // Sales BFF → efs_agents orchestration endpoint for all agent tasks
+  const RUN_AGENT_URL = window.urlSales
+    ? window.urlSales('run-agent-analysis/')
+    : '/sales/run-agent-analysis/';   // fallback if urlSales isn't set yet
+</script>
+
+
+
+<!-- Base URL + helper (uses a guaranteed route) -->
+<script>
+    window.EFS = window.EFS || {};
+
+    // Use Django's url tag to anchor the sales root
+    window.EFS.SALES_PREFIX = "{% url 'sales_home' %}".replace(/\/+$/,'');
+
+    window.urlSales = function (path) {
+      const base = (window.EFS && window.EFS.SALES_PREFIX) || "";
+      // Always ensure single slash join
+      return base + "/" + String(path || "").replace(/^\/+/, '');
+    };
+
+    console.log("SALES_PREFIX ->", window.EFS.SALES_PREFIX || "/");
+
+    // expose the selected originator globally (safe for JS)
+    window.selected_originator = "{{ selected_originator.originator|default_if_none:''|escapejs }}";
+</script>
+
+
+<script>
+    // Existing globals…
+    window.EFS = window.EFS || {};
+    window.EFS.SALES_PREFIX = "{% url 'sales_home' %}".replace(/\/+$/,'');
+    window.urlSales = function (path) {
+      const base = (window.EFS && window.EFS.SALES_PREFIX) || "";
+      return base + "/" + String(path || "").replace(/^\/+/, '');
+    };
+    window.selected_originator = "{{ selected_originator.originator|default_if_none:''|escapejs }}";
+  
+    // 👇 Add THIS line (use your Django context or hardcode during dev)
+    window.EFS.DATA_BUREAU_BASE = "{{ EFS_SERVICES.data_bureau|default:'http://localhost:8018' }}";
+  
+    console.log("DATA_BUREAU_BASE ->", window.EFS.DATA_BUREAU_BASE);
+  </script>
+  
+  
+<!-- Generic remote modal + openers that call local BFF endpoints -->
+<script>
+    function _ensureRemoteRoot() {
+      let el = document.getElementById('remote-modal');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'remote-modal';
+        el.innerHTML = `
+          <div id="remote-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,.35)"></div>
+          <div id="remote-card" style="position:fixed;inset:5% 10%;background:#fff;border-radius:8px;overflow:auto">
+            <button onclick="closeRemoteModal()" style="position:absolute;top:8px;right:12px">×</button>
+            <div id="remote-content" style="padding:16px"></div>
+          </div>`;
+        document.body.appendChild(el);
+        document.getElementById('remote-backdrop').onclick = closeRemoteModal;
+      }
+      return el;
+    }
+  
+    function showRemoteModal(html) {
+      _ensureRemoteRoot();
+      document.getElementById('remote-content').innerHTML = html;
+    }
+  
+    function closeRemoteModal() {
+      const el = document.getElementById('remote-modal');
+      if (el) el.remove();
+    }
+  
+    // Enhanced: executes scripts and supports optional callback
+    async function openRemoteModal(url, after) {
+      try {
+        const r = await fetch(url, { credentials: 'include' });
+        const html = await r.text();
+  
+        _ensureRemoteRoot();
+        const content = document.getElementById('remote-content');
+        content.innerHTML = html;
+  
+        // Execute any <script> tags in the injected HTML (in order)
+        const scripts = Array.from(content.querySelectorAll('script'));
+        for (const old of scripts) {
+          const s = document.createElement('script');
+          if (old.src) {
+            s.src = old.src;
+            s.async = false;
+          } else {
+            s.textContent = old.textContent;
+          }
+          old.replaceWith(s);
+          if (s.src) {
+            // wait until external scripts load
+            await new Promise(res => { s.onload = s.onerror = res; });
+          }
+        }
+  
+        if (typeof after === 'function') after();
+      } catch (e) {
+        showRemoteModal('<p style="color:#b00">Failed to load content.</p>');
+        console.error(e);
+      }
+    }
+  
+    // Keep your UI unchanged—these hit efs_sales (BFF), which proxies to split services
+    function openApiModal(abn, txId, originator, product) {
+      openRemoteModal(urlSales(`modal/apis?abn=${encodeURIComponent(abn)}&tx=${encodeURIComponent(txId)}&originator=${encodeURIComponent(originator)}&product=${encodeURIComponent(product)}`));
+    }
+
+    function openCreditScoreModal(abn, txId) {
+      openRemoteModal(urlSales(`modal/credit-score?abn=${encodeURIComponent(abn)}&tx=${encodeURIComponent(txId)}`));
+    }
+
+
+
+    function openXSellReferModal(txId) {
+      openRemoteModal(urlSales(`modal/x-sell?tx=${encodeURIComponent(txId)}`));
+    }
+
+  </script>
+
+
+  <script>
+  // tiny safe helpers that don't require the global functions to exist
+  function _safeCloseRemoteModal() {
+    // use global if present
+    if (typeof window.closeRemoteModal === 'function') return window.closeRemoteModal();
+    // else do a local clean-up
+    const el = document.getElementById('remote-modal');
+    if (el) el.remove();
+  }
+  function _safeShowRemoteError(html) {
+    if (typeof window.showRemoteModal === 'function') return window.showRemoteModal(html);
+    // make a minimal shell to show the error
+    let shell = document.getElementById('remote-modal');
+    if (!shell) {
+      shell = document.createElement('div');
+      shell.id = 'remote-modal';
+      shell.innerHTML = `
+        <div id="remote-backdrop" style="position:fixed;inset:0;background:rgba(0,0,0,.35)"></div>
+        <div id="remote-card" style="position:fixed;inset:5% 10%;background:#fff;border-radius:8px;overflow:auto">
+          <button id="remote-close" style="position:absolute;top:8px;right:12px">×</button>
+          <div id="remote-content" style="padding:16px"></div>
+        </div>`;
+      document.body.appendChild(shell);
+      shell.querySelector('#remote-close').onclick =
+        shell.querySelector('#remote-backdrop').onclick = () => shell.remove();
+    }
+    const content = document.getElementById('remote-content');
+    content.innerHTML = html;
+  }
+
+  // ABN modal opener (standalone loader)
+  async function openModal(abn, txId) {
+    try {
+      const url = urlSales(`modal/abn?abn=${encodeURIComponent(abn)}&tx=${encodeURIComponent(txId)}`);
+      const r = await fetch(url, { credentials: 'include' });
+      const html = await r.text();
+
+      // never stack two shells
+      _safeCloseRemoteModal();
+
+      // drop any previous instance of the ABN modal fragment
+      document.getElementById('detailsModal')?.remove();
+
+      // parse incoming HTML
+      const tmp = document.createElement('div');
+      tmp.innerHTML = html;
+
+      // if the fragment contains the actual modal, mount it to <body>
+      const modal = tmp.querySelector('#detailsModal');
+      if (modal) {
+        document.body.appendChild(modal);
+
+        // execute any <script> tags in the fragment (in order)
+        const scripts = tmp.querySelectorAll('script');
+        for (const old of scripts) {
+          const s = document.createElement('script');
+          if (old.src) {
+            s.src = old.src; s.async = false; document.head.appendChild(s);
+            await new Promise(res => { s.onload = s.onerror = res; });
+          } else {
+            s.textContent = old.textContent; document.head.appendChild(s);
+          }
+        }
+
+        // call the fragment’s initializer (we standardized it to openABNModal)
+        const init = window.openABNModal || window.openABNModalInternal;
+        if (typeof init === 'function') {
+          init(abn, txId);
+        } else {
+          // as a last resort, just show the modal element
+          modal.style.display = 'flex';
+        }
+        return;
+      }
+
+      // if no #detailsModal was found, just show the HTML inside a shell
+      _safeShowRemoteError(html);
+    } catch (e) {
+      console.error('Failed to open ABN modal:', e);
+      _safeShowRemoteError('<p style="color:#b00">Failed to load ABN modal.</p>');
+    }
+  }
+</script>
+
+
+<!-- efs_sales/templates/sales.html -->
+<script>
+async function openBankStatementsModal(abn, txId) {
+  const selfRef = window.openBankStatementsModal;
+
+  try {
+    const cleanABN = s => String(s || '').replace(/[^\d]/g, '');
+    const safeAbn  = cleanABN(abn);
+
+    // include tx in querystring (optional but useful)
+    const qs = new URLSearchParams();
+    if (safeAbn) qs.set('abn', safeAbn);
+    if (txId)    qs.set('tx',  txId);
+
+    const url = urlSales(`modal/bank-statements?${qs.toString()}`);
+    console.log("Fetching Bank Statements modal from:", url);
+
+    const r = await fetch(url, { credentials: 'include' });
+    const html = await r.text();
+
+    document.getElementById('bankStatementsModal')?.remove();
+
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    const modal = tmp.querySelector('#bankStatementsModal');
+    if (modal) {
+      document.body.appendChild(modal);
+      modal.setAttribute('aria-hidden', 'false');
+    }
+
+    // Execute fragment scripts
+    const scripts = tmp.querySelectorAll('script');
+    for (const old of scripts) {
+      const s = document.createElement('script');
+      if (old.src) {
+        s.src = old.src; s.async = false; document.head.appendChild(s);
+        await new Promise(res => { s.onload = s.onerror = res; });
+      } else {
+        s.textContent = old.textContent; document.head.appendChild(s);
+      }
+    }
+
+    // Hand over to fragment initializer (now pass tx too)
+    if (window.openBankStatementsModal && window.openBankStatementsModal !== selfRef) {
+      return window.openBankStatementsModal(safeAbn, txId);
+    }
+
+    if (modal) modal.style.display = 'flex';
+  } catch (e) {
+    console.error('Failed to load Bank Statements modal:', e);
+  }
+}
+
+  </script>
+  
+  
+
+
+
+  <script>
+    // Loader that avoids the outer "remote shell" and mounts the real PPSR modal
+    async function openPPSRModal(txId) {
+      const selfRef = window.openPPSRModal; // so we can detect replacement by the fragment
+  
+      try {
+        // 1) fetch PPSR modal HTML from the BFF
+        const url = urlSales(`modal/ppsr?tx=${encodeURIComponent(txId)}`);
+        const r   = await fetch(url, { credentials: 'include' });
+        const html = await r.text();
+  
+        // 2) ensure no shell + no stale modals remain
+        if (typeof window._safeCloseRemoteModal === 'function') window._safeCloseRemoteModal();
+        else document.getElementById('remote-modal')?.remove();
+        document.getElementById('ppsrModal')?.remove();
+  
+        // 3) parse and mount the real modal element
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+  
+        const modal = tmp.querySelector('#ppsrModal');
+        if (!modal) {
+          // Fallback: if the service didn’t return the expected fragment, show whatever we got
+          if (typeof window._safeShowRemoteError === 'function') window._safeShowRemoteError(html);
+          else {
+            const div = document.createElement('div');
+            div.innerHTML = html;
+            document.body.appendChild(div);
+          }
+          return;
+        }
+        document.body.appendChild(modal);
+  
+        // 4) execute any <script> tags included in the fragment (in order)
+        const scripts = tmp.querySelectorAll('script');
+        for (const old of scripts) {
+          const s = document.createElement('script');
+          if (old.src) {
+            s.src = old.src; s.async = false; document.head.appendChild(s);
+            await new Promise(res => { s.onload = s.onerror = res; });
+          } else {
+            s.textContent = old.textContent; document.head.appendChild(s);
+          }
+        }
+  
+        // 5) If the fragment defined its own window.openPPSRModal, call THAT now.
+        if (window.openPPSRModal && window.openPPSRModal !== selfRef) {
+          return window.openPPSRModal(txId);
+        }
+  
+        // 6) Minimal fallback: just show the mounted modal
+        document.getElementById('ppsrModal').style.display = 'block';
+      } catch (e) {
+        console.error('Failed to load PPSR modal:', e);
+        if (typeof window._safeShowRemoteError === 'function') {
+          window._safeShowRemoteError('<p style="color:#b00">Failed to load PPSR.</p>');
+        }
+      }
+    }
+  </script>
+  
+
+
+  <script>
+    // Build URL exactly as you already do
+    window.EFS = window.EFS || {};
+    window.EFS.CREDIT_DECISION_BASE = "{{ EFS_SERVICES.credit_decision|default:'' }}";
+    function urlCreditDecision(path) {
+      if (window.EFS.CREDIT_DECISION_BASE) {
+        const base = window.EFS.CREDIT_DECISION_BASE.replace(/\/+$/, '');
+        return `${base}/credit-decision/${String(path || '').replace(/^\/+/, '')}`;
+      }
+      return window.urlSales(`credit-decision/${path}`);
+    }
+  
+    // Loader that hoists the real modal out of the shell (so you don’t get two)
+    function openCreditDecisionModal(_id, txId) {
+      const url = urlCreditDecision(`modal/?tx=${encodeURIComponent(txId)}`);
+  
+      openRemoteModal(url, () => {
+        // 1) grab the real modal out of the injected HTML
+        const inner = document.querySelector('#remote-content #creditDecisionModal');
+  
+        if (inner) {
+          // 2) move it to <body> and close the outer shell so only one modal remains
+          document.body.appendChild(inner);
+          if (typeof window.closeRemoteModal === 'function') {
+            window.closeRemoteModal();
+          } else {
+            document.getElementById('remote-modal')?.remove();
+          }
+        }
+  
+        // 3) call the fragment’s initializer to show & hydrate it
+        const init =
+          window.openCreditDecisionModalInternal || // use this if you later rename the fragment init
+          window.openCreditDecisionModal;           // current name from the fragment
+  
+        if (typeof init === 'function') {
+          init(null, txId); // pass null so it derives ABN from the table via txId
+        } else {
+          // last resort: at least unhide the modal
+          inner && (inner.style.display = 'block');
+        }
+      });
+    }
+  </script>
+  
+  <!-- ppsr -->
+  <!-- ppsr -->  <!-- ppsr -->
+    <!-- ppsr -->  <!-- ppsr -->
+      <!-- ppsr -->  <!-- ppsr start  -->
+
+
+
+
+<!-- financials service  modal -->
+
+
+
+
+
+<script>
+    window.EFS = window.EFS || {};
+    window.EFS.FINANCIALS_BASE = "{{ EFS_SERVICES.financials|default:'http://localhost:8019' }}";
+  
+    window.urlFinancials = function (path) {
+      const base = (window.EFS.FINANCIALS_BASE || '').replace(/\/+$/,'');
+      const p = String(path || '').replace(/^\/+/, '');
+      return base ? `${base}/${p}` : `/${p}`;
+    };
+  
+    console.log("FINANCIALS_BASE ->", window.EFS.FINANCIALS_BASE);
+  </script>
+  
+
+
+
+
+
+  <script>
+    // Small utility: given a transaction id (txId), and maybe an abn passed from template,
+    // find the <tr> in the table and pull abn/acn/tx from data-* attributes.
+    // We attach it to window so it's guaranteed global.
+    window.getRowContext = function getRowContext(txId, fallbackAbn) {
+      // try to locate the row by the attributes you already render
+      const row =
+        document.querySelector(`tr[data-transaction-id="${txId}"]`) ||
+        document.querySelector(`tr[data-id="${txId}"]`);
+  
+      const rowAbn = (fallbackAbn || "").trim() ||
+                     (row?.dataset.abn || "").trim();
+  
+      const rowAcn = (row?.dataset.acn || "").trim();
+  
+      const resolvedTx =
+        (txId || "").trim() ||
+        (row?.dataset.transactionId || "").trim() ||
+        (row?.dataset.id || "").trim();
+  
+      return {
+        abn: rowAbn,      // may be ""
+        acn: rowAcn,      // may be ""
+        txId: resolvedTx  // should exist because every row has tx id
+      };
+    };
+  </script>
+  
+
+  <script>
+    async function openFinancialsModal(abnArg, txId) {
+      // 1) Gather row info (abn, acn, tx)
+      const ctx = window.getRowContext(txId, abnArg);
+      const rawAbn = ctx.abn || '';
+      const rawAcn = ctx.acn || '';
+      const finalTx = ctx.txId;
+  
+      // Normalize & validate IDs
+      const abnDigits = String(rawAbn).replace(/\D/g, '');
+      const acnDigits = String(rawAcn).replace(/\D/g, '');
+      const hasValidAbn = abnDigits.length === 11; // AU ABN
+      const hasValidAcn = acnDigits.length === 9;  // AU ACN
+  
+      // 2) Build querystring for the Sales BFF – only include valid IDs
+      const qs = new URLSearchParams();
+      if (hasValidAbn) qs.set('abn', abnDigits);
+      if (hasValidAcn) qs.set('acn', acnDigits);
+      if (finalTx)     qs.set('tx',  finalTx);
+  
+      try {
+        const url  = urlSales(`modal/financials?${qs.toString()}`);
+        const resp = await fetch(url, { credentials: 'include' });
+        const html = await resp.text();
+  
+        // Clean up any previous shell/instance
+        window._safeCloseRemoteModal?.();
+        document.getElementById('financialsModal')?.remove();
+  
+        // Mount the returned fragment
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const modal = tmp.querySelector('#financialsModal');
+        if (!modal) {
+          window._safeShowRemoteError?.(html);
+          return;
+        }
+        document.body.appendChild(modal);
+  
+        // Execute any <script> tags inside the fragment (in order)
+        const scripts = tmp.querySelectorAll('script');
+        for (const old of scripts) {
+          const s = document.createElement('script');
+          if (old.src) {
+            s.src = old.src;
+            s.async = false;
+            document.head.appendChild(s);
+            await new Promise(res => { s.onload = s.onerror = res; });
+          } else {
+            s.textContent = old.textContent;
+            document.head.appendChild(s);
+          }
+        }
+  
+        // Hand off to the fragment’s initializer (financials.html)
+        const identifierForUI = hasValidAbn ? abnDigits : (hasValidAcn ? acnDigits : '');
+        const init = window.openFinancialsModalInternal || window.openFinancialsModal;
+        if (typeof init === 'function') {
+          // The fragment decides whether/what to preload (ABN-only)
+          init(identifierForUI, finalTx);
+        } else {
+          modal.style.display = 'block';
+        }
+  
+        // NOTE: Do NOT fetch /fetch_financial_data/ here.
+        // financials.html does all preloading and skips it when no valid ABN.
+  
+      } catch (err) {
+        console.error('Failed to load Financials modal:', err);
+        window._safeShowRemoteError?.('<p style="color:#b00">Failed to load Financials.</p>');
+      }
+    }
+  </script>
+  
+    
+  
+
+  <!--  end inancials service  modal  -->
+ 
+
+  
+  <!-- Hydrate Credit Score cells via BFF proxy (keeps your existing UI code working) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const originator = window.selected_originator || '';
+      const links = document.querySelectorAll('.credit-score-link');
+  
+      links.forEach(link => {
+        const abn = link.dataset.abn;
+        const row = link.closest('tr');
+        const span = link.querySelector('.credit-score-text');
+  
+        if (!abn || !span) return;
+  
+        fetch(urlSales(`fetch_credit_score_data/${encodeURIComponent(abn)}/?originator=${encodeURIComponent(originator)}`))
+          .then(r => r.ok ? r.json() : Promise.reject(r.status))
+          .then(data => {
+            const val = (data && data.current_credit_score != null) ? data.current_credit_score : 'N/A';
+            span.textContent = val;
+            if (row) row.setAttribute('data-score', val);
+          })
+          .catch(() => {
+            span.textContent = 'N/A';
+            if (row) row.setAttribute('data-score', 'N/A');
+          });
+      });
+    });
+  </script>
+  
+  <!-- Approve action (unchanged, uses urlSales helper) -->
+  <script>
+    (function () {
+      function getCookie(name){
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+        return '';
+      }
+      window.approveAction = function (transactionId) {
+        const newState = 'risk_review';
+        fetch(urlSales(`get_product_by_transaction_id/?transaction_id=${encodeURIComponent(transactionId)}`), {
+          credentials: 'same-origin'
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(({ product, error }) => {
+          if (error || !product) throw new Error(error || 'Product not found for this transaction');
+          const payload = { transaction_id: transactionId, new_state: newState, product };
+          const headers = { 'Content-Type': 'application/json' };
+          const csrftoken = getCookie('csrftoken');
+          if (csrftoken) headers['X-CSRFToken'] = csrftoken;
+  
+          return fetch(urlSales('approve_application/'), {
+            method: 'POST',
+            headers,
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+          });
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(res => {
+          if (res.success) {
+            window.location.reload();
+          } else {
+            alert('Error approving the application: ' + (res.error || 'Unknown error'));
+          }
+        })
+        .catch(async (err) => {
+          let msg = err && err.status ? `${err.status} ${err.statusText}` : (err && err.message) || 'Unknown error';
+          try { const t = await err.text?.(); if (t) msg += ` — ${t}`; } catch(e){}
+          console.error('approveAction failed:', err);
+          alert('Approve failed: ' + msg);
+        });
+      };
+    })();
+  </script>
+  
+
+
+  <script>
+    // 🔹 Build BFF URL (unchanged)
+    function buildTermsModalUrl(txId) {
+      return window.urlSales(`modal/terms?tx=${encodeURIComponent(txId)}`);
+    }
+  
+    // 🔹 Open terms modal and pass context into the fragment initializer
+    function openTermsModalFromTx(txId, ctx = {}) {
+      openRemoteModal(buildTermsModalUrl(txId), () => {
+        const inner = document.querySelector('#remote-content #termsModal');
+        if (inner) {
+          document.body.appendChild(inner);
+          (window.closeRemoteModal?.() || document.getElementById('remote-modal')?.remove());
+        }
+  
+        // Call the fragment initializer with tx + context
+        if (typeof window.openTermsModal === 'function') {
+          // First arg is the product tab to show (defaults to IF if missing)
+          window.openTermsModal(ctx.product || 'Invoice Finance', { 
+            txId,
+            abn: ctx.abn || '',
+            originatorName: ctx.originatorName || '',
+            originatorId: ctx.originatorId || ''
+          });
+        } else if (inner) {
+          inner.style.display = 'block';
+        }
+      });
+    }
+  
+    // 🔹 Delegate clicks on "Terms" links (now passes row context)
+    document.addEventListener('click', (e) => {
+      const a = e.target.closest('a.terms-link');
+      if (!a) return;
+      e.preventDefault();
+  
+      const row  = a.closest('tr');
+      const txId = a.dataset.tx || row?.dataset?.transactionId || row?.dataset?.id;
+      if (!txId) return showRemoteModal('<p style="color:#b00">Missing transaction id for Terms.</p>');
+  
+      const ctx = {
+        abn:            row?.dataset?.abn || '',
+        originatorName: row?.dataset?.originatorName || '',
+        originatorId:   row?.dataset?.originatorId || '',
+        product:        row?.dataset?.product || ''   // 👈 will open correct product section if provided
+      };
+      openTermsModalFromTx(txId, ctx);
+    });
+  </script>
+  
+
+
+    <script>
+      // --- A) Opens modal and injects remote content ---
+      async function openTaskModal(txId, abn) {
+        const url = urlSales(`modal/tasks?tx=${encodeURIComponent(txId)}&abn=${encodeURIComponent(abn)}`);
+
+        openRemoteModal(url, () => {
+          let inner = document.querySelector('#remote-content #tasksModal');
+          if (inner) {
+            document.body.appendChild(inner);
+            window.closeRemoteModal?.();
+
+            // 🔧 Inject TX if the fragment didn't render it
+            const info = inner.querySelector('.info-bar');
+            if (info) {
+              if (!info.dataset.tx) info.dataset.tx = txId || '';
+              const span = inner.querySelector('#tx-span');
+              if (span && !span.textContent.trim()) span.textContent = txId || '—';
+            }
+
+            const modalRoot = inner.querySelector('.modal-content') || inner;
+            window.initTasksModal?.(modalRoot);
+            inner.style.display = 'block';
+            return;
+          }
+          const modalRoot = document.querySelector('#remote-content .modal-content') || document.getElementById('remote-content');
+          window.initTasksModal?.(modalRoot);
+        });
+      }
+
+    
+      // --- B) Defines behavior inside modal ---
+      function initTasksModal(root) {
+        const runButton = root.querySelector('#run-agent-button');
+        if (!runButton) return;
+    
+        runButton.addEventListener('click', async () => {
+          const abn = root.querySelector('#abn-field').value;
+          const resultsContainer = root.querySelector('#results');
+          resultsContainer.innerHTML = '';
+    
+          const tasks = [
+            { agent_id: "bankstatements", agent_name: "Bank Statements", endpoint: window.urlSales('run-agent-analysis/') },
+            // … add more agents here
+          ];
+    
+          await Promise.all(tasks.map(async (task) => {
+            try {
+              const resp = await fetch(task.endpoint, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRFToken": getCookie("csrftoken"),
+                },
+                credentials: "same-origin",  // 🔑 required for Django CSRF
+                body: JSON.stringify({
+                  agent_id: task.agent_id,
+                  ticket_label: task.agent_name,
+                  abn
+                  
+                })
+              });
+    
+              if (!resp.ok) throw new Error(`HTTP ${resp.status}: ${await resp.text()}`);
+              await resp.json(); // you can expand handling here
+              resultsContainer.innerHTML += `<div>✅ ${task.agent_name} success</div>`;
+            } catch (err) {
+              console.error(`${task.agent_name} failed:`, err);
+              resultsContainer.innerHTML += `<div>❌ ${task.agent_name} failed: ${err}</div>`;
+            }
+          }));
+        });
+      }
+    </script>
+    
+      
+    <script>
+      // ✅ Define urlSales once so it always returns a relative path
+      window.urlSales = (p) => `/sales/${p}`.replace(/\/{2,}/g, '/');
+    
+      function openCreateDealModal() {
+        openRemoteModal(window.urlSales('modal/create-deal'), () => {
+          const inner = document.querySelector('#remote-content #createDealModal');
+          if (inner) {
+            document.body.appendChild(inner);
+            window.closeRemoteModal?.();
+            inner.style.display = 'flex';
+          }
+        });
+      }
+    </script>
+    
+    
+
+
+    <script>
+      // IMPORTANT: Make this the only resolveUploadUrl() on the page
+      function resolveUploadUrl(dataType) {
+        // Normalize input just in case
+        const type = (dataType || '').toString().trim().toLowerCase();
+    
+        // Grouped route mappings (BFF endpoints)
+        const routeMap = {
+          // Ledgers
+          ar_ledger: '/sales/upload-ar-ledger/',
+          accounts_payable: '/sales/upload-ap-ledger/',
+    
+          // Invoices
+          invoices: (typeof window.urlSales === 'function')
+            ? window.urlSales('upload-invoices/')
+            : '/sales/upload-invoices/',
+    
+          // ✅ NEW: AP invoice uploads (Invoices → Payables subtab)
+          invoices_accounts_payable: (typeof window.urlSales === 'function')
+            ? window.urlSales('upload-ap-invoices/')
+            : '/sales/upload-ap-invoices/',
+    
+          // Asset schedules (all proxied through BFF)
+          assets_vehicles: '/sales/upload-asset-schedule/',
+          assets_plant: '/sales/upload-asset-schedule/',
+          assets_property: '/sales/upload-asset-schedule/',
+    
+          // Tax documents (PDF uploads) → BFF proxy
+          tax_ita: '/sales/upload-tax-document/',
+          tax_payment_plan: '/sales/upload-tax-document/',
+          tax_return: '/sales/upload-tax-document/',
+          tax_bas: '/sales/upload-tax-document/',
+    
+          // Financials (existing)
+          financials_pl: '/sales/upload-financials/',
+          financials_bs: '/sales/upload-financials/',
+          financials_cf: '/sales/upload-financials/',
+          financials_notes: '/sales/upload-financials/',
+        };
+    
+        // Default to financials endpoint if dataType is unknown
+        return routeMap[type] || '/sales/upload-financials/';
+      }
+    </script>
+    
+    
+    
+    
+    
+    <script>
+      (function wireAllNotesToBFF(){
+        if (window._wiredAllNotesToBFF) return;
+        window._wiredAllNotesToBFF = true;
+    
+        function getCookie(name){
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+          return '';
+        }
+        const tell = (msg, isErr=false) => (typeof _msg === 'function' ? _msg(msg, isErr) : (isErr ? alert(msg) : console.log(msg)));
+    
+        const TAB_TO_NOTES = {
+          financialsTab:       { sel: '#salesNotes',                 type: 'Financials' },
+          assetsTab:           { sel: '#salesNotes_assets',          type: 'Assets' },        // ← add this
+          liabilitiesTab:      { sel: '#salesNotes_liabilities',     type: 'Liabilities' },   // ← and this
+          arLedgerTab:         { sel: '#salesNotes_arLedger',        type: 'AR Ledger' },
+          debtorsTab:          { sel: '#salesNotes_debtors',         type: 'Debtors' },
+          invoicesTab:         { sel: '#salesNotes_invoices',        type: 'Invoices' },
+          accountsPayableTab:  { sel: '#salesNotes_accountsPayable', type: 'Accounts Payable' },
+          statutoryTab:        { sel: '#salesNotes_statutory',       type: 'Statutory Obligations' },
+        };
+
+    
+        // Event delegation so it survives fragment reloads
+        document.addEventListener('click', async (e) => {
+          const btn = e.target.closest('#save-financials-button');
+          if (!btn) return;
+    
+          const modal = document.getElementById('financialsModal');
+          if (!modal || modal.style.display === 'none') return;
+    
+          const activeBtn = modal.querySelector('.tab-link.active');
+          const tabId = activeBtn?.dataset?.tab;
+          const cfg = tabId && TAB_TO_NOTES[tabId];
+          if (!cfg) return;
+    
+          const ta = modal.querySelector(cfg.sel);
+          const notes = (ta?.value || '').trim();
+          if (!notes) return tell(`Please enter some ${cfg.type} notes before saving.`, true);
+    
+          const abn = (modal.querySelector('#fin-abn')?.textContent || window.currentABN || '').trim();
+          const tx  = (modal.querySelector('#fin-tx')?.textContent  || window.currentTX  || '').trim();
+          if (!abn || !tx) return tell('Missing ABN or Transaction ID.', true);
+    
+          const payload = { transaction_id: tx, abn, financial_data_type: cfg.type, notes };
+    
+          try {
+            tell(`Saving ${cfg.type} notes…`);
+            const r = await fetch(urlSales('save_financial_notes/'), {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+              },
+              body: JSON.stringify(payload)
+            });
+    
+            const json = await r.json().catch(() => ({}));
+            if (!r.ok || json.success !== true) throw new Error(json.message || `HTTP ${r.status}`);
+    
+            tell(`${cfg.type} notes saved.`);
+            if (ta) ta.value = ''; // optional
+          } catch (err) {
+            console.error('save_financial_notes (BFF) failed:', err);
+            tell(`Failed to save ${cfg.type} notes: ${err.message || err}`, true);
+          }
+        });
+      })();
+    </script>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <!-- start  js code for linking entities -->  
+  <!-- start  js code for linking entities -->  
+  <!-- start  js code for linking entities -->  
+  <!-- start  js code for linking entities -->  
+
+
+
+  <script>
+    // --- CSRF helper (Sales already has {% csrf_token %} form hidden) ---
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+      return "";
+    }
+    const CSRFTOKEN = getCookie('csrftoken');
+  
+    // ----- tiny helpers -----
+    function digitsOnly(s){
+      return String(s || "").replace(/\D/g, "");
+    }
+  
+    // Toggle state helpers
+    function isSideAUsingACN() {
+      const cb = document.getElementById('toggle-abn-acn-a');
+      return !!(cb && cb.checked); // false = ABN, true = ACN
+    }
+    function isSideBUsingACN() {
+      const cb = document.getElementById('toggle-abn-acn-b');
+      return !!(cb && cb.checked);
+    }
+  
+    // Update visible label text next to each switch
+    function syncLabelTextForA() {
+      const lbl = document.getElementById('label-abn-a-text');
+      if (!lbl) return;
+      lbl.textContent = isSideAUsingACN() ? 'ACN (A)' : 'ABN (A)';
+    }
+    function syncLabelTextForB() {
+      const lbl = document.getElementById('label-abn-b-text');
+      if (!lbl) return;
+      lbl.textContent = isSideBUsingACN() ? 'ACN (B)' : 'ABN (B)';
+    }
+  
+    // figure out which list this side should see ("abn" or "acn")
+    function whichListForSide(side){
+      if (side === 'A') {
+        return isSideAUsingACN() ? 'acn' : 'abn';
+      } else {
+        return isSideBUsingACN() ? 'acn' : 'abn';
+      }
+    }
+  
+    // Fetch ABN list or ACN list from Sales proxy
+    async function fetchIdList(kind){
+      // kind: "abn" | "acn"
+      const endpoint = kind === 'acn' ? '/sales/acns/' : '/sales/abns/';
+      const resp = await fetch(endpoint, { credentials: 'same-origin' });
+      const js = await resp.json().catch(() => ({}));
+  
+      if (!resp.ok) {
+        throw new Error(js.error || `HTTP ${resp.status}`);
+      }
+  
+      // backend returns {ok: True, abns:[...]} or {ok: True, acns:[...]}
+      if (!js.ok) {
+        throw new Error(js.error || 'Bad response');
+      }
+      if (kind === 'acn') {
+        return Array.isArray(js.acns) ? js.acns : [];
+      } else {
+        return Array.isArray(js.abns) ? js.abns : [];
+      }
+    }
+  
+    // Populate dropdown A or B with either ABNs or ACNs depending on current toggle
+    async function loadIdsForSide(side){
+      const selectEl = side === 'A'
+        ? document.getElementById('link-abn-a')
+        : document.getElementById('link-abn-b');
+
+      if (!selectEl) return;
+
+      selectEl.innerHTML = '<option value="">Loading…</option>';
+
+      const kind = whichListForSide(side); // "abn" or "acn"
+      try {
+        const list = await fetchIdList(kind);
+
+        selectEl.innerHTML = '<option value="">Select…</option>';
+
+// inside loadIdsForSide(side) -> list.forEach(item => { ... })
+
+      list.forEach(item => {
+        const isStr = (typeof item === "string");
+
+        const id = isStr ? item : (item?.id || "");
+        const label = isStr ? item : (item?.label || id);
+
+        if (!id) return;
+
+        const opt = document.createElement('option');
+        opt.value = id;                 // keep digits as value
+        opt.textContent = label;        // label now includes state + tx
+
+        opt.dataset.source = isStr
+          ? ""
+          : (Array.isArray(item?.sources) && item.sources.length ? item.sources[0] : "");
+
+        // NEW: attach metadata for later use (or display elsewhere)
+        opt.dataset.transactionId = isStr ? "" : (item?.transaction_id || "");
+        opt.dataset.state = isStr ? "" : (item?.state || "");
+
+        selectEl.appendChild(opt);
+      });
+
+
+
+      } catch (err){
+        console.error('Failed to load IDs for side', side, err);
+        selectEl.innerHTML = '<option value="">Error loading IDs</option>';
+      }
+    }
+
+  
+    // ---------- Modal open / close ----------
+    async function openLinkEntitiesModal() {
+      // Reset toggles to default "ABN" (unchecked = ABN)
+      const tA = document.getElementById('toggle-abn-acn-a');
+      const tB = document.getElementById('toggle-abn-acn-b');
+      if (tA) tA.checked = false;
+      if (tB) tB.checked = false;
+  
+      // Sync the labels now ("ABN (A)", "ABN (B)")
+      syncLabelTextForA();
+      syncLabelTextForB();
+  
+      // Wire toggle listeners (only once)
+      if (tA && !tA._wired) {
+        tA._wired = true;
+        tA.addEventListener('change', async () => {
+          syncLabelTextForA();
+          await loadIdsForSide('A'); // reload list as ACN/ABN changed
+        });
+      }
+      if (tB && !tB._wired) {
+        tB._wired = true;
+        tB.addEventListener('change', async () => {
+          syncLabelTextForB();
+          await loadIdsForSide('B');
+        });
+      }
+  
+      // Populate both selects initially (will load ABNs by default)
+      await loadIdsForSide('A');
+      await loadIdsForSide('B');
+  
+      // Show modal
+      document.getElementById('linkEntitiesModal').style.display = 'block';
+    }
+  
+    function closeLinkEntitiesModal() {
+      document.getElementById('linkEntitiesModal').style.display = 'none';
+    }
+  
+    // ---------- Save ----------
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+    return "";
+  }
+
+  function digitsOnly(s) {
+    return String(s || "").replace(/\D/g, "");
+  }
+
+  function saveLinkEntities() {
+    const selA = document.getElementById('link-abn-a');
+    const selB = document.getElementById('link-abn-b');
+    const optA = selA?.selectedOptions?.[0];
+    const optB = selB?.selectedOptions?.[0];
+
+    const txA = optA?.dataset?.transactionId || "";
+    const stA = optA?.dataset?.state || "";
+    const txB = optB?.dataset?.transactionId || "";
+    const stB = optB?.dataset?.state || "";
+
+
+    let idA = selA ? (selA.value || '') : '';
+    let idB = selB ? (selB.value || '') : '';
+
+    const sourceA = selA && selA.selectedOptions && selA.selectedOptions[0]
+      ? (selA.selectedOptions[0].dataset.source || "")
+      : "";
+
+    const sourceB = selB && selB.selectedOptions && selB.selectedOptions[0]
+      ? (selB.selectedOptions[0].dataset.source || "")
+      : "";
+
+
+    // normalise to digits-only
+    idA = digitsOnly(idA);
+    idB = digitsOnly(idB);
+
+    const natA = (document.getElementById('link-nature-a')?.value || '').trim();
+    const natB = (document.getElementById('link-nature-b')?.value || '').trim();
+
+    const idTypeA = isSideAUsingACN() ? 'acn' : 'abn';
+    const idTypeB = isSideBUsingACN() ? 'acn' : 'abn';
+
+    if (!idA || !idB) {
+      alert('Please choose both IDs.');
+      return;
+    }
+
+    if (idA === idB && idTypeA === idTypeB) {
+      if (!confirm('You selected the same ID on both sides. Continue?')) return;
+    }
+
+    const payload = {
+      id_a: idA,
+      id_b: idB,
+      id_type_a: idTypeA,
+      id_type_b: idTypeB,
+      source_a: sourceA,
+      source_b: sourceB,
+      transaction_id_a: txA,
+      transaction_id_b: txB,
+      state_a: stA,
+      state_b: stB,
+      nature_a: natA,
+      nature_b: natB
+    };
+
+
+
+    fetch('/sales/link-entities/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken')
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload)
+    })
+    .then(r => r.json())
+    .then(js => {
+      console.log('link-entities response:', js);
+      if (js.ok) {
+        // support both possible key shapes
+        const a = js.updated_rows?.a ?? js.updated?.a_rows ?? 0;
+        const b = js.updated_rows?.b ?? js.updated?.b_rows ?? 0;
+
+        alert(`Links saved.\nUpdated rows: A=${a}, B=${b}`);
+        closeLinkEntitiesModal();
+      } else {
+        alert(js.error || 'Failed to save links.');
+      }
+
+    })
+    .catch(err => {
+      console.error('link-entities error:', err);
+      alert('Network error saving links.');
+    });
+  }
+
+
+  
+    // ---------- Linked-entity graph / filtering code (unchanged logic) ----------
+  
+    async function fetchLinkedEntities(abn){
+      const clean = String(abn || '').replace(/\D/g, '');
+      const url = `/sales/linked-entities/?abn=${encodeURIComponent(clean)}`;
+      const resp = await fetch(url, { credentials: 'same-origin' });
+  
+      const ct = resp.headers.get('content-type') || '';
+      const text = await resp.text();
+  
+      if (!ct.includes('application/json')) {
+        console.error('Non-JSON response from', url, '→', text.slice(0, 500));
+        throw new Error(`Expected JSON but got ${resp.status} ${resp.statusText}`);
+      }
+  
+      const js = JSON.parse(text);
+      if (!resp.ok || !js.ok) {
+        throw new Error(js.error || `HTTP ${resp.status}`);
+      }
+      return js;
+    }
+  
+    function filterReviewTableByABNs(allowedIdsSet){
+      const rows = document.querySelectorAll('#tab-2 tbody tr.application-row');
+
+      rows.forEach(row => {
+        const rowAbn = digitsOnly(row.dataset.abn || "");
+        const rowAcn = digitsOnly(row.dataset.acn || "");
+
+        // keep if either ABN OR ACN is in the allowed set
+        if (
+          (rowAbn && allowedIdsSet.has(rowAbn)) ||
+          (rowAcn && allowedIdsSet.has(rowAcn))
+        ) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+      
+    // Render summary list into #linked-results
+    function renderLinkedSummary(container, data){
+      const { seed, graph } = data;
+      const nodes = graph.nodes || [];
+      const edges = graph.edges || [];
+
+      let html = "";
+      html += `<div style="font-weight:600;margin-bottom:6px;">Linked network for ID ${seed}</div>`;
+
+      html += `<div style="margin-bottom:8px;">`;
+      html += `<div style="font-weight:500;">Entities:</div>`;
+      html += `<ul style="margin:4px 0 8px 16px;">`;
+      nodes.forEach(n => {
+        html += `<li><strong>${n.id}</strong>`;
+        const extraBits = [];
+        if (n.contact_names && n.contact_names.length){
+          extraBits.push(`names: ${n.contact_names.join(", ")}`);
+        }
+        if (n.products && n.products.length){
+          extraBits.push(`products: ${n.products.join(", ")}`);
+        }
+        if (n.states && n.states.length){
+          extraBits.push(`states: ${n.states.join(", ")}`);
+        }
+        if (extraBits.length){
+          html += ` <span style="color:#555;font-size:0.8rem;">(${extraBits.join(" | ")})</span>`;
+        }
+        html += `</li>`;
+      });
+      html += `</ul>`;
+      html += `</div>`;
+  
+      // Relationships
+      html += `<div>`;
+      html += `<div style="font-weight:500;">Relationships:</div>`;
+      if (!edges.length){
+        html += `<div style="color:#777;font-size:0.9rem;">No relationship annotations saved yet.</div>`;
+      } else {
+        html += `<ul style="margin:4px 0 0 16px;">`;
+        edges.forEach(e => {
+          html += `<li>`;
+          html += `<strong>${e.from}</strong> ↔ <strong>${e.to}</strong>`;
+          if (e.note){
+            html += ` <span style="color:#555;font-size:0.8rem;">(${e.note.replace(/\n/g, " / ")})</span>`;
+          }
+          html += `</li>`;
+        });
+        html += `</ul>`;
+      }
+      html += `</div>`;
+  
+      // Inline close
+      html += `<div style="margin-top:10px;text-align:right;">
+                 <button style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;background:#f6f6f6;cursor:pointer;"
+                         onclick="document.getElementById('linked-results').style.display='none';">
+                   Close
+                 </button>
+               </div>`;
+  
+      container.innerHTML = html;
+      container.style.display = "block";
+    }
+  
+    // Modal shell + linked graph view
+    function ensureLinkedModalShell(){
+      let shell = document.getElementById('linkedNetworkModal');
+      if (!shell){
+        shell = document.createElement('div');
+        shell.id = 'linkedNetworkModal';
+        shell.style.cssText = "display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.35);";
+        shell.innerHTML = `
+          <div style="max-width:600px;margin:60px auto;background:#fff;border-radius:8px;
+                      box-shadow:0 10px 30px rgba(0,0,0,.25);overflow:hidden;position:relative;">
+            <div style="padding:14px 16px;border-bottom:1px solid #eee;
+                        display:flex;align-items:center;justify-content:space-between;">
+              <h3 style="margin:0;">Linked entity network</h3>
+              <button onclick="closeLinkedNetworkModal()"
+                      style="border:none;background:transparent;font-size:20px;cursor:pointer;">×</button>
+            </div>
+            <div id="linkedNetworkBody" style="padding:16px;max-height:60vh;overflow:auto;">
+              <!-- filled dynamically -->
+            </div>
+            <div style="padding:12px 16px;border-top:1px solid #eee;text-align:right;">
+              <button onclick="closeLinkedNetworkModal()"
+                      style="padding:8px 14px;border:1px solid #ccc;border-radius:6px;background:#f6f6f6;cursor:pointer;">
+                Close
+              </button>
+            </div>
+          </div>`;
+        document.body.appendChild(shell);
+      }
+      return shell;
+    }
+  
+    function openLinkedNetworkModalWithData(data){
+      const shell = ensureLinkedModalShell();
+      const body  = shell.querySelector('#linkedNetworkBody');
+
+      const { seed, graph } = data;
+      const nodes = graph.nodes || [];
+      const edges = graph.edges || [];
+
+      let html = "";
+      html += `<div style="font-size:0.9rem;margin-bottom:8px;">
+                <strong>Seed ID:</strong> ${seed}
+              </div>`;
+
+      html += `<div style="margin-bottom:12px;">
+                <div style="font-weight:600;">Entities</div>
+                <ul style="margin:4px 0 0 16px;font-size:0.9rem;">`;
+      nodes.forEach(n => {
+        html += `<li><strong>${n.id}</strong>`;
+        const bits = [];
+        if (n.contact_names?.length) bits.push(`names: ${n.contact_names.join(", ")}`);
+        if (n.products?.length)      bits.push(`products: ${n.products.join(", ")}`);
+        if (n.states?.length)        bits.push(`states: ${n.states.join(", ")}`);
+        if (bits.length){
+          html += ` <span style="color:#555;">(${bits.join(" | ")})</span>`;
+        }
+        html += `</li>`;
+      });
+      html += `</ul></div>`;
+
+      html += `<div>
+                <div style="font-weight:600;">Relationships</div>`;
+      if (!edges.length){
+        html += `<div style="color:#777;font-size:0.9rem;">No relationship annotations saved yet.</div>`;
+      } else {
+        html += `<ul style="margin:4px 0 0 16px;font-size:0.9rem;">`;
+        edges.forEach(e => {
+          html += `<li><strong>${e.from}</strong> ↔ <strong>${e.to}</strong>`;
+          if (e.note){
+            html += ` <span style="color:#555;">(${e.note.replace(/\n/g," / ")})</span>`;
+          }
+          html += `</li>`;
+        });
+        html += `</ul>`;
+      }
+      html += `</div>`;
+
+      body.innerHTML = html;
+      shell.style.display = 'block';
+    }
+
+    function closeLinkedNetworkModal(){
+      const shell = document.getElementById('linkedNetworkModal');
+      if (shell) shell.style.display = 'none';
+    }
+  
+    // stash last result from "Find Linked"
+    window._lastLinkedData = window._lastLinkedData || null;
+  
+    // "Find Linked" button handler
+    async function searchLinkedEntities(){
+      const inputEl = document.getElementById('linked-abn-input');
+      if (!inputEl) return;
+      const raw = inputEl.value.trim();
+      if (!raw){
+        alert("Please enter an ID (ABN or ACN).");
+        return;
+      }
+
+      try {
+        const data = await fetchLinkedEntities(raw);
+        window._lastLinkedData = data; // remember for "Show Links"
+
+        // Build the whitelist of IDs:
+        // - everything the backend says is connected (data.ids)
+        // - plus the searched entity itself (data.seed)
+        const allowed = new Set((data.ids || []).map(digitsOnly));
+        allowed.add(digitsOnly(data.seed || ""));
+
+        // This NOW guarantees we keep both:
+        //   - the query company (seed)
+        //   - all linked companies (ids)
+        filterReviewTableByABNs(allowed);
+
+        // Render summary box inline
+        const panel = document.getElementById('linked-results');
+        if (panel){
+          renderLinkedSummary(panel, data);
+        }
+
+      } catch (err){
+        console.error(err);
+        alert(`Failed to fetch linked entities: ${err.message || err}`);
+      }
+    }
+
+  
+    function showLinkedNetworkModal(){
+      if (!window._lastLinkedData){
+        const inputEl = document.getElementById('linked-abn-input');
+        const abnRaw = inputEl ? inputEl.value.trim() : "";
+        if (!abnRaw){
+          alert("Enter an ABN and click 'Find Linked' first.");
+          return;
+        }
+        fetchLinkedEntities(abnRaw)
+          .then(data => {
+            window._lastLinkedData = data;
+            openLinkedNetworkModalWithData(data);
+          })
+          .catch(err => {
+            console.error(err);
+            alert(`Failed to fetch linked entities: ${err.message || err}`);
+          });
+        return;
+      }
+      openLinkedNetworkModalWithData(window._lastLinkedData);
+    }
+
+  </script>
+  
+  
+
+  
+
+  <script>
+    // tiny helper to normalize ABN
+    function digitsOnly(s){
+      return String(s || "").replace(/\D/g, "");
+    }
+    
+    async function fetchLinkedEntities(abn){
+      const clean = String(abn || '').replace(/\D/g, '');
+      const url = `/sales/linked-entities/?abn=${encodeURIComponent(clean)}`;
+      const resp = await fetch(url, { credentials: 'same-origin' });
+
+      const ct = resp.headers.get('content-type') || '';
+      const text = await resp.text();
+
+      if (!ct.includes('application/json')) {
+        console.error('Non-JSON response from', url, '→', text.slice(0, 500));
+        throw new Error(`Expected JSON but got ${resp.status} ${resp.statusText}`);
+      }
+
+      const js = JSON.parse(text);
+      if (!resp.ok || !js.ok) {
+        throw new Error(js.error || `HTTP ${resp.status}`);
+      }
+      return js;
+    }
+
+
+    
+    // 1. Filter the Review table rows (tab-2 only) to just linked ABNs
+    function filterReviewTableByABNs(allowedIdsSet){
+      const rows = document.querySelectorAll('#tab-2 tbody tr.application-row');
+
+      rows.forEach(row => {
+        const rowAbn = digitsOnly(row.dataset.abn || "");
+        const rowAcn = digitsOnly(row.dataset.acn || "");
+
+        // keep if either ABN OR ACN is in the allowed set
+        if (
+          (rowAbn && allowedIdsSet.has(rowAbn)) ||
+          (rowAcn && allowedIdsSet.has(rowAcn))
+        ) {
+          row.style.display = "";
+        } else {
+          row.style.display = "none";
+        }
+      });
+    }
+        
+    // 2. Render a little summary list into #linked-results
+    function renderLinkedSummary(container, data){
+      const { seed, graph } = data;
+      const nodes = graph.nodes || [];
+      const edges = graph.edges || [];
+
+      let html = "";
+      html += `<div style="font-weight:600;margin-bottom:6px;">Linked network for ID ${seed}</div>`;
+
+      html += `<div style="margin-bottom:8px;">`;
+      html += `<div style="font-weight:500;">Entities:</div>`;
+      html += `<ul style="margin:4px 0 8px 16px;">`;
+      nodes.forEach(n => {
+        html += `<li><strong>${n.id}</strong>`;
+        const extraBits = [];
+        if (n.contact_names && n.contact_names.length){
+          extraBits.push(`names: ${n.contact_names.join(", ")}`);
+        }
+        if (n.products && n.products.length){
+          extraBits.push(`products: ${n.products.join(", ")}`);
+        }
+        if (n.states && n.states.length){
+          extraBits.push(`states: ${n.states.join(", ")}`);
+        }
+        if (extraBits.length){
+          html += ` <span style="color:#555;font-size:0.8rem;">(${extraBits.join(" | ")})</span>`;
+        }
+        html += `</li>`;
+      });
+      html += `</ul>`;
+      html += `</div>`;
+        
+      // Edges list
+      html += `<div>`;
+      html += `<div style="font-weight:500;">Relationships:</div>`;
+      if (!edges.length){
+        html += `<div style="color:#777;font-size:0.9rem;">No relationship annotations saved yet.</div>`;
+      } else {
+        html += `<ul style="margin:4px 0 0 16px;">`;
+        edges.forEach(e => {
+          html += `<li>`;
+          html += `<strong>${e.from}</strong> ↔ <strong>${e.to}</strong>`;
+          if (e.note){
+            html += ` <span style="color:#555;font-size:0.8rem;">(${e.note.replace(/\n/g, " / ")})</span>`;
+          }
+          html += `</li>`;
+        });
+        html += `</ul>`;
+      }
+      html += `</div>`;
+    
+      // Close button (just hide panel)
+      html += `<div style="margin-top:10px;text-align:right;">
+                 <button style="padding:4px 8px;border:1px solid #ccc;border-radius:4px;background:#f6f6f6;cursor:pointer;"
+                         onclick="document.getElementById('linked-results').style.display='none';">
+                   Close
+                 </button>
+               </div>`;
+    
+      container.innerHTML = html;
+      container.style.display = "block";
+    }
+    
+    // 3. Modal-style overlay for "Show Links" button (re-usable)
+    function ensureLinkedModalShell(){
+      let shell = document.getElementById('linkedNetworkModal');
+      if (!shell){
+        shell = document.createElement('div');
+        shell.id = 'linkedNetworkModal';
+        shell.style.cssText = "display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.35);";
+        shell.innerHTML = `
+          <div style="max-width:600px;margin:60px auto;background:#fff;border-radius:8px;
+                      box-shadow:0 10px 30px rgba(0,0,0,.25);overflow:hidden;position:relative;">
+            <div style="padding:14px 16px;border-bottom:1px solid #eee;
+                        display:flex;align-items:center;justify-content:space-between;">
+              <h3 style="margin:0;">Linked entity network</h3>
+              <button onclick="closeLinkedNetworkModal()"
+                      style="border:none;background:transparent;font-size:20px;cursor:pointer;">×</button>
+            </div>
+            <div id="linkedNetworkBody" style="padding:16px;max-height:60vh;overflow:auto;">
+              <!-- filled dynamically -->
+            </div>
+            <div style="padding:12px 16px;border-top:1px solid #eee;text-align:right;">
+              <button onclick="closeLinkedNetworkModal()"
+                      style="padding:8px 14px;border:1px solid #ccc;border-radius:6px;background:#f6f6f6;cursor:pointer;">
+                Close
+              </button>
+            </div>
+          </div>`;
+        document.body.appendChild(shell);
+      }
+      return shell;
+    }
+    
+
+    function closeLinkedNetworkModal(){
+      const shell = document.getElementById('linkedNetworkModal');
+      if (shell) shell.style.display = 'none';
+    }
+    
+    
+    // Called when user clicks "Find Linked"
+    async function searchLinkedEntities(){
+      const inputEl = document.getElementById('linked-abn-input');
+      if (!inputEl) return;
+      const abnRaw = inputEl.value.trim();
+      if (!abnRaw){
+        alert("Please enter an ABN.");
+        return;
+      }
+    
+      try {
+        const data = await fetchLinkedEntities(abnRaw);
+        window._lastLinkedData = data; // remember for "Show Links"
+    
+        // 1. Filter table rows to ONLY those ABNs returned
+        const allowed = new Set((data.ids || []).map(digitsOnly));
+        allowed.add(digitsOnly(data.seed || ""));
+        filterReviewTableByABNs(allowed);
+
+    
+        // 2. Render summary box inline
+        const panel = document.getElementById('linked-results');
+        if (panel){
+          renderLinkedSummary(panel, data);
+        }
+    
+      } catch (err){
+        console.error(err);
+        alert(`Failed to fetch linked entities: ${err.message || err}`);
+      }
+    }
+    
+    // Called when user clicks "Show Links"
+    function showLinkedNetworkModal(){
+      if (!_lastLinkedData){
+        // If they haven't searched yet, just try to use whatever is currently in the box.
+        const inputEl = document.getElementById('linked-abn-input');
+        const abnRaw = inputEl ? inputEl.value.trim() : "";
+        if (!abnRaw){
+          alert("Enter an ABN and click 'Find Linked' first.");
+          return;
+        }
+        // Fallback: fetch now, then open modal
+        fetchLinkedEntities(abnRaw)
+          .then(data => {
+            _lastLinkedData = data;
+            openLinkedNetworkModalWithData(data);
+          })
+          .catch(err => {
+            console.error(err);
+            alert(`Failed to fetch linked entities: ${err.message || err}`);
+          });
+        return;
+      }
+    
+      // If we already have data, just show it
+      openLinkedNetworkModalWithData(_lastLinkedData);
+    }
+    </script>
+    
+
+
+<script> 
+
+function renderSelectedMeta(side){
+  const sel = side === 'A'
+    ? document.getElementById('link-abn-a')
+    : document.getElementById('link-abn-b');
+
+  const meta = side === 'A'
+    ? document.getElementById('link-meta-a')
+    : document.getElementById('link-meta-b');
+
+  if (!sel || !meta) return;
+
+  const opt = sel.selectedOptions && sel.selectedOptions[0];
+  if (!opt || !opt.value){
+    meta.textContent = "";
+    return;
+  }
+
+  const st = opt.dataset.state || "";
+  const tx = opt.dataset.transactionId || "";
+
+  meta.textContent = `state: ${st || "—"} | transaction_id: ${tx || "—"}`;
+}
+
+// wire once (e.g. inside openLinkEntitiesModal after loadIdsForSide calls)
+document.getElementById('link-abn-a')?.addEventListener('change', () => renderSelectedMeta('A'));
+document.getElementById('link-abn-b')?.addEventListener('change', () => renderSelectedMeta('B'));
+
+// after you load lists:
+await loadIdsForSide('A');
+await loadIdsForSide('B');
+renderSelectedMeta('A');
+renderSelectedMeta('B');
+
+
+
+
+</script>
+
+
+
+  <!--  end js code for linking entities -->  
+  <!--  end js code for linking entities -->  
+  <!--  end js code for linking entities -->  
+  <!--  end js code for linking entities -->  
+ 
+
+
+
+
+
+    <!--  delete applications  -->  
+        <!--  delete applications  -->  
+            <!--  delete applications  -->  
+                <!--  delete applications  -->  
+
+
+
+
+  <script>
+    function getCsrfToken() {
+      const el = document.querySelector('input[name="csrfmiddlewaretoken"]');
+      return el ? el.value : "";
+    }
+  
+    async function deleteAction(tx, product, btnEl) {
+      if (!tx) {
+        alert("Missing transaction id.");
+        return;
+      }
+      const confirmed = confirm("Delete this application?");
+      if (!confirmed) return;
+  
+      // If your BFF proxies application_aggregate, leave the same path.
+      // Otherwise, point this URL to your aggregate service route.
+      const qs = product ? ("?product=" + encodeURIComponent(product)) : "";
+      const url = `/bff/applications/${encodeURIComponent(tx)}/delete/${qs}`;
+  
+      try {
+        const resp = await fetch(url, {
+          method: "POST",                    // or "DELETE" if you prefer
+          headers: {
+            "Content-Type": "application/json",
+            // Only needed if you remove @csrf_exempt and want CSRF protection
+            "X-CSRFToken": getCsrfToken()
+          },
+          body: "{}"
+        });
+  
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok || data.status !== "success") {
+          throw new Error(data.message || `Delete failed (${resp.status})`);
+        }
+  
+        // remove the row from the DOM
+        const tr = btnEl && btnEl.closest("tr");
+        if (tr) tr.remove();
+  
+        // (optional) show a toast
+        console.log("Deleted", data.deleted_tx, "from", data.model);
+      } catch (err) {
+        alert(err.message || "Delete failed.");
+      }
+    }
+  </script>
+  
+
+
+    <!--  end of delete applications  -->  
+        <!--  end of delete applications  -->  
+            <!--  end of delete applications  -->  
+
+
+
+
+
+
+{% endblock %}
+
+
+
+
+
+
+
+
+
+{% block extra_styles %}
+<style>
+    .tab-container {
+        margin-top: 20px;
+    }
+
+    .tabs {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .tabs li {
+        margin-right: 15px;
+        padding: 10px 20px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+        border-bottom: none;
+    }
+
+    .tabs li.active {
+        background-color: #f4f4f4;
+        border-top: 2px solid #333;
+        border-left: 2px solid #333;
+        border-right: 2px solid #333;
+    }
+
+    .tab-content {
+        display: none;
+        padding: 20px;
+        background-color: #f4f4f4;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    .originator-tiles {
+        display: flex;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    .originator-tile {
+        background-color: #f2f2f2;
+        padding: 10px;
+        margin: 5px;
+        border-radius: 5px;
+        text-align: center;
+        flex: 1;
+        min-width: 120px;
+    }
+
+    .originator-tile h3 {
+        margin: 0;
+        font-size: 1.2em;
+    }
+
+    .originator-tile p {
+        margin: 5px 0 0;
+        font-size: 1em;
+        color: #666;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        padding-top: 60px;
+    }
+
+    /* Expand modal width to prevent content overflow */
+    .modal-content {
+        width: 90%;          /* wider modal */
+        max-width: 1400px;   /* but with a max cap */
+        overflow-x: hidden;  /* no horizontal scrollbars */
+        padding: 30px;
+    }
+
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .fetch-btn {
+        background-color: #0056b3;
+        color: white;
+        padding: 5px 10px;
+        cursor: pointer;
+        border: none;
+        border-radius: 3px;
+        transition: background-color 0.3s;
+    }
+
+    .fetch-btn:hover {
+        background-color: #003d80;
+    }
+
+    .status-cell {
+        color: green;
+    }
+
+    .next-button {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .next-button:hover {
+        background-color: #45a049;
+    }
+
+
+    /* Toggle Switch Styling */
+    .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+    }
+
+    .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    }
+
+    .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    }
+
+    .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    }
+
+    input:checked + .slider {
+    background-color: #2196F3;
+    }
+
+    input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+    transform: translateX(26px);
+    }
+
+    .slider.round {
+    border-radius: 34px;
+    }
+
+    .slider.round:before {
+    border-radius: 50%;
+    }
+
+    
+    /* Modal Tabs Styling */
+    .modal-tabs {
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .tablink {
+        display: inline-block;
+        margin: 5px;
+        padding: 10px 15px;
+        border: none;
+        background: #f1f1f1;
+        cursor: pointer;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    .tablink.active {
+        background: #007bff;
+        color: white;
+        font-weight: bold;
+    }
+
+
+    .go-button {
+        position: absolute;
+        top: 20px; /* Position within the modal */
+        right: 20px;
+        background-color: green;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .tabs {
+        display: flex;
+        border-bottom: 2px solid #ddd;
+        margin-bottom: 20px;
+    }
+
+    .tab-link {
+        padding: 10px 20px;
+        background: #f1f1f1;
+        border: none;
+        cursor: pointer;
+        outline: none;
+        font-size: 16px;
+        transition: 0.3s;
+    }
+
+    .tab-link.active {
+        background: #ddd;
+        font-weight: bold;
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+/* Modal Container */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal Box */
+.modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 30px;
+    width: 60%;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+
+
+/* Terms Sections */
+.terms-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #f9f9f9;
+}
+
+.terms-section h4 {
+    margin-top: 0;
+    color: #444;
+}
+
+.terms-section label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.terms-section input {
+    width: 100%;
+    padding: 6px;
+    margin-top: 4px;
+    font-size: 14px;
+}
+
+/* Save Button */
+.terms-save-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    float: right;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.terms-save-button:hover {
+    background-color: #0056b3;
+}
+.tab-content table th,
+.tab-content table td {
+    padding: 8px;
+    border-bottom: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.tab-content input[type="checkbox"] {
+    transform: scale(1.2);
+}
+
+/* 🔧 Main summary bar container */
+#ar-bar-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+/* 🔧 Left side: visual bar section */
+#ar-bar {
+    position: relative;
+    background-color: #f0f0f0;
+    height: 50px;
+    width: 100%;
+    border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+#progress-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: #0e76a8; /* <-- CHANGED to match the button color */
+    width: 0%; /* JS will set this */
+    border-radius: 8px;
+    transition: width 0.5s ease-out;
+}
+
+
+
+/* 🔧 Label on the left */
+#nominated-label {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    font-size: 14px;
+    z-index: 20;
+}
+
+#nominated-label strong {
+    display: block;
+    color: #222;
+}
+
+/* 🔧 Desired Amount on right inside bar */
+#desired-label {
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    font-size: 14px;
+    color: red;
+    z-index: 20;
+}
+
+#desired-label strong {
+    display: block;
+}
+
+/* 🔧 Right column (Available Funds etc.) */
+#ar-funds-summary {
+    flex: 0 0 180px;
+    text-align: right;
+}
+
+#ar-funds-summary p {
+    margin: 0 0 10px 0;
+}
+
+
+/* Expand modal width to prevent content overflow */
+.modal-content {
+    width: 90%;          /* wider modal */
+    max-width: 1400px;   /* but with a max cap */
+    overflow-x: hidden;  /* no horizontal scrollbars */
+    padding: 30px;
+}
+
+/* Ensure tables shrink to fit modal space */
+#arLedgerTab table {
+    width: 100%;
+    table-layout: fixed;
+    overflow-wrap: break-word;
+}
+
+/* Prevent long content from overflowing */
+#arLedgerTab th,
+#arLedgerTab td {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+/* Labels inside summary bar now align properly */
+#nominated-label,
+#desired-label {
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 40%;
+    word-wrap: break-word;
+    
+}
+
+/* Update the main modal container to allow content to flow correctly */
+#detailsModal.modal {
+    align-items: flex-start; /* Aligns content to the top instead of center */
+    padding: 40px 20px; /* Adds padding around the content */
+    overflow: auto; /* Adds a scrollbar to the entire modal background if needed */
+}
+
+
+</style>
+
+<style>
+  .toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+
+  .toggle-label-text {
+    /* This is the dynamic "ABN (A)" / "ACN (A)" text */
+    font-weight: 600;
+  }
+
+  /* simple pill switch */
+  .switch {
+    position: relative;
+    width: 42px;
+    height: 22px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider-pill {
+    position: absolute;
+    inset: 0;
+    background-color: #ccc;
+    border-radius: 999px;
+    transition: background-color 0.2s ease;
+  }
+
+  .slider-knob {
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    top: 2px;
+    background-color: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    transition: transform 0.2s ease;
+  }
+
+  /* when checked = ACN (knob slides right) */
+  .switch input:checked + .slider-pill {
+    background-color: #0e76a8;
+  }
+  .switch input:checked + .slider-pill .slider-knob {
+    transform: translateX(20px);
+  }
+</style>
+
+
+
+
+
+
+<script>
+    window.selected_originator = "{{ selected_originator.originator|default_if_none:''|escapejs }}";
+  </script>
+  
+  <script>
+    // Log selected originator once
+    console.log("Originator:", window.selected_originator);
+  
+    // Silent fallback fetchProducts
+    window.fetchProducts = function () {
+      return Promise.resolve({ products: [] });
+    };
+  
+    // Wrap fetch and silently drop fetch-products calls
+    (function () {
+      const _origFetch = window.fetch;
+      window.fetch = function (input, init) {
+        try {
+          const url = (typeof input === "string") ? input : input.url;
+          if (url && url.includes("fetch-products")) {
+            // Return fake empty JSON without logging
+            const fake = new Response(JSON.stringify({ products: [] }), {
+              status: 200,
+              headers: { "Content-Type": "application/json" }
+            });
+            return Promise.resolve(fake);
+          }
+        } catch (_) {}
+        return _origFetch(input, init);
+      };
+    })();
+  </script>
+  
+
+  <script>
+    // Tab switching functionality
+    function setCurrentTrId (id){
+        alert(id)
+        document.getElementById("crt_tr_id").value = id;
+    }
+    // New function to switch to the Review tab
+    function switchToReviewTab() {
+        // Find the Review tab link
+        const reviewTabLink = document.querySelector('.tab-link[data-tab="tab-2"]');
+        if (reviewTabLink) {
+            // Simulate a click on the tab to trigger its functionality
+            reviewTabLink.click();
+        }
+    }
+    
+    // Existing tab switching logic
+    var tabs = document.getElementsByClassName('tab-link');
+    var contents = document.getElementsByClassName('tab-content');
+
+    for (var i = 0; i < tabs.length; i++) {
+        tabs[i].addEventListener('click', function() {
+            var tabId = this.getAttribute('data-tab');
+
+            for (var j = 0; j < tabs.length; j++) {
+                tabs[j].classList.remove('active');
+                contents[j].classList.remove('active');
+            }
+
+            this.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        });
+    }
+
+</script>
+
+
+{% endblock %}

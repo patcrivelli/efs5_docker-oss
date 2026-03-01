@@ -1,0 +1,256 @@
+<div id="ppsrModal" class="modal" style="display:none;">
+  <div class="modal-content">
+
+    <div class="modal-header">
+      <h2>PPSR Details</h2>
+      <div class="meta-row" style="display:flex; gap:16px; align-items:center; margin-top:6px;">
+        <div><strong>ABN:</strong> <span id="ppsr-abn">—</span></div>
+        <div><strong>Transaction ID:</strong> <span id="ppsr-tx">—</span></div>
+      </div>
+      <div class="action-buttons">
+        <button id="close-ppsr-button" class="close-button" onclick="closePPSRModal()">Close</button>
+        <button id="save-ppsr-button" class="save-button">Save</button>
+      </div>
+    </div>
+
+    <h3>Registrations Summary</h3>
+    <table id="registrationsSummaryTable" style="width: 100%; border: 1px solid #ccc; margin-bottom: 15px;">
+      <thead>
+        <tr>
+          <th>Registration Type</th>
+          <th>Number of Registrations</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div id="registrationsContainer"></div>
+
+    <h3>Sales Notes</h3>
+    <textarea id="salesNotes" maxlength="1000" placeholder="Enter notes here (up to 1000 characters)" style="width: 100%; height: 100px; border: 1px solid #ccc;"></textarea>
+
+  </div>
+</div>
+
+
+<script>
+  (function () {
+    // ----- helpers -----
+    function bySel(sel, root) { return (root || document).querySelector(sel); }
+    function escapeHtml(s){ if(s==null)return "N/A"; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;"); }
+    function isoOrNA(v){ return v ? escapeHtml(v) : "N/A"; }
+    function yesNoNA(v){ return v === true ? "Yes" : v === false ? "No" : "N/A"; }
+
+    // Strip invisible chars + non-digits; keep ALL digits (ABN)
+    function digitsAll(s){
+      return String(s || "")
+        .replace(/[\u200e\u200f\u202a-\u202e\u200b\u2060\uFEFF]/g, "")
+        .replace(/\D/g, "");
+    }
+
+    function getCSRFToken() {
+      const m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : "";
+    }
+
+    // ----- tolerant mappers for JSON blobs -----
+    function normalizeSPGs(spgList) {
+      const out = [];
+      (Array.isArray(spgList) ? spgList : []).forEach(spg => {
+        const parties = spg?.securityParties || spg?.parties;
+        if (Array.isArray(parties) && parties.length) {
+          parties.forEach(p => {
+            const name = p?.name || p?.organisationName || p?.partyName || "N/A";
+            const role = p?.role || p?.partyRole || "Secured Party";
+            const id   = p?.identifier || p?.organisationNumber || p?.acn || p?.abn || "N/A";
+            out.push(`Organisation Name: ${escapeHtml(name)}, Role: ${escapeHtml(role)}, ID: ${escapeHtml(id)}`);
+          });
+          return;
+        }
+        const name = spg?.organisationName ?? spg?.name ?? "N/A";
+        const type = spg?.securedPartyType ?? spg?.type ?? spg?.role ?? "Secured Party";
+        const id   = spg?.organisationNumber ?? spg?.identifier ?? spg?.acn ?? spg?.abn ?? "N/A";
+        if (name !== "N/A" || id !== "N/A") {
+          out.push(`Organisation Name: ${escapeHtml(name)}, Type: ${escapeHtml(type)}, ID: ${escapeHtml(id)}`);
+        }
+      });
+      return out;
+    }
+
+    function normalizeGrantors(grantors) {
+      const out = [];
+      (Array.isArray(grantors) ? grantors : []).forEach(g => {
+        if (g?.organisation) {
+          const org = g.organisation;
+          const name = org.organisationName || org.name || "N/A";
+          const id   = org.organisationNumber || org.acn || org.abn || "N/A";
+          out.push(`Organisation Name: ${escapeHtml(name)}, ID: ${escapeHtml(id)}`);
+          return;
+        }
+        const name = g?.organisationName || g?.name || "N/A";
+        const id   = g?.organisationNumber || g?.acn || g?.abn || g?.identifier || "N/A";
+        if (name !== "N/A" || id !== "N/A") {
+          out.push(`Organisation Name: ${escapeHtml(name)}, ID: ${escapeHtml(id)}`);
+        }
+      });
+      return out;
+    }
+
+    function formatAddress(addr) {
+      if (!addr || typeof addr !== "object") return "N/A";
+      const addressee = addr.addressee || addr.name || null;
+      const mailing = [
+        addr.mailingAddressLine1,
+        addr.mailingAddressLine2,
+        addr.mailingAddressLocality || addr.city || addr.suburb,
+        addr.mailingAddressState || addr.state,
+        addr.mailingAddressPostcode || addr.postcode || addr.zip,
+        addr.mailingAddressCountryName || addr.country
+      ].filter(Boolean).map(escapeHtml).join(", ");
+      const lines = Array.isArray(addr.lines) ? addr.lines.filter(Boolean).join(", ") : null;
+
+      if (addressee || mailing) {
+        return `Addressee: ${escapeHtml(addressee || "N/A")}<br>Mailing Address: ${mailing || "N/A"}`;
+      }
+      if (lines) {
+        return `Addressee: N/A<br>Mailing Address: ${escapeHtml(lines)}`;
+      }
+      const kv = Object.values(addr).filter(Boolean);
+      return kv.length ? kv.map(escapeHtml).join(", ") : "N/A";
+    }
+
+    // ----- card renderer (updated) -----
+    function buildRegistrationCard(reg, idx) {
+      const spgItems = normalizeSPGs(reg.security_party_groups);
+      const grantorItems = normalizeGrantors(reg.grantors);
+      const addrHtml = formatAddress(reg.address_for_service);
+
+      return `
+        <div style="border:1px solid #ccc; padding:15px; margin-bottom:15px; border-radius:8px;">
+          <h3>Registration ${idx + 1}</h3>
+          <p><strong>Registration Number:</strong> ${isoOrNA(reg.registration_number)}</p>
+          <p><strong>Start Time:</strong> ${isoOrNA(reg.start_time)}</p>
+          <p><strong>End Time:</strong> ${isoOrNA(reg.end_time)}</p>
+          <p><strong>Change Number:</strong> ${isoOrNA(reg.change_number)}</p>
+          <p><strong>Change Time:</strong> ${isoOrNA(reg.change_time)}</p>
+          <p><strong>Registration Kind:</strong> ${isoOrNA(reg.registration_kind)}</p>
+          <p><strong>Is Migrated:</strong> ${yesNoNA(reg.is_migrated)}</p>
+          <p><strong>Is Transitional:</strong> ${yesNoNA(reg.is_transitional)}</p>
+
+          <h4>Collateral Information:</h4>
+          <p><strong>Collateral Class Type:</strong> ${isoOrNA(reg.collateral_class_type)}</p>
+          <p><strong>Collateral Type:</strong> ${isoOrNA(reg.collateral_type)}</p>
+          <p><strong>Collateral Class Description:</strong> ${isoOrNA(reg.collateral_class_description)}</p>
+          <p><strong>Are Proceeds Claimed:</strong> ${yesNoNA(reg.are_proceeds_claimed)}</p>
+          <p><strong>Proceeds Claimed Description:</strong> ${isoOrNA(reg.proceeds_claimed_description)}</p>
+          <p><strong>Is Security Interest Registration Kind:</strong> ${yesNoNA(reg.is_security_interest_registration_kind)}</p>
+          <p><strong>Are Assets Subject to Control:</strong> ${yesNoNA(reg.are_assets_subject_to_control)}</p>
+          <p><strong>Is Inventory:</strong> ${yesNoNA(reg.is_inventory)}</p>
+          <p><strong>Is PMSI:</strong> ${yesNoNA(reg.is_pmsi)}</p>
+          <p><strong>Is Subordinate:</strong> ${yesNoNA(reg.is_subordinate)}</p>
+          <p><strong>Giving of Notice Identifier:</strong> ${isoOrNA(reg.giving_of_notice_identifier)}</p>
+
+          <h4>Security Party Groups:</h4>
+          <ul>${(spgItems.length ? spgItems.map(i => `<li>${i}</li>`).join("") : "<li>N/A</li>")}</ul>
+
+          <h4>Grantors:</h4>
+          <ul>${(grantorItems.length ? grantorItems.map(i => `<li>${i}</li>`).join("") : "<li>N/A</li>")}</ul>
+
+          <h4>Address for Service:</h4>
+          <p>${addrHtml}</p>
+        </div>
+      `;
+    }
+    window.buildRegistrationCard = buildRegistrationCard;
+
+    // ----- summary (unchanged) -----
+    function renderSummary(registrations) {
+      const counts = {};
+      registrations.forEach(r => {
+        const k = r.registration_kind || "Unknown";
+        counts[k] = (counts[k] || 0) + 1;
+      });
+      const tbody = bySel("#registrationsSummaryTable tbody");
+      tbody.innerHTML = "";
+      if (!Object.keys(counts).length) {
+        tbody.innerHTML = `<tr><td>N/A</td><td>0</td></tr>`;
+        return;
+      }
+      Object.entries(counts).forEach(([kind, cnt]) => {
+        tbody.insertAdjacentHTML("beforeend", `<tr><td>${escapeHtml(kind)}</td><td>${cnt}</td></tr>`);
+      });
+    }
+
+    // ----- modal open/close + fetch (unchanged) -----
+    let _currentTxId = null;
+    let _currentAbn = null;
+
+    window.openPPSRModal = function (txId) {
+      const row   = document.querySelector(`tr[data-transaction-id="${txId}"]`);
+      const abn   = row ? row.getAttribute("data-abn") : null;
+      const abn11 = digitsAll(abn);
+
+      const modal = bySel("#ppsrModal");
+      const container = bySel("#registrationsContainer");
+      const tbody = bySel("#registrationsSummaryTable tbody");
+
+      const abnEl = bySel("#ppsr-abn");
+      const txEl  = bySel("#ppsr-tx");
+      if (abnEl) abnEl.textContent = abn || "—";
+      if (txEl)  txEl.textContent  = txId || "—";
+
+      container.innerHTML = `<p>Loading PPSR registrations…</p>`;
+      tbody.innerHTML = `<tr><td colspan="2">Loading…</td></tr>`;
+      modal.style.display = "block";
+
+      _currentTxId = txId || null;
+      _currentAbn  = abn || null;
+
+      if (!abn11) {
+        container.innerHTML = `<p><strong>ABN not found on this row.</strong></p>`;
+        tbody.innerHTML = `<tr><td>N/A</td><td>0</td></tr>`;
+        return;
+      }
+
+      fetch(urlSales(`fetch_ppsr_data/${encodeURIComponent(abn11)}/`))
+        .then(r => r.ok ? r.json() : Promise.reject(r))
+        .then(json => {
+          const regs = Array.isArray(json.registrations) ? json.registrations : [];
+          renderSummary(regs);
+          container.innerHTML = regs.length
+            ? regs.map((reg, i) => buildRegistrationCard(reg, i)).join("")
+            : `<h3>No PPSR registrations found for ABN ${abn11}.</h3>`;
+        })
+        .catch(err => {
+          container.innerHTML = `<p><strong>Failed to fetch PPSR data.</strong></p>`;
+          tbody.innerHTML = `<tr><td>N/A</td><td>0</td></tr>`;
+          console.error("PPSR fetch error:", err);
+        });
+
+      const saveBtn = bySel("#save-ppsr-button");
+      if (saveBtn && !saveBtn.dataset.bound) {
+        saveBtn.addEventListener("click", function () {
+          const notes = (bySel("#salesNotes")?.value || "").trim();
+          if (!_currentAbn || !_currentTxId) {
+            alert("Missing ABN or Transaction ID; cannot save notes.");
+            return;
+          }
+          fetch(urlSales("save_ppsr_notes/"), {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
+            body: JSON.stringify({ abn: _currentAbn, transaction_id: _currentTxId, notes })
+          })
+          .then(r => r.ok ? r.json() : Promise.reject(r))
+          .then(() => alert("Saved."))
+          .catch(e => { console.error("save_ppsr_notes error:", e); alert("Save failed."); });
+        });
+        saveBtn.dataset.bound = "1";
+      }
+    };
+
+    window.closePPSRModal = function () {
+      const modal = bySel("#ppsrModal");
+      if (modal) modal.style.display = "none";
+    };
+  })();
+</script>

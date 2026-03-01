@@ -1,0 +1,448 @@
+<div id="termsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">Facility Terms</h2>
+            <div class="action-buttons">
+                <button id="saveTermsButton" class="save-button">Save</button>
+                <button id="closeTermsModal" class="close-button">Close</button>
+            </div>
+        </div>
+
+        <form id="termsForm">
+            <div class="input-grid">
+                <label>Originator:
+                    <input type="text" id="termsOriginatorName" readonly />
+                </label>
+            </div>
+            <input type="hidden" id="termsOriginatorIdInput" name="originator_id" />
+            <div class="input-grid">
+                <label>ABN:
+                    <input type="text" name="abn" id="termsAbnInput" readonly />
+                </label>
+            </div>
+
+            <div class="terms-section product-section" id="invoiceFinanceTerms">
+                <h3>Invoice Finance Details</h3>
+                <div class="input-grid">
+                    <label>Facility Limit ($): <input type="number" name="if_facility_limit" value="10000" /></label>
+                    <label>Legal Fees ($): <input type="number" name="if_legal_fees" value="850" /></label>
+                    <label>Establishment Fee ($): <input type="number" name="if_establishment_fee" value="5000" /></label>
+                    <label>Advanced Rate (%): <input type="number" name="if_advanced_rate" value="80" /></label>
+                    <label>Minimum Term (months): <input type="number" name="if_minimum_term" value="36" /></label>
+                    <label>Notice Period (months): <input type="number" name="if_notice_period" value="9" /></label>
+                    <label>Recourse Period (days): <input type="number" name="if_recourse_period" value="90" /></label>
+                </div>
+
+                <h4>Service Fee (Higher of)</h4>
+                <div class="input-grid">
+                    <label>Amount ($): <input type="number" name="if_service_fee_amount" value="1000" /></label>
+                    <label>Percent (%): <input type="number" name="if_service_fee_percent" value="1.25" /></label>
+                </div>
+
+                <h4>Default Max Concentration (Lower of)</h4>
+                <div class="input-grid">
+                    <label>Amount Limit ($): <input type="number" name="if_concentration_amount" value="50000" /></label>
+                    <label>Percentage Limit (%): <input type="number" name="if_concentration_percent" value="50" /></label>
+                </div>
+
+                <h4>Interest Rate Charge</h4>
+                <div class="input-grid">
+                    <label>Base Rate (%): <input type="number" name="if_base_rate" value="6.59" /></label>
+                    <label>Charge Rate (%): <input type="number" name="if_charge_rate" value="1.41" /></label>
+                </div>
+
+                <h4>Upfront Discount</h4>
+                <div class="input-grid">
+                    <label>Per Invoice (%): <input type="number" name="if_discount_per_invoice" value="1" /></label>
+                </div>
+            </div>
+
+            <div class="terms-section product-section" id="tradeFinanceTerms" style="display: none;">
+                <h3>Trade Finance Details</h3>
+                <div class="input-grid">
+                    <label>Trade Facility Limit ($): <input type="number" name="tf_facility_limit" value="25000" /></label>
+                    <label>Trade Legal Fees ($): <input type="number" name="tf_legal_fees" value="1000" /></label>
+                    <label>Trade Establishment Fee ($): <input type="number" name="tf_establishment_fee" value="6000" /></label>
+                    <label>Trade Advance Rate (%): <input type="number" name="tf_advanced_rate" value="75" /></label>
+                    <label>Trade Interest Rate (%): <input type="number" name="tf_interest_rate" value="15" /></label>
+                    <label>Trade Minimum Term (months): <input type="number" name="tf_minimum_term" value="24" /></label>
+                    <label>Trade Notice Period (months): <input type="number" name="tf_notice_period" value="6" /></label>
+                    <label>Trade Payment Term (days): <input type="number" name="tf_payment_term" value="120" /></label>
+                    <label>Number of Installments: <input type="number" name="tf_num_installments" value="4" /></label>
+                    <label>Installment Period (days): <input type="number" name="tf_installment_period" value="30" /></label>
+                </div>
+                 <h4>Trade Service Fee (Higher of)</h4>
+                <div class="input-grid">
+                    <label>Amount ($): <input type="number" name="tf_service_fee_amount" value="1200" /></label>
+                    <label>Percent (%): <input type="number" name="tf_service_fee_percent" value="1.5" /></label>
+                </div>
+                <h4>Trade Discount Charge</h4>
+                <div class="input-grid">
+                    <label>Base Rate (%): <input type="number" name="tf_base_rate" value="7.0" /></label>
+                    <label>Charge Rate (%): <input type="number" name="tf_charge_rate" value="1.6" /></label>
+                </div>
+            </div>
+
+            <div class="terms-section product-section" id="ipfTerms" style="display: none;">
+                <h3>Insurance Premium Funding Details</h3>
+                <div class="input-grid">
+                    <label>Funding Limit ($): <input type="number" name="ipf_funding_limit" value="5000" /></label>
+                    <label>Admin Fee ($): <input type="number" name="ipf_admin_fee" value="100" /></label>
+                    <label>Interest Rate (%): <input type="number" name="ipf_interest_rate" value="9" /></label>
+                    <label>Term (months): <input type="number" name="ipf_term" value="12" /></label>
+                    <label>Late Payment Fee ($): <input type="number" name="ipf_late_fee" value="50" /></label>
+                    <label>Number of Installments: <input type="number" name="ipf_num_installments" value="4" /></label>
+                    <label>Installment Period (days): <input type="number" name="ipf_installment_period" value="30" /></label>
+                </div>
+                <h4>IPF Service Fee</h4>
+                <div class="input-grid">
+                    <label>Amount ($): <input type="number" name="ipf_service_fee_amount" value="50" /></label>
+                </div>
+            </div>
+
+            <div class="terms-section product-section" id="supplyChainFinanceTerms" style="display: none;">
+                <h3>Supply Chain Finance Details</h3>
+                <div class="input-grid">
+                    <label>SCF Limit ($): <input type="number" name="scf_limit" value="100000" /></label>
+                    <label>SCF Setup Fee ($): <input type="number" name="scf_setup_fee" value="1000" /></label>
+                    <label>SCF Discount Rate (%): <input type="number" name="scf_discount_rate" value="0.5" /></label>
+                    <label>SCF Payment Terms (days): <input type="number" name="scf_payment_terms" value="60" /></label>
+                    <label>SCF Minimum Invoice ($): <input type="number" name="scf_min_invoice" value="500" /></label>
+                </div>
+                <h4>SCF Service Charge</h4>
+                <div class="input-grid">
+                    <label>Rate per Invoice (%): <input type="number" name="scf_rate_per_invoice" value="0.25" /></label>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    (function injectAbnModalStyles() {
+      // keep a separate guard for styles (not the same as your behavior guard)
+      if (window._efsAbnStylesInjected) return;
+      window._efsAbnStylesInjected = true;
+    
+      const css = `
+    /* Basic Reset & Body Styles (ensure these are in your main CSS or a common file if not already present) */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        background-color: #f4f7f6;
+        color: #333;
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1000; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0, 0, 0, 0.6); /* Black w/ opacity */
+        display: flex; /* Use flexbox for centering */
+        justify-content: center; /* Center horizontally */
+        align-items: center; /* Center vertically */
+    }
+    
+    .modal-content {
+        background-color: #ffffff;
+        margin: auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        position: relative;
+        width: 90%;
+        max-width: 700px; /* Adjusted max-width for terms modal */
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-height: 90vh; /* Limit modal height */
+        overflow-y: auto; /* Enable scrolling within modal content */
+    }
+    
+    /* Header & Buttons (General for Modals) */
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .modal-header h2 {
+        margin: 0;
+        color: #0056b3;
+        font-size: 1.8em;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .action-buttons button {
+        padding: 10px 20px; /* Slightly reduced padding for compactness */
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.95em; /* Slightly smaller font for compactness */
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .close-button {
+        background-color: #dc3545;
+        color: white;
+    }
+    
+    .close-button:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
+    }
+    
+    .save-button {
+        background-color: #007bff;
+        color: white;
+    }
+    
+    .save-button:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px);
+    }
+    
+    /* Form and Section Styling */
+    #termsForm {
+        display: flex;
+        flex-direction: column;
+        gap: 20px; /* Spacing between sections */
+    }
+    
+    .terms-section {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+    }
+    
+    .terms-section h3 {
+        color: #0056b3;
+        margin-top: 0;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        font-size: 1.4em;
+    }
+    
+    .input-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsive grid */
+        gap: 15px; /* Spacing between inputs */
+    }
+    
+    .input-grid label {
+        display: flex;
+        flex-direction: column;
+        font-weight: 500;
+        color: #555;
+        gap: 5px;
+    }
+    
+    .input-grid input[type="number"] {
+        width: 100%; /* Occupy full column width */
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        font-size: 1em;
+        box-sizing: border-box; /* Include padding in width */
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .input-grid input[type="number"]:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+    `;
+  
+    const style = document.createElement('style');
+    style.id = 'efs-abn-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  })();
+  </script>
+
+<script>
+  (function initTermsModal() {
+    const termsModal = document.getElementById("termsModal");
+    if (!termsModal) return;
+  
+    const closeBtn     = document.getElementById("closeTermsModal");
+    const saveBtn      = document.getElementById("saveTermsButton");
+    const modalTitle   = document.getElementById("modalTitle");
+    const TERMS_API_BASE = '/sales/application/terms';
+  
+    // Summary labels
+    const txDisplay   = document.getElementById("termsTxDisplay");
+    const orgDisplay  = document.getElementById("termsOriginatorDisplay");
+    const abnDisplay  = document.getElementById("termsAbnDisplay");
+  
+    // Form inputs
+    const abnInput       = document.getElementById("termsAbnInput");
+    const orgNameInput   = document.getElementById("termsOriginatorName");
+    const orgIdInput     = document.getElementById("termsOriginatorIdInput");
+  
+    // Sections
+    const productSections = {
+      'Invoice Finance': document.getElementById('invoiceFinanceTerms'),
+      'Trade Finance': document.getElementById('tradeFinanceTerms'),
+      'Insurance Premium Funding': document.getElementById('ipfTerms'),
+      'Supply Chain Finance': document.getElementById('supplyChainFinanceTerms')
+    };
+    let activeProduct = '';
+  
+    function showProductTerms(productType) {
+      Object.values(productSections).forEach(el => el && (el.style.display = 'none'));
+      const section = productSections[productType] || productSections['Invoice Finance'];
+      section && (section.style.display = 'block');
+      modalTitle.textContent = `${section === productSections['Invoice Finance'] ? 'Invoice Finance' : productType} Terms`;
+      activeProduct = section === productSections['Invoice Finance'] ? 'Invoice Finance' : productType;
+    }
+  
+    function setSummary({ txId = '', originatorName = '', abn = '', originatorId = '' }) {
+      // Summary strip
+      termsModal.dataset.txId = txId || '';  // ✅ store txId on modal
+
+      txDisplay && (txDisplay.textContent = txId || '—');
+      orgDisplay && (orgDisplay.textContent = originatorName || '—');
+      abnDisplay && (abnDisplay.textContent = abn || '—');
+      // Inputs
+      orgNameInput && (orgNameInput.value = originatorName || '');
+      orgIdInput   && (orgIdInput.value   = originatorId   || '');
+      abnInput     && (abnInput.value     = abn           || '');
+    }
+  
+    async function fetchMissingViaTx(txId) {
+      if (!txId) return {};
+      try {
+        const r = await fetch(`${TERMS_API_BASE}/fetch/?tx=${encodeURIComponent(txId)}`, { credentials: 'same-origin' });
+        if (!r.ok) return {};
+        const data = await r.json();
+        // Expecting something like { abn, originator_name, originator_id, product, values: {...} }
+        return {
+          txId,
+          abn: data.abn || '',
+          originatorName: data.originator_name || '',
+          originatorId: data.originator_id || '',
+          product: data.product || ''
+        };
+      } catch {
+        return {};
+      }
+    }
+  
+    // Expose initializer (accepts both old & new usage)
+    window.openTermsModal = async function (productOrTx = 'Invoice Finance', ctx = {}) {
+      // Support legacy call: openTermsModal(txId) — detect if first arg looks like a txId
+      let txId = ctx.txId || '';
+      let productType = 'Invoice Finance';
+  
+      if (ctx && typeof ctx === 'object' && (ctx.abn || ctx.originatorName || ctx.originatorId || ctx.txId)) {
+        productType = typeof productOrTx === 'string' && productOrTx !== ctx.txId ? productOrTx : 'Invoice Finance';
+      } else if (typeof productOrTx === 'string' && productOrTx.length > 10 && !ctx.txId) {
+        // treat as txId if a long string was passed with no ctx
+        txId = productOrTx;
+      } else {
+        productType = String(productOrTx || 'Invoice Finance');
+      }
+  
+      // First paint whatever we already know
+      setSummary({ txId, abn: ctx.abn, originatorName: ctx.originatorName, originatorId: ctx.originatorId });
+      showProductTerms(productType);
+      termsModal.style.display = 'flex';
+  
+      // If any critical field missing, fetch via tx
+      if ((!ctx.abn || !ctx.originatorName) && txId) {
+        const fetched = await fetchMissingViaTx(txId);
+        if (fetched && (fetched.abn || fetched.originatorName)) {
+          setSummary({
+            txId: fetched.txId || txId,
+            abn: fetched.abn || ctx.abn || '',
+            originatorName: fetched.originatorName || ctx.originatorName || '',
+            originatorId: fetched.originatorId || ctx.originatorId || ''
+          });
+          if (!productSections[productType] && fetched.product) {
+            showProductTerms(fetched.product);
+          }
+        }
+      }
+    };
+  
+    window.closeTermsModal = function () {
+      termsModal.style.display = 'none';
+    };
+  
+    closeBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.closeTermsModal();
+    });
+    termsModal.addEventListener('click', (e) => {
+      if (e.target === termsModal) window.closeTermsModal();
+    });
+    termsModal.querySelector('.modal-content')?.addEventListener('click', (e) => e.stopPropagation());
+  
+    // Save button (unchanged; posts to BFF)
+    saveBtn?.addEventListener('click', async function () {
+      const txId = termsModal.dataset.txId || '';  // ✅ include txId
+      const abn = abnInput?.value || '';
+      const originatorName = orgNameInput?.value || '';
+      const originatorId = orgIdInput?.value || '';
+
+      const payload = {
+        transaction_id: txId,                 // ✅ NEW
+        product: activeProduct,
+        abn,
+        originator_name: originatorName,
+        originator_id: originatorId,
+        values: {}
+      };
+
+      const activeSection = productSections[activeProduct];
+      if (activeSection) {
+        activeSection.querySelectorAll('input[type="number"]').forEach(input => {
+          payload.values[input.name] = input.value;
+        });
+      }
+  
+      try {
+        const resp = await fetch(`${TERMS_API_BASE}/save/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(payload)
+        });
+  
+        const ct = resp.headers.get('content-type') || '';
+        const raw = await resp.text();
+        const result = ct.includes('application/json') ? JSON.parse(raw) : { message: raw };
+  
+        if (resp.ok) {
+          alert(result.message || 'Saved');
+          window.closeTermsModal();
+        } else {
+          alert(result.message || `Save failed (${resp.status})`);
+        }
+      } catch (e) {
+        console.error(e);
+        alert('Network error');
+      }
+    });
+  })();
+  </script>
+  

@@ -1,0 +1,1470 @@
+{% extends "efs_shared_ui/base.html" %}
+{% load humanize %}
+
+{% block title %}Invoice Finance Loan Management System{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 id="originator-heading" style="flex-grow: 1;">
+        {% if selected_originator %}
+            {{ selected_originator.originator }} Invoice Finance Loan Management System
+        {% else %}
+            Invoice Finance Loan Management System
+        {% endif %}
+    </h2>
+
+
+      <!-- ✅ NEW: top-right button -->
+      <button type="button" id="upload-invoices-btn" class="top-right-upload-btn">
+        Upload Invoices
+    </button>
+    <button type="button" id="drawdowns-btn" class="top-right-upload-btn">
+        Drawdowns
+      </button>
+
+    <!-- Preserve microservices context var from your original template -->
+    <script type="text/javascript">
+        const selected_originator = "{{ selected_originator.originator|default:'' }}";
+        // NEW: robust prefix for all invoice_finance endpoints
+        const LMS_BASE = "{% url 'invoice_finance:invoice_finance_page' %}"; // e.g. "/efs_lms/"
+      </script>
+      
+</div>
+
+<div class="main-tab-container">
+    <ul class="main-tabs">
+        <li class="main-tab-link active" data-tab="Payments">Payments</li>
+        <li class="main-tab-link" data-tab="Closed">Closed</li>
+    </ul>
+</div>
+
+<div id="Payments" class="tab-content active">
+  <div class="payments-container">
+      <div id="payments-applications-section" class="payments-section">
+          <h3>Payments Applications</h3>
+          <div class="action-buttons-container">
+              <label for="abn-search" class="action-label">ABN Search:</label>
+              <input type="text" id="abn-search" placeholder="Enter ABN" class="action-input">
+              <button id="abn-search-btn" class="action-btn">Search</button>
+              <input type="file" id="file-upload" accept=".csv, .xls, .xlsx" class="file-upload-input">
+              <button id="upload-btn" class="action-btn">Upload File</button>
+          </div>
+      </div>
+
+      <div id="review-section" class="review-section">
+          <h3>Review</h3>
+          <div class="review-items">
+              <p><strong>Amount Due:</strong> <span id="amount-due-total">$0.00</span></p>
+              <p><strong>Payment Amount:</strong> <span id="money-in-total">$0.00</span></p>
+              <p><strong>Remaining Balance:</strong> <span id="remaining-balance-total">$0.00</span></p>
+          </div>
+      </div>
+
+      <div id="group-payment-details" class="group-payment-section">
+        <h3>Group Payment Details</h3>
+          <p>Payment ID: <span id="payment-id">PID-000000</span></p>
+          <p>Payment Amount: $<span id="group-payment-total">0.00</span></p>
+          <button id="allocate-payment-btn" class="action-btn" disabled>Allocate to Transactions</button>
+        </div>
+  </div>
+
+  <!-- Drawdowns & Money In tabs -->
+  <div class="secondary-tab-container">
+      <ul class="secondary-tabs">
+          <li class="secondary-tab-link active" data-secondary-tab="Drawdowns">Drawdowns</li>
+          <li class="secondary-tab-link" data-secondary-tab="MoneyIn">Repayments</li>
+      </ul>
+  </div>
+
+  <!-- Drawdowns -->
+  <div id="Drawdowns" class="secondary-tab-content active">
+      <h3>Drawdowns</h3>
+      <table class="styled-table" id="drawdowns-table">
+          <thead>
+              <tr>
+                  <th>ABN</th>
+                  <th>Name</th>
+                  <th>Trans. ID</th>
+                  <th>Date Created</th>
+                  <th>Drawdown Amount</th>
+                  <th>State</th>
+                  <th>Action</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% if drawdown_data %}
+                  {% for instance in drawdown_data %}
+                      <tr data-transaction-id="{{ instance.transaction_id }}">
+                          <td>{{ instance.abn }}</td>
+                          <td>{{ instance.contact_name }}</td>
+                          <td>{{ instance.transaction_id }}</td>
+                          <td>{{ instance.drawdown_time|date:"Y-m-d H:i" }}</td>
+                          <td>${{ instance.amount_requested|floatformat:2 }}</td>
+                          <td>{{ instance.state }}</td>
+                          <td><button class="allocate-btn">Allocate</button></td>
+                      </tr>
+                  {% endfor %}
+              {% else %}
+                  <tr><td colspan="7">No unprocessed drawdowns found.</td></tr>
+              {% endif %}
+          </tbody>
+      </table>
+  </div>
+
+  <!-- Money In -->
+  <div id="MoneyIn" class="secondary-tab-content">
+      <h3>Money In</h3>
+      <table class="styled-table" id="money-in-table">
+          <thead>
+              <tr>
+                  <th>Date</th>
+                  <th>Amount</th>
+                  <th>Account Number</th>
+                  <th>Transaction Type</th>
+                  <th>Transaction Details</th>
+                  <th>Balance</th>
+                  <th>Merchant Name</th>
+                  <th>Group Payment</th>
+              </tr>
+          </thead>
+          <tbody id="money-in-table-body">
+              <!-- populated by JS -->
+          </tbody>
+      </table>
+  </div>
+
+  <!-- Money Out -->
+  <div class="money-out-container">
+      <h3>Money Out</h3>
+      <table class="styled-table" id="money-out-table">
+          <thead>
+              <tr>
+                  <th>ABN</th>
+                  <th>Name</th>
+                  <th>Trans. ID</th>
+                  <th>Date Funded</th>
+                  <th>Amount Funded</th>
+                  <th>Amount Repaid</th>
+                  <th>Amount Due</th>
+                  <th>Close</th>
+                  <th>Action</th>
+              </tr>
+          </thead>
+          <tbody id="money-out-table-body">
+              {% if payments_transactions %}
+                  {% for transaction in payments_transactions %}
+                  <tr class="transaction-row" data-abn="{{ transaction.abn }}" data-transaction-id="{{ transaction.trans_id }}">
+                      <td>{{ transaction.abn }}</td>
+                      <td>{{ transaction.name }}</td>
+                      <td>{{ transaction.trans_id }}</td>
+                      <td>{{ transaction.date_funded }}</td>
+                      <td>${{ transaction.total_amount_funded|floatformat:2|intcomma }}</td>
+                      <td class="amount-repaid">${{ transaction.amount_repaid|floatformat:2|intcomma }}</td>
+                      <td class="amount-due">${{ transaction.amount_due|floatformat:2|intcomma }}</td>
+                      <td><button type="button" class="close-btn">Close</button></td>
+                      <td>
+                          <button type="button" class="toggle-invoice-btn payments-btn" data-transaction-id="{{ transaction.trans_id }}">+</button>
+                      </td>
+                  </tr>
+                  <tr id="invoice-row-payments-{{ transaction.trans_id }}" style="display: none;">
+                      <td colspan="10">
+                          <table border="1" cellspacing="0" cellpadding="10">
+                              <thead>
+                                  <tr>
+                                      <th>Inv #</th>
+                                      <th>Debtor</th>
+                                      <th>Due</th>
+                                      <th>Amount Funded</th>
+                                      <th>Drawdown</th>
+                                      <th>Amount Repaid</th>
+                                      <th>Amount Due</th>
+                                      <th>Interest</th>
+                                      <th>Face Value</th>
+                                      <th>% Funded</th>
+                                      <th>Incl in EC</th>
+                                      <th>Date Funded</th>
+                                      <th>0-30 Days</th>
+                                      <th>31-60 Days</th>
+                                      <th>61-90 Days</th>
+                                      <th>91-120 Days</th>
+                                      <th>121+ Days</th>
+                                      <th>Total Current</th>
+                                      <th>Total Overdue</th>
+                                  </tr>
+                              </thead>
+                              <tbody id="invoice-body-payments-{{ transaction.trans_id }}">
+                              </tbody>
+                          </table>
+                      </td>
+                  </tr>
+                  {% endfor %}
+              {% else %}
+                  <tr><td colspan="9">No payments applications found.</td></tr>
+              {% endif %}
+          </tbody>
+      </table>
+  </div>
+</div>
+
+<div id="Closed" class="tab-content">
+    <h3>Closed Transactions</h3>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ABN</th>
+                <th>Name</th>
+                <th>Trans. ID</th>
+                <th>Date Funded</th>
+                <th>Amount Funded</th>
+                <th>Amount Repaid</th>
+                <th>Amount Due</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if closed_transactions %}
+                {% for transaction in closed_transactions %}
+                <tr class="transaction-row" data-transaction-id="{{ transaction.trans_id }}">
+                    <td>{{ transaction.abn }}</td>
+                    <td>{{ transaction.name }}</td>
+                    <td>{{ transaction.trans_id }}</td>
+                    <td>{{ transaction.date_funded }}</td>
+                    <td class="amount-funded">${{ transaction.total_amount_funded|floatformat:2 }}</td>
+                    <td class="amount-repaid">${{ transaction.amount_repaid|floatformat:2 }}</td>
+                    <td class="amount-due">${{ transaction.amount_due|floatformat:2|intcomma }}</td>
+                    <td>Closed</td>
+                </tr>
+                <tr id="invoice-row-closed-{{ transaction.trans_id }}" style="display: none;">
+                    <td colspan="9">
+                        <table border="1" cellspacing="0" cellpadding="10">
+                            <thead>
+                                <tr>
+                                    <th>Inv #</th>
+                                    <th>Debtor</th>
+                                    <th>Due</th>
+                                    <th>Amount Funded</th>
+                                    <th>Drawdown</th>
+                                    <th>Amount Repaid</th>
+                                    <th>Amount Due</th>
+                                    <th>Face Value</th>
+                                    <th>% Funded</th>
+                                    <th>Incl in EC</th>
+                                    <th>Date Funded</th>
+                                    <th>0-30 Days</th>
+                                    <th>31-60 Days</th>
+                                    <th>61-90 Days</th>
+                                    <th>91-120 Days</th>
+                                    <th>121+ Days</th>
+                                    <th>Total Current</th>
+                                    <th>Total Overdue</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoice-body-closed-{{ transaction.trans_id }}">
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="9">No closed applications found.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+</div>
+
+
+
+
+
+<!-- Upload Invoices Modal -->
+<div id="uploadInvoicesModal" class="efs-modal" aria-hidden="true">
+  <div class="efs-modal__backdrop" data-close="1"></div>
+
+  <div class="efs-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="uploadInvoicesTitle">
+    <div class="efs-modal__header">
+      <h3 id="uploadInvoicesTitle" style="margin:0;">Upload Invoices (CSV)</h3>
+      <button type="button" class="efs-modal__close" id="closeUploadInvoicesModalBtn" aria-label="Close">×</button>
+    </div>
+
+    <div class="efs-modal__body">
+      <p class="efs-help">
+        Select a CSV file containing invoice rows. Add the Company Name to store it on the ledger.
+      </p>
+
+      <div class="efs-form">
+        <div class="efs-form-row">
+          <label for="uploadInvoicesCompanyName" class="efs-label">Company Name</label>
+          <input
+            type="text"
+            id="uploadInvoicesCompanyName"
+            class="efs-input"
+            placeholder="e.g. Acme Pty Ltd"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="efs-form-row">
+          <label for="uploadInvoicesFile" class="efs-label">CSV File</label>
+          <input type="file" id="uploadInvoicesFile" accept=".csv" class="efs-input-file" />
+          <div id="uploadInvoicesFileHint" class="efs-hint">No file selected</div>
+        </div>
+
+        <div id="uploadInvoicesStatus" class="efs-status"></div>
+      </div>
+    </div>
+
+    <div class="efs-modal__footer">
+      <button type="button" class="action-btn" id="cancelUploadInvoicesBtn">Cancel</button>
+      <button type="button" class="action-btn" id="confirmUploadInvoicesBtn">Confirm Upload</button>
+    </div>
+  </div>
+</div>
+
+
+
+  
+  
+<!-- Drawdowns Modal -->
+<div id="drawdownsModal" class="efs-modal" aria-hidden="true">
+    <div class="efs-modal__backdrop" data-close="1"></div>
+  
+    <div class="efs-modal__dialog efs-modal__dialog--tight" role="dialog" aria-modal="true" aria-labelledby="drawdownsTitle">
+      <div class="efs-modal__header efs-modal__header--center">
+        <h3 id="drawdownsTitle" style="margin:0;">Request Amount</h3>
+        <button type="button" class="efs-modal__close" id="closeDrawdownsModalBtn" aria-label="Close">×</button>
+      </div>
+  
+      <div class="efs-modal__body efs-modal__body--center">
+  
+        <input
+          type="text"
+          id="drawdownsAmount"
+          placeholder="Enter amount"
+          class="drawdowns-input"
+          inputmode="decimal"
+          autocomplete="off"
+        />
+  
+        <input
+          type="text"
+          id="drawdownsABN"
+          placeholder="Enter ABN (optional)"
+          class="drawdowns-input"
+          inputmode="numeric"
+          autocomplete="off"
+        />
+  
+        <input
+          type="text"
+          id="drawdownsACN"
+          placeholder="Enter ACN (optional)"
+          class="drawdowns-input"
+          inputmode="numeric"
+          autocomplete="off"
+        />
+  
+        <div id="drawdownsStatus" style="margin-top:10px; font-size:14px;"></div>
+      </div>
+  
+      <div class="efs-modal__footer efs-modal__footer--center">
+        <button type="button" class="drawdowns-apply-btn" id="applyDrawdownsBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+  
+  
+ 
+  
+
+
+
+  </div>
+  
+
+<script>
+
+function withOriginatorQS(url){
+    const qs = window.location.search; // includes "?originators=..."
+    if (!qs) return url;
+    return url + (url.includes('?') ? '&' : '?') + qs.substring(1);
+  }
+  
+  </script>
+
+
+
+<script>
+    (function(){
+      'use strict';
+    
+
+    // ✅ ADD IT HERE (right under 'use strict';)
+     function withOriginatorQS(url){
+     const qs = window.location.search; // e.g. "?originators=3"
+     if (!qs) return url;
+     return url + (url.includes('?') ? '&' : '?') + qs.substring(1);
+     }
+
+
+      // -----------------------------
+      // CSRF helper
+      // -----------------------------
+      function getCookie(name){
+          let v=null;
+          if(document.cookie&&document.cookie!==''){
+              const cookies=document.cookie.split(';');
+              for(let i=0;i<cookies.length;i++){
+                  const c=cookies[i].trim();
+                  if(c.substring(0,name.length+1)===(name+'=')){v=decodeURIComponent(c.substring(name.length+1));break;}
+              }
+          }
+          return v;
+      }
+    
+      // -----------------------------
+      // ONE-TIME LMS base path (guarded)
+      // -----------------------------
+      (function initLmsBase(){
+          // Prefer Django reverse; fallback to the known mount
+          let base = "{% url 'invoice_finance:invoice_finance_page' %}" || "/efs_lms/invoice-finance/";
+          if (!base.endsWith('/')) base += '/';
+          if (!window.LMS_BASE) {            // ✅ do NOT throw if already defined
+              window.LMS_BASE = base;
+          }
+      })();
+    
+      // -----------------------------
+      // Toggle invoice details (+/-)
+      // -----------------------------
+      function handleToggleInvoiceButtons(){
+          const btns=document.querySelectorAll('.toggle-invoice-btn');
+          btns.forEach(btn=>{
+              btn.removeEventListener('click',toggleInvoiceHandler);
+              btn.addEventListener('click',toggleInvoiceHandler);
+          });
+      }
+    
+    function toggleInvoiceHandler() {
+    const tx = this.getAttribute('data-transaction-id');
+    const parentTab = this.closest('.tab-content').id;
+    const row = document.getElementById(`invoice-row-${parentTab.toLowerCase()}-${tx}`);
+    const body = document.getElementById(`invoice-body-${parentTab.toLowerCase()}-${tx}`);
+
+    if (row.style.display === 'none' || row.style.display === '') {
+        const url = withOriginatorQS(`${window.LMS_BASE}fetch-invoice-data/${encodeURIComponent(tx)}/`);
+
+        fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            body.innerHTML = '';
+
+            // ✅ Robust numeric parser for "$1,234.56" / "1,234.56" / numbers
+            const toNum = (v) => {
+            if (v === null || v === undefined) return 0;
+            const s = String(v).replace(/[^0-9.-]/g, ''); // strip $, commas, spaces etc
+            const n = parseFloat(s);
+            return Number.isFinite(n) ? n : 0;
+            };
+
+            const money = (n) =>
+            `$${Number(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            if (data.invoices && data.invoices.length) {
+            data.invoices.forEach(inv => {
+
+                // ✅ parse ALL fields safely
+                const af = toNum(inv.amount_funded);
+                const dr = toNum(inv.drawdown);
+                const ar = toNum(inv.amount_repaid);
+                const ad = toNum(inv.amount_due);
+                const it = toNum(inv.interest);
+                const fv = toNum(inv.face_value);
+
+                // ✅ % Funded = (Amount Funded + Drawdown) / Face Value
+                const fundedBase = af + dr;
+                const pct = (fv > 0) ? (fundedBase / fv) : 0;
+
+                // Use the same integer percent for display + rules
+                const pctInt = (fv > 0) ? Math.round(pct * 100) : null;
+                const pctFundedDisplay = (pctInt !== null) ? `${pctInt}%` : '—';
+
+                // ✅ Incl in EC rules (NEW)
+                // Red X if % funded >= 80% OR amount repaid > 0
+                // Green tick if % funded < 80% OR amount repaid < 0
+                const THRESH_INT = 80;
+
+                let inclEC = '';
+                const isRed   = (pctInt !== null && pctInt >= THRESH_INT) || (ar > 0);
+                const isGreen = (pctInt !== null && pctInt <  THRESH_INT) || (ar < 0);
+
+                // If both somehow true (shouldn't happen unless pctInt is null and ar weird),
+                // prefer red.
+                if (isRed) {
+                inclEC = `<span style="color:#d32f2f; font-weight:900;">✗</span>`;
+                } else if (isGreen) {
+                inclEC = `<span style="color:#2e7d32; font-weight:900;">✓</span>`;
+                } else {
+                inclEC = '';
+                }
+
+
+                body.innerHTML += `
+                <tr>
+                    <td>${inv.invoice_number || ''}</td>
+                    <td>${inv.debtor || 'N/A'}</td>
+                    <td>${inv.due || 'N/A'}</td>
+
+                    <td>${money(af)}</td>
+                    <td>${money(dr)}</td>
+                    <td>${money(ar)}</td>
+                    <td>${money(ad)}</td>
+                    <td>${money(it)}</td>
+
+                    <td>${money(fv)}</td>
+                    <td>${pctFundedDisplay}</td>
+                    <td style="text-align:center;">${inclEC}</td>
+
+                    <td>${inv.date_funded || 'N/A'}</td>
+                    <td>${inv.days_0_30 || 0}</td>
+                    <td>${inv.days_31_60 || 0}</td>
+                    <td>${inv.days_61_90 || 0}</td>
+                    <td>${inv.days_91_120 || 0}</td>
+                    <td>${inv.days_121_plus || 0}</td>
+                    <td>${inv.total_current || 0}</td>
+                    <td>${inv.total_overdue || 0}</td>
+                </tr>
+                `;
+            });
+            } else {
+            body.innerHTML = '<tr><td colspan="19">No invoice data available</td></tr>';
+            }
+
+            row.style.display = 'table-row';
+            this.textContent = '-';
+        })
+        .catch(() => {
+            body.innerHTML = '<tr><td colspan="19">Failed to load invoices</td></tr>';
+        });
+
+    } else {
+        row.style.display = 'none';
+        this.textContent = '+';
+    }
+    }
+
+
+
+
+      // -----------------------------
+      // Secondary tabs
+      // -----------------------------
+      function handleSecondaryTabSwitching(){
+          const tabs=document.querySelectorAll('.secondary-tab-link');
+          const contents=document.querySelectorAll('.secondary-tab-content');
+          tabs.forEach(t=>{
+              t.addEventListener('click',function(){
+                  tabs.forEach(x=>x.classList.remove('active'));
+                  contents.forEach(c=>c.classList.remove('active'));
+                  this.classList.add('active');
+                  document.getElementById(this.dataset.secondaryTab).classList.add('active');
+              });
+          });
+      }
+    
+      // -----------------------------
+      // Totals / group payment
+      // -----------------------------
+      function generatePaymentID(){ return 'PID-' + Math.floor(Math.random()*1000000); }
+    
+      function updatePaymentTotals(){
+        let total = 0.00;
+        document.querySelectorAll('.include-payment-checkbox').forEach(cb=>{
+            if(cb.checked){
+                const cell = cb.closest('tr').querySelector('.amount-cell');
+                total += (parseFloat((cell?.textContent||'0').replace('$',''))||0);
+            }
+        });
+    
+        document.getElementById('money-in-total').textContent = `$${total.toFixed(2)}`;
+        document.getElementById('group-payment-total').textContent = total.toFixed(2);
+    
+        const btn = document.getElementById('allocate-payment-btn');
+        btn.disabled = !(total > 0);
+    
+        if (total > 0) {
+            document.getElementById('payment-id').textContent = generatePaymentID();
+        }
+      }
+    
+      // -----------------------------
+      // DOM ready
+      // -----------------------------
+      document.addEventListener('DOMContentLoaded', function () {
+          handleToggleInvoiceButtons();
+          handleSecondaryTabSwitching();
+    
+          // Main tab switching
+          const mainTabs=document.querySelectorAll('.main-tab-link');
+          const mainContents=document.querySelectorAll('.tab-content');
+          mainTabs.forEach(tab=>{
+              tab.addEventListener('click',function(){
+                  mainTabs.forEach(t=>t.classList.remove('active'));
+                  mainContents.forEach(c=>c.classList.remove('active'));
+                  this.classList.add('active');
+                  const id=this.getAttribute('data-tab');
+                  document.getElementById(id).classList.add('active');
+    
+                  const fileContainer=document.getElementById('file-upload-container'); // optional
+                  const abn = document.getElementById('abn-search');
+                  const abnBtn = document.getElementById('abn-search-btn');
+                  if(id==='Payments'){
+                      if(fileContainer) fileContainer.style.display='block';
+                      if(abn) abn.style.display='inline-block';
+                      if(abnBtn) abnBtn.style.display='inline-block';
+                  }else{
+                      if(fileContainer) fileContainer.style.display='none';
+                      if(abn) abn.style.display='none';
+                      if(abnBtn) abnBtn.style.display='none';
+                  }
+              });
+          });
+    
+          // Initial reveal for Payments
+          const active=document.querySelector('.main-tab-link.active');
+          if(active && active.dataset.tab==='Payments'){
+              const fileContainer=document.getElementById('file-upload-container');
+              if(fileContainer) fileContainer.style.display='block';
+              const abn=document.getElementById('abn-search');
+              const abnBtn=document.getElementById('abn-search-btn');
+              if(abn) abn.style.display='inline-block';
+              if(abnBtn) abnBtn.style.display='inline-block';
+          }
+    
+          // Disable allocate until there’s a total
+          const allocBtnInit = document.getElementById('allocate-payment-btn');
+          if (allocBtnInit) allocBtnInit.disabled = true;
+    
+          // ABN search
+          const abnBtn=document.getElementById('abn-search-btn');
+          if(abnBtn){
+              abnBtn.addEventListener('click', function(){
+                  const q = (document.getElementById('abn-search')?.value||'').trim();
+                  const rows = document.querySelectorAll('#money-out-table-body .transaction-row');
+                  let any=false;
+                  rows.forEach(row=>{
+                      const rowABN = row.querySelector('td:first-child').textContent.trim();
+                      if(q && rowABN.includes(q)){ row.style.display=''; any=true; }
+                      else{ row.style.display='none'; }
+                  });
+                  if(!any){
+                      document.getElementById('money-out-table-body').innerHTML='<tr><td colspan="9">No transactions found for this ABN.</td></tr>';
+                  }
+              });
+          }
+    
+          // File upload → populate Money In
+          const uploadBtn=document.getElementById('upload-btn');
+          if(uploadBtn){
+              uploadBtn.addEventListener('click', function(){
+                  const f=document.getElementById('file-upload').files[0];
+                  if(!f) return;
+                  const fd=new FormData(); fd.append('file', f);
+                  fetch(withOriginatorQS(`${window.LMS_BASE}handle_file_upload/`), { method:'POST', body:fd })
+                    .then(r=>r.json())
+                    .then(data=>{
+                      if(data.error){ alert(data.error); return; }
+                      const tbody=document.getElementById('money-in-table-body');
+                      tbody.innerHTML='';
+                      (data.data||[]).forEach(row=>{
+                          tbody.innerHTML += `
+                            <tr>
+                              <td>${row.Date||'N/A'}</td>
+                              <td class="amount-cell">${row.Amount||'0.00'}</td>
+                              <td>${row['Account Number']||'N/A'}</td>
+                              <td>${row['Transaction Type']||'N/A'}</td>
+                              <td>${row['Transaction Details']||'N/A'}</td>
+                              <td>${row.Balance||'N/A'}</td>
+                              <td>${row['Merchant Name']||'N/A'}</td>
+                              <td><input type="checkbox" class="include-payment-checkbox" value="yes"></td>
+                            </tr>`;
+                      });
+                      document.querySelectorAll('.include-payment-checkbox').forEach(cb=>{
+                          cb.addEventListener('change', updatePaymentTotals);
+                      });
+                    })
+                    .catch(err=>console.error('Error processing file:', err));
+              });
+          }
+    
+            // Allocate group payment (drawdown-aware)
+            const allocBtn = document.getElementById('allocate-payment-btn');
+            if (allocBtn) {
+            allocBtn.addEventListener('click', async function () {
+                const paymentId = generatePaymentID();
+
+                // Total group payment available
+                let remaining = parseFloat(
+                (document.getElementById('group-payment-total')?.textContent || '0').replace('$', '').trim()
+                ) || 0;
+
+                const abn = (document.getElementById('abn-search')?.value || '').trim();
+                if (!abn) {
+                alert('Please enter a valid ABN.');
+                return;
+                }
+                if (remaining <= 0) {
+                alert('Please select at least one repayment row to allocate.');
+                return;
+                }
+
+                const txRows = [
+                ...document.querySelectorAll(`#money-out-table-body .transaction-row[data-abn="${abn}"]`)
+                ];
+                if (!txRows.length) {
+                alert(`No transactions found for ABN: ${abn}`);
+                return;
+                }
+
+                try {
+                    const total = parseFloat(
+                        (document.getElementById('group-payment-total')?.textContent || '0').replace('$', '').trim()
+                    ) || 0;
+
+                    const abn = (document.getElementById('abn-search')?.value || '').trim();
+                    if (!abn) { alert('Please enter a valid ABN.'); return; }
+                    if (total <= 0) { alert('Please select at least one repayment row to allocate.'); return; }
+
+                    // optional but recommended
+                    const originatorName = (window.selected_originator || selected_originator || '').trim() || null;
+
+                    const resp = await fetch(withOriginatorQS(`${window.LMS_BASE}allocate_payment/`), {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        },
+                        body: JSON.stringify({
+                        abn: abn,
+                        // acn: null,                 // include if you have an input for it
+                        originator: originatorName,   // backend can use this to filter ledgers
+                        amount_repaid: total.toFixed(2),
+                        date_repaid: new Date().toISOString().split('T')[0],
+                        allocation_id: paymentId,
+                        mode: "bulk"                  // IMPORTANT: tells backend to run bulk logic
+                        }),
+                    });
+
+                    const data = await resp.json();
+
+                    if (!resp.ok || data.status !== "success") {
+                        alert(data.error || data.message || "Allocation failed.");
+                        return;
+                    }
+
+                    const remainingToReturn = parseFloat(data.remaining_to_return || "0") || 0;
+
+                    if (remainingToReturn > 0) {
+                        alert(`Allocated ${data.allocated}. Please return $${remainingToReturn.toFixed(2)} to ABN ${abn}.`);
+                    } else {
+                        alert(`Successfully allocated payment for ABN ${abn}.`);
+                    }
+
+                    // optional refresh
+                    // location.reload();
+
+                    } catch (err) {
+                    console.error(err);
+                    alert('Allocation failed due to an unexpected error. Check console logs.');
+                    }
+
+            });
+            }
+
+          // Close buttons
+          document.querySelectorAll('.close-btn').forEach(btn=>{
+              btn.addEventListener('click', function(){
+                  const tx=this.closest('tr').dataset.transactionId;
+                  if(!confirm('Are you sure you want to close this transaction?')) return;
+                  fetch(withOriginatorQS(`${window.LMS_BASE}close-invoice-transaction/${encodeURIComponent(tx)}/`),{
+                      method:'POST',
+                      headers:{'X-CSRFToken':getCookie('csrftoken'),'Content-Type':'application/json'}
+                  })
+                  .then(r=>r.json())
+                  .then(data=>{
+                      if(data.status==='success'){
+                          alert(data.message);
+                          const row=document.querySelector(`tr[data-transaction-id="${tx}"]`);
+                          if(row) row.remove();
+                      }else{
+                          alert(data.message);
+                      }
+                  });
+              });
+          });
+    
+          // Initialize toggles for default active tab
+          handleToggleInvoiceButtons();
+      });
+    
+      // -----------------------------
+      // Drawdown allocate (delegated)
+      // -----------------------------
+      document.addEventListener('click', function(e){
+          if(e.target.classList.contains('allocate-btn')){
+              const row=e.target.closest('tr');
+              const tx=row.getAttribute('data-transaction-id');
+              fetch(withOriginatorQS(`${window.LMS_BASE}allocate_drawdown/`),{
+                  method:'POST',
+                  headers:{'Content-Type':'application/json','X-CSRFToken':getCookie('csrftoken')},
+                  body:JSON.stringify({transaction_id:tx})
+              })
+              .then(r=>r.json())
+              .then(data=>{
+                  if(data.status==='success'){
+                      alert(`✅ Allocated to ${data.allocated_to} invoice(s). Unallocated: $${(data.unallocated_amount||0).toFixed(2)}`);
+                      location.reload();
+                  }else{
+                      alert(`❌ Allocation failed: ${data.error}`);
+                  }
+              })
+              .catch(()=>alert('An unexpected error occurred.'));
+          }
+      });
+    
+    })();  // IIFE
+    </script>
+    
+
+    <script>
+        // -----------------------------
+        // Upload Invoices Modal wiring
+        // -----------------------------
+        function openUploadInvoicesModal(){
+          const m = document.getElementById('uploadInvoicesModal');
+          const status = document.getElementById('uploadInvoicesStatus');
+          const fileInput = document.getElementById('uploadInvoicesFile');
+          const confirmBtn = document.getElementById('confirmUploadInvoicesBtn');
+        
+          if(status) status.textContent = '';
+          if(fileInput) fileInput.value = '';
+          if(confirmBtn) confirmBtn.disabled = false;
+        
+          m.classList.add('is-open');
+          m.setAttribute('aria-hidden', 'false');
+        }
+        
+        function closeUploadInvoicesModal(){
+          const m = document.getElementById('uploadInvoicesModal');
+          m.classList.remove('is-open');
+          m.setAttribute('aria-hidden', 'true');
+        }
+        
+        async function confirmUploadInvoices(){
+          const status = document.getElementById('uploadInvoicesStatus');
+          const fileInput = document.getElementById('uploadInvoicesFile');
+          const companyInput = document.getElementById('uploadInvoicesCompanyName');
+          const confirmBtn = document.getElementById('confirmUploadInvoicesBtn');
+
+          const file = fileInput?.files?.[0];
+          const companyName = (companyInput?.value || '').trim();
+
+          if(!file){
+            if(status) status.textContent = 'Please select a CSV file first.';
+            return;
+          }
+          if(!companyName){
+            if(status) status.textContent = 'Please enter a Company Name.';
+            return;
+          }
+
+          // Originator from page context
+          const originatorName = (window.selected_originator || selected_originator || '').trim();
+          const originatorQS = `originator_name=${encodeURIComponent(originatorName)}`;
+
+          const fd = new FormData();
+          fd.append('file', file);
+
+          // ✅ NEW: send company_name in POST body (multipart)
+          fd.append('company_name', companyName);
+
+          if(status) status.textContent = 'Uploading...';
+          if(confirmBtn) confirmBtn.disabled = true;
+
+          try{
+            let url = `${window.LMS_BASE}upload_invoices_csv/?${originatorQS}`;
+            url = withOriginatorQS(url);
+
+            const resp = await fetch(url, {
+              method: 'POST',
+              headers: { 'X-CSRFToken': getCookie('csrftoken') },
+              body: fd
+            });
+
+            const data = await resp.json();
+
+            if(!resp.ok || data.status !== 'success'){
+              if(status) status.textContent = data?.message || data?.error || 'Upload failed.';
+              if(confirmBtn) confirmBtn.disabled = false;
+              return;
+            }
+
+            const msg =
+              `✅ Uploaded. ` +
+              `Ledgers: +${data.created_ledgers || 0} / updated ${data.updated_ledgers || 0}. ` +
+              `Invoices: +${data.created_details || 0} / updated ${data.updated_details || 0}. ` +
+              `Errors: ${data.errors || 0}` +
+              (originatorName ? ` (Originator: ${originatorName})` : '') +
+              (companyName ? ` (Company: ${companyName})` : '');
+
+            if(status) status.textContent = msg;
+
+          }catch(err){
+            console.error(err);
+            if(status) status.textContent = 'Upload failed due to an unexpected error. Check console.';
+            if(confirmBtn) confirmBtn.disabled = false;
+          }
+        }
+
+        
+        // -----------------------------
+        // Event wiring
+        // -----------------------------
+        document.addEventListener('DOMContentLoaded', function(){
+        
+          // Upload Invoices button (top-right)
+          const uploadInvoicesBtn = document.getElementById('upload-invoices-btn');
+          if(uploadInvoicesBtn){
+            uploadInvoicesBtn.addEventListener('click', openUploadInvoicesModal);
+          }
+        
+          // Modal close buttons
+          const closeBtn = document.getElementById('closeUploadInvoicesModalBtn');
+          if(closeBtn) closeBtn.addEventListener('click', closeUploadInvoicesModal);
+        
+          const cancelBtn = document.getElementById('cancelUploadInvoicesBtn');
+          if(cancelBtn) cancelBtn.addEventListener('click', closeUploadInvoicesModal);
+        
+          // Close when clicking backdrop
+          const modal = document.getElementById('uploadInvoicesModal');
+          if(modal){
+            modal.addEventListener('click', function(e){
+              if(e.target && e.target.dataset && e.target.dataset.close === "1"){
+                closeUploadInvoicesModal();
+              }
+            });
+          }
+        
+          // Confirm upload
+          const confirmBtn = document.getElementById('confirmUploadInvoicesBtn');
+          if(confirmBtn) confirmBtn.addEventListener('click', confirmUploadInvoices);
+        
+        });
+        </script>
+        
+
+
+        <script>
+            // --- Drawdowns modal wiring (robust) ---
+            const abnEl = document.getElementById('drawdownsABN');
+            const acnEl = document.getElementById('drawdownsACN');
+            if(abnEl) abnEl.value = '';
+            if(acnEl) acnEl.value = '';  
+
+
+            function openDrawdownsModal(){
+              console.log("✅ drawdowns button clicked");
+              const m = document.getElementById('drawdownsModal');
+              const status = document.getElementById('drawdownsStatus');
+              const amt = document.getElementById('drawdownsAmount');
+              const applyBtn = document.getElementById('applyDrawdownsBtn');
+          
+              if(!m){
+                console.error("❌ drawdownsModal not found in DOM");
+                return;
+              }
+          
+              if(status) status.textContent = '';
+              if(amt) amt.value = '';
+              if(applyBtn) applyBtn.disabled = false;
+          
+              m.classList.add('is-open');
+              m.setAttribute('aria-hidden', 'false');
+          
+              setTimeout(()=>{ if(amt) amt.focus(); }, 50);
+            }
+          
+            function closeDrawdownsModal(){
+              const m = document.getElementById('drawdownsModal');
+              if(!m) return;
+              m.classList.remove('is-open');
+              m.setAttribute('aria-hidden', 'true');
+            }
+          
+            function parseAmountToNumber(raw){
+              if(!raw) return null;
+              const cleaned = String(raw).replace(/[^0-9.]/g, '');
+              if(!cleaned) return null;
+              const n = Number(cleaned);
+              return Number.isFinite(n) && n > 0 ? n : null;
+            }
+          
+            async function applyDrawdown(){
+                const status = document.getElementById('drawdownsStatus');
+                const amtEl  = document.getElementById('drawdownsAmount');
+                const abnEl  = document.getElementById('drawdownsABN');
+                const acnEl  = document.getElementById('drawdownsACN');
+                const applyBtn = document.getElementById('applyDrawdownsBtn');
+
+                const amount = parseAmountToNumber(amtEl?.value);
+                if(!amount){
+                    if(status) status.textContent = 'Please enter a valid amount.';
+                    return;
+                }
+
+                const originatorName = (window.selected_originator || selected_originator || '').trim() || null;
+
+                // ✅ Prefer modal inputs; fallback to page ABN search value
+                const abnFromModal = (abnEl?.value || '').trim();
+                const acnFromModal = (acnEl?.value || '').trim();
+
+                const abnFallback = (document.getElementById('abn-search')?.value || '').trim();
+                const abn = abnFromModal || abnFallback || null;
+                const acn = acnFromModal || null;
+
+                if(status) status.textContent = 'Applying...';
+                if(applyBtn) applyBtn.disabled = true;
+
+                try{
+                    let url = `${window.LMS_BASE}create_drawdown_request/`;
+                    url = withOriginatorQS(url);
+
+                    const resp = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    body: JSON.stringify({
+                        amount_requested: amount,
+                        originator: originatorName,
+                        abn: abn,
+                        acn: acn
+                    })
+                    });
+
+                    const data = await resp.json();
+
+                    if(!resp.ok || data.status !== 'success'){
+                    if(status) status.textContent = data?.message || data?.error || 'Failed to create drawdown.';
+                    if(applyBtn) applyBtn.disabled = false;
+                    return;
+                    }
+
+                    if(status) status.textContent =
+                    `✅ Created drawdown ${data.transaction_id} for $${Number(data.amount_requested).toFixed(2)}.`;
+
+                }catch(e){
+                    console.error(e);
+                    if(status) status.textContent = 'Failed due to an unexpected error. Check console.';
+                    if(applyBtn) applyBtn.disabled = false;
+                }
+                }
+
+          
+            // ✅ Delegate clicks (works even if buttons are re-rendered)
+            document.addEventListener('click', function(e){
+              if(e.target && e.target.id === 'drawdowns-btn'){
+                openDrawdownsModal();
+              }
+          
+              if(e.target && e.target.id === 'closeDrawdownsModalBtn'){
+                closeDrawdownsModal();
+              }
+          
+              if(e.target && e.target.id === 'applyDrawdownsBtn'){
+                applyDrawdown();
+              }
+          
+              // backdrop click
+              if(e.target && e.target.closest && e.target.closest('#drawdownsModal') && e.target.dataset?.close === "1"){
+                closeDrawdownsModal();
+              }
+            });
+          
+            // Enter key triggers apply
+            document.addEventListener('keydown', function(e){
+              if(e.key === 'Enter' && document.getElementById('drawdownsModal')?.classList.contains('is-open')){
+                const active = document.activeElement;
+                if(active && active.id === 'drawdownsAmount'){
+                  e.preventDefault();
+                  applyDrawdown();
+                }
+              }
+            });
+          </script>
+          
+          
+
+
+
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+  /* Tabs */
+  .main-tab-container{margin-top:20px;}
+  .main-tabs{list-style:none;padding:0;display:flex;border-bottom:2px solid #ddd;}
+  .main-tabs li{margin-right:15px;padding:10px 20px;cursor:pointer;border:1px solid #ddd;border-bottom:none;}
+  .main-tabs li.active{background:#f4f4f4;border-top:2px solid #333;border-left:2px solid #333;border-right:2px solid #333;}
+  .tab-content{display:none;padding:20px;background:#f4f4f4;border:1px solid #ddd;border-radius:5px;}
+  .tab-content.active{display:block;}
+  
+  /* Tables */
+  .styled-table{width:100%;border-collapse:collapse;margin-top:20px;}
+  .styled-table th,.styled-table td{padding:10px;text-align:left;border:1px solid #ddd;}
+  .styled-table th{background:#f4f4f4;color:#333;}
+  .styled-table tr:nth-child(even){background:#f9f9f9;}
+  .styled-table tr:hover{background:#f1f1f1;}
+  
+  /* Tiles */
+  .payments-container{display:flex;justify-content:space-between;align-items:stretch;gap:16px;margin-bottom:30px;}
+  .payments-section,.review-section,.group-payment-section{flex:1;background:#fff;border:1px solid #ddd;border-radius:6px;padding:20px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;}
+  .payments-section h3,.review-section h3,.group-payment-section h3{font-size:40px;font-weight:600;margin-bottom:20px;color:#333;}
+  .review-items,.group-payment-section{display:flex;flex-direction:column;gap:15px;justify-content:center;flex-grow:1;}
+  .review-items p,.group-payment-section p{font-size:16px;margin:0;line-height:1.6;color:#333;}
+  .review-items span,.group-payment-section span{font-weight:bold;}
+  
+  /* Actions */
+  .action-buttons-container{display:flex;flex-direction:column;gap:12px;}
+  .action-buttons-container input[type="text"],.action-buttons-container input[type="file"]{padding:10px;font-size:14px;border:1px solid #ccc;border-radius:5px;width:100%;box-sizing:border-box;}
+  .action-btn,#allocate-payment-btn{background:#f4f4f4;color:#333;border:1px solid #ccc;padding:10px 12px;border-radius:5px;cursor:pointer;font-size:14px;font-weight:500;transition:background-color .2s;width:100%;text-align:center;}
+  .action-btn:hover,#allocate-payment-btn:hover{background:#e0e0e0;}
+  
+  /* Secondary tabs */
+  .secondary-tab-container{margin-top:30px;}
+  .secondary-tabs{list-style:none;display:flex;gap:10px;padding:0;border-bottom:2px solid #ccc;}
+  .secondary-tab-link{cursor:pointer;padding:8px 16px;border:1px solid #ccc;border-bottom:none;background:#f5f5f5;border-radius:5px 5px 0 0;}
+  .secondary-tab-link.active{background:#fff;border-bottom:2px solid #fff;font-weight:bold;}
+  .secondary-tab-content{display:none;padding:20px;border:1px solid #ccc;border-top:none;background:#fff;}
+  .secondary-tab-content.active{display:block;}
+  .allocate-btn{padding:6px 12px;background:#f4f4f4;border:1px solid #ccc;border-radius:4px;font-size:13px;cursor:pointer;}
+  .allocate-btn:hover{background:#e0e0e0;}
+  .money-out-container{padding:20px;margin-top:30px;background:#fff;border:1px solid #ccc;border-radius:5px;}
+  
+  /* Top-right buttons */
+  .top-right-upload-btn{
+    margin-left: 16px;
+    padding: 10px 14px;
+    background: #f4f4f4;
+    color: #333;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .top-right-upload-btn:hover{ background:#e0e0e0; }
+  
+  /* Modal (base) */
+  .efs-modal { display:none; position:fixed; inset:0; z-index:9999; }
+  .efs-modal.is-open { display:block; }
+  .efs-modal__backdrop { position:absolute; inset:0; background: rgba(0,0,0,0.45); }
+  .efs-modal__dialog {
+    position:relative;
+    width:min(640px, 92vw);
+    margin: 8vh auto 0 auto;
+    background:#fff;
+    border-radius:10px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+    overflow:hidden;
+  }
+  .efs-modal__header, .efs-modal__footer {
+    padding:14px 16px;
+    background:#fafafa;
+    border-bottom:1px solid #eee;
+  }
+  .efs-modal__footer {
+    border-bottom:none;
+    border-top:1px solid #eee;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+  }
+  .efs-modal__body { padding:16px; }
+  .efs-modal__close { border:none; background:transparent; font-size:22px; cursor:pointer; }
+  
+  /* Drawdowns modal look */
+  .efs-modal__dialog--tight{ width: min(420px, 92vw); margin: 12vh auto 0 auto; }
+  .efs-modal__header--center{
+    position: relative;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#fff;
+    border-bottom:none;
+    padding-top:22px;
+    padding-bottom:12px;
+  }
+  .efs-modal__body--center{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding-top: 10px;
+    padding-bottom: 18px;
+  }
+  .drawdowns-input{
+    width: 86%;
+    height: 44px;
+    border: 1px solid #d9d9d9;
+    border-radius: 6px;
+    padding: 0 12px;
+    font-size: 16px;
+    outline: none;
+    margin-top: 10px;
+  }
+  #drawdownsAmount{ margin-top: 0; }
+  .drawdowns-input:focus{ border-color:#bdbdbd; }
+  .efs-modal__footer--center{
+    justify-content:center;
+    background:#fff;
+    border-top:none;
+    padding-bottom: 22px;
+  }
+  .drawdowns-apply-btn{
+    width: 86%;
+    height: 44px;
+    border: none;
+    border-radius: 6px;
+    background: #1fa64a;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .drawdowns-apply-btn:disabled{ opacity: 0.6; cursor: not-allowed; }
+  
+  /* -----------------------------
+     Upload Invoices modal form styling (NEW)
+     ----------------------------- */
+  .efs-help{
+    margin:0 0 14px 0;
+    color:#444;
+    font-size:14px;
+    line-height:1.4;
+  }
+  .efs-form{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .efs-form-row{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .efs-label{
+    font-weight:700;
+    font-size:13px;
+    color:#222;
+  }
+  .efs-input{
+    height:42px;
+    border:1px solid #d9d9d9;
+    border-radius:8px;
+    padding:0 12px;
+    font-size:14px;
+    outline:none;
+    background:#fff;
+  }
+  .efs-input:focus{ border-color:#bdbdbd; }
+  .efs-input-file{
+    padding:10px;
+    border:1px dashed #cfcfcf;
+    border-radius:8px;
+    background:#fafafa;
+    cursor:pointer;
+  }
+  .efs-hint{
+    font-size:12px;
+    color:#666;
+  }
+  .efs-status{
+    min-height:18px;
+    font-size:14px;
+    color:#111;
+    margin-top:4px;
+  }
+  .efs-modal__footer .action-btn{ min-width:140px; }
+
+
+  /* -----------------------------
+   Upload Invoices modal (polish)
+   ----------------------------- */
+
+/* Make the dialog feel modern */
+#uploadInvoicesModal .efs-modal__dialog{
+  width: min(720px, 94vw);
+  margin: 10vh auto 0 auto;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+/* Cleaner header */
+#uploadInvoicesModal .efs-modal__header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding: 16px 18px;
+  background:#fff;
+  border-bottom: 1px solid #eee;
+}
+
+#uploadInvoicesModal .efs-modal__header h3{
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+#uploadInvoicesModal .efs-modal__close{
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size: 22px;
+  line-height: 1;
+  color:#222;
+}
+
+#uploadInvoicesModal .efs-modal__close:hover{
+  background:#f3f3f3;
+}
+
+/* Body spacing + typography */
+#uploadInvoicesModal .efs-modal__body{
+  padding: 18px;
+  background:#fff;
+}
+
+#uploadInvoicesModal .efs-help{
+  margin: 0 0 14px 0;
+  color:#555;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Form layout */
+#uploadInvoicesModal .efs-form{
+  display:flex;
+  flex-direction:column;
+  gap: 14px;
+}
+
+#uploadInvoicesModal .efs-form-row{
+  display:flex;
+  flex-direction:column;
+  gap: 8px;
+}
+
+#uploadInvoicesModal .efs-label{
+  font-weight: 800;
+  font-size: 12px;
+  color:#222;
+}
+
+/* Inputs */
+#uploadInvoicesModal .efs-input{
+  height: 44px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 14px;
+  background:#fff;
+  outline:none;
+}
+
+#uploadInvoicesModal .efs-input::placeholder{
+  color:#9a9a9a;
+}
+
+#uploadInvoicesModal .efs-input:focus{
+  border-color:#bcbcbc;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+}
+
+/* File input: make it look like a modern dropzone */
+#uploadInvoicesModal .efs-input-file{
+  width: 100%;
+  padding: 14px 12px;
+  border: 1px dashed #cfcfcf;
+  border-radius: 12px;
+  background: #fafafa;
+  cursor: pointer;
+}
+
+#uploadInvoicesModal .efs-input-file:hover{
+  background:#f6f6f6;
+  border-color:#bdbdbd;
+}
+
+#uploadInvoicesModal .efs-hint{
+  font-size: 12px;
+  color:#777;
+  margin-top: -2px;
+}
+
+/* Status message */
+#uploadInvoicesModal .efs-status{
+  min-height: 18px;
+  font-size: 13px;
+  color:#111;
+  padding-top: 2px;
+}
+
+/* Footer buttons look like buttons (not giant grey bars) */
+#uploadInvoicesModal .efs-modal__footer{
+  background:#fff;
+  border-top: 1px solid #eee;
+  padding: 14px 18px;
+  gap: 10px;
+}
+
+#uploadInvoicesModal .efs-modal__footer .action-btn{
+  width: auto !important;
+  min-width: 140px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid #d9d9d9;
+  background: #f5f5f5;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+/* Primary action (Confirm) */
+#uploadInvoicesModal #confirmUploadInvoicesBtn{
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+#uploadInvoicesModal #confirmUploadInvoicesBtn:hover{
+  background:#000;
+}
+
+/* Disabled state */
+#uploadInvoicesModal #confirmUploadInvoicesBtn:disabled{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+  </style>
+  
+
+  
+
+{% endblock %}

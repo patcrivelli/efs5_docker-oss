@@ -1,0 +1,828 @@
+
+{% extends "efs_shared_ui/base.html" %}
+{% block title %}Agents{% endblock %}
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 id="originator-heading" style="flex-grow: 1;">
+        {% if selected_originator %}
+            {{ selected_originator.originator }} Agents
+        {% else %}
+        Agents for All Originators
+        {% endif %}
+    </h2>
+
+
+    <!-- Insert the JavaScript variable -->
+    <script type="text/javascript">
+         const selected_originator = "{{ selected_originator.originator|default:'' }}";
+   
+   </script>
+
+</div>
+
+
+    <meta charset="UTF-8">
+    <title>Agent Configuration Interface</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Tabs */
+        .tab-container {
+            margin-bottom: 25px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab-nav {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .tab-link {
+            cursor: pointer;
+            padding: 12px 25px;
+            margin: 0 5px;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            background-color: #e9ecef;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .tab-link:hover {
+            background-color: #dee2e6;
+            color: #333;
+        }
+
+        .tab-link.active {
+            background-color: #ffffff;
+            border-color: #e0e0e0;
+            border-bottom: 2px solid #ffffff;
+            color: #007bff;
+            font-weight: bold;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-content {
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            background-color: #ffffff;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-content.active-tab {
+            display: block;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: #495057;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .form-select {
+            background-color: #fff;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23333' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 1em;
+            padding-right: 35px;
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Data Model Multi-select Styling */
+        .data-model-selection-wrapper {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        #model-search {
+            margin-bottom: 15px;
+        }
+
+        .model-list-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            background-color: #fff;
+        }
+
+        .model-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .model-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .model-list li:last-child {
+            border-bottom: none;
+        }
+
+        .model-list label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: normal;
+            margin-bottom: 0;
+        }
+
+        .model-checkbox {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .selected-models-preview {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .selected-models-preview p {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .selected-list {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .selected-list li {
+            background-color: #e2f0fd;
+            color: #0056b3;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            font-size: 0.9em;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        .remove-model {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #007bff;
+            transition: color 0.2s ease;
+        }
+
+        .remove-model:hover {
+            color: #dc3545;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: #fff;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .form-actions {
+            margin-top: 30px;
+            text-align: right;
+        }
+
+        .memory-section {
+            margin-bottom: 30px;
+            border-left: 4px solid #007bff;
+            padding-left: 15px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .memory-section h3 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .memory-item {
+            border-bottom: 1px solid #e0e0e0;
+            padding: 10px 0;
+        }
+
+        .memory-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 id="originator-heading" style="flex-grow: 1;">
+        </h2>
+    </div>
+
+    <div class="tab-container">
+        <ul class="tab-nav">
+            <li class="tab-link active" data-tab="create-agent-tab">Create Agent</li>
+            <li class="tab-link" data-tab="memory-studio-tab">Memory Studio</li>
+            <li class="tab-link" data-tab="assign-memory-tab">Assign Memory</li>
+            <li class="tab-link" data-tab="agent-archive-tab">Agent Archive</li>
+            <li class="tab-link" data-tab="memory-audit-tab">Memory Audit</li>
+        </ul>
+    </div>
+
+    <div class="tab-content active-tab" id="create-agent-tab">
+        <h2>Create New Agent</h2>
+        <form id="agent-form" method="POST" action="{% url 'efs_agents:save_agent' %}">
+            {% csrf_token %}            
+            <div class="form-group">
+                <label for="business-function"><strong>Select Business Function:</strong></label>
+                <select id="business-function" name="business_function" class="form-select">
+                    <option value="">-- Please Select --</option>
+                    <option value="Sales">Sales</option>
+                    <option value="Operations">Operations</option>
+                    <option value="Risk">Risk</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Loan Management">Loan Management</option>
+                    <option value="Collections">Collections</option>
+                    <option value="Compliance">Compliance</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="agent-name"><strong>Agent Name:</strong></label>
+                <input type="text" id="agent-name" name="agent_name" class="form-input"
+                       placeholder="e.g., LoanBot, RiskManager, SalesAssistant" maxlength="100">
+            </div>
+
+            <div class="form-group">
+                <label for="create-persona"><strong>Create Persona:</strong></label>
+                <textarea id="create-persona" name="create_persona" class="form-textarea"
+                          placeholder="Describe the agent's role, responsibilities, and key characteristics..."
+                          rows="8" maxlength="6000"></textarea>
+            </div>
+
+            <div class="form-group">
+                <strong>Accessible Data Models:</strong>
+                <div class="data-model-selection-wrapper">
+                    <input type="text" id="model-search" class="form-input" placeholder="Search models...">
+                    <div class="model-list-container">
+                        <ul id="available-models" class="model-list">
+                            {% for model in available_models %}
+                                <li>
+                                    <label>
+                                        <input type="checkbox" class="model-checkbox" value="{{ model }}"> {{ model }}
+                                    </label>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        
+                    </div>
+                    <div class="selected-models-preview">
+                        <p><strong>Selected Models:</strong></p>
+                        <ul id="selected-models-display" class="selected-list">
+                            <li>No models selected yet.</li>
+                        </ul>
+                        <button type="button" id="clear-selected-models" class="btn btn-secondary">Clear All</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Agent Configuration</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="tab-content" id="memory-studio-tab">
+        <h2>Memory Studio</h2>
+        <form method="post" action="{% url 'efs_agents:save_memory_config' %}">
+            {% csrf_token %}            
+           
+            <div class="form-group">
+                <label for="config_name"><strong>Config Name</strong></label>
+                <input id="config_name" name="config_name" class="form-input" placeholder="e.g., Default Risk Config">
+              </div>
+              
+              <div class="form-group">
+                <label for="description"><strong>Description</strong></label>
+                <textarea id="description" name="description" class="form-textarea" placeholder="Optional notes..."></textarea>
+              </div>
+              
+            <div class="memory-section">
+                <h3>1. Short-Term Memory (STM) – Immediate Context Retention</h3>
+                <p>STM handles recent interactions within a session and ensures continuity. It prioritizes relevance and manages limited context space.</p>
+                <fieldset>
+                    <legend><strong>Context Window</strong> – Define Working Memory Capacity</legend>
+                    <label for="context-window-size">Max Token Capacity:</label>
+                    <input type="range" id="context-window-size" name="context-window-size" min="1000" max="100000" step="1000" value="8000"/>
+                    <span id="context-window-display">8000 tokens</span>
+                </fieldset>
+                <fieldset>
+                    <legend><strong>Attention Mechanisms</strong> – Prioritize Relevant Inputs</legend>
+                    <label><input type="checkbox" name="attention_mechanisms" value="recent_inputs" checked> Emphasize recent user inputs</label><br>
+                    <label><input type="checkbox" name="attention_mechanisms" value="recurring_topics"> Highlight recurring topics</label><br>
+                    <label><input type="checkbox" name="attention_mechanisms" value="user_focus"> Follow user-specified focus</label><br>
+                    <label for="attention-custom-rules">Custom Focus Rules:</label>
+                    <textarea id="attention-custom-rules" name="attention-custom-rules" class="form-textarea" placeholder="e.g., fraud signals, policy exceptions..."></textarea>
+                </fieldset>
+                <fieldset>
+                    <legend><strong>Token Management</strong> – Balance Detail and Brevity</legend>
+                    <label><input type="radio" name="token-strategy" value="preserve" checked> Preserve original text</label><br>
+                    <label><input type="radio" name="token-strategy" value="compress"> Compress older inputs</label><br>
+                    <label><input type="radio" name="token-strategy" value="summarize"> Summarize older data</label><br>
+                    <label for="token-priority">Critical Keywords:</label>
+                    <input type="text" id="token-priority" name="token-priority" class="form-input" placeholder="e.g., entanglement, carbon offset">
+                </fieldset>
+                <fieldset>
+                    <legend><strong>Overflow Handling</strong> – What Happens When STM Is Full</legend>
+                    <select id="stm-overflow-policy" name="stm-overflow-policy" class="form-select">
+                        <option value="discard_oldest">Discard oldest memory</option>
+                        <option value="transfer_to_ltm">Transfer to Long-Term Memory</option>
+                        <option value="compress_context">Compress older context</option>
+                    </select>
+                </fieldset>
+                <fieldset>
+                    <legend><strong>Episodic Memory</strong> – Session Context</legend>
+                    <label><input type="checkbox" name="episodic" value="history"> Conversation History</label><br>
+                    <label><input type="checkbox" name="episodic" value="preferences"> User Preferences</label><br>
+                    <label><input type="checkbox" name="episodic" value="behaviors"> User Behavior</label><br>
+                    <label for="episodic-duration">Retention Duration:</label>
+                    <select id="episodic-duration" name="episodic-duration" class="form-select">
+                        <option value="session">This Session Only</option>
+                        <option value="7d">7 Days</option>
+                        <option value="30d">30 Days</option>
+                        <option value="forever">Forever</option>
+                    </select>
+                </fieldset>
+            </div>
+
+            <hr>
+
+            <div class="memory-section">
+                <h3>2. Long-Term Memory (LTM) – Structured Retention Over Time</h3>
+                <p>LTM stores domain knowledge, rules, preferences, and workflows that persist across sessions and evolve with time.</p>
+                <div class="form-group">
+                    <label for="framework"><strong>Memory Framework:</strong></label>
+                    <select id="framework" name="framework" class="form-select">
+                        <option value="">-- Choose a Framework --</option>
+                        <option value="langchain">LangChain</option>
+                        <option value="llamaindex">LlamaIndex</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <fieldset>
+                    <legend><strong>Semantic Memory</strong></legend>
+                    <label for="semantic-category">Category:</label>
+                    <input type="text" id="semantic-category" name="semantic-category" class="form-input" placeholder="e.g., threshold, score, entity">
+                    <label for="semantic-key">Key:</label>
+                    <input type="text" id="semantic-key" name="semantic-key" class="form-input" placeholder="e.g., suspicious_amount_threshold">
+                    <label for="semantic-value">Value:</label>
+                    <textarea id="semantic-value" name="semantic-value" class="form-textarea" placeholder="e.g., 10000"></textarea>
+                    <label for="semantic-metadata">Metadata (JSON):</label>
+                    <textarea id="semantic-metadata" name="semantic-metadata" class="form-textarea" placeholder='e.g., {"source": "compliance_policy", "expiry": "2025-12-31"}'></textarea>
+                    <br>
+                    <label><input type="checkbox" name="semantic" value="compliance"> Include compliance/regulatory data</label>
+                </fieldset>
+                <fieldset>
+                    <legend><strong>Procedural Memory</strong></legend>
+                    <label for="procedural-rule-name">Rule Name:</label>
+                    <input type="text" id="procedural-rule-name" name="procedural-rule-name" class="form-input" placeholder="e.g., High-Risk Customer Rule">
+                    <label for="procedural-rule-type">Rule Type:</label>
+                    <select id="procedural-rule-type" name="procedural-rule-type" class="form-select">
+                        <option value="">-- Select Type --</option>
+                        <option value="knockout">Knockout</option>
+                        <option value="conditional">Conditional</option>
+                        <option value="advisory">Advisory</option>
+                    </select>
+                    <label for="procedural-condition">Condition Expression:</label>
+                    <textarea id="procedural-condition" name="procedural-condition" class="form-textarea" placeholder="e.g., dpd > 20 && credit_score < 500"></textarea>
+                    <label for="procedural-action">Action:</label>
+                    <input type="text" id="procedural-action" name="procedural-action" class="form-input" placeholder="e.g., reject, manual_review">
+                    <label for="procedural-metadata">Metadata (JSON):</label>
+                    <textarea id="procedural-metadata" name="procedural-metadata" class="form-textarea" placeholder='e.g., {"author": "risk_team", "last_updated": "2025-01-01"}'></textarea>
+                    <br>
+                    <label><input type="checkbox" name="procedural" value="strict"> Enforce strict workflows</label>
+                </fieldset>
+                <fieldset>
+                    <legend><strong>Retrieval Settings</strong></legend>
+                    <label for="relevance-threshold">Relevance Threshold:</label>
+                    <input type="range" name="relevance-threshold" min="0" max="1" step="0.05" value="0.7" id="relevance-threshold">
+                    <span id="relevance-value">0.7</span><br>
+                    <label><input type="checkbox" name="rag" value="enabled" checked> Enable Retrieval-Augmented Generation (RAG)</label>
+                </fieldset>
+                <fieldset>
+                    <legend><strong>Memory Consolidation</strong></legend>
+                    <label><input type="checkbox" name="consolidation" value="importance"> Importance-Based</label><br>
+                    <label><input type="checkbox" name="consolidation" value="frequency"> Frequency-Based</label><br>
+                    <label><input type="checkbox" name="consolidation" value="explicit"> Explicit User Commands</label><br>
+                    <label for="decay-period">Decay Period:</label>
+                    <select id="decay-period" name="decay-period" class="form-select">
+                        <option value="7">7 days</option>
+                        <option value="30">30 days</option>
+                        <option value="never">Never</option>
+                    </select>
+                </fieldset>
+            </div>
+
+            <hr>
+
+            <div class="memory-section">
+                <h3>3. Feedback Loops – Learning and Adaptation</h3>
+                <p>Feedback helps the agent refine both STM and LTM using user interactions, corrections, and behavior patterns.</p>
+                <fieldset>
+                    <legend><strong>Feedback Mechanisms</strong></legend>
+                    <label><input type="checkbox" name="feedback_mechanisms" value="explicit"> Accept Explicit User Feedback (e.g., "remember this")</label><br>
+                    <label><input type="checkbox" name="feedback_mechanisms" value="implicit"> Track Implicit Feedback (e.g., rephrased questions)</label>
+                </fieldset>
+                <fieldset>
+                    <legend><strong>Adaptation Strategy</strong></legend>
+                    <label><input type="checkbox" name="adaptation" value="reinforce"> Reinforce frequently accessed memories</label><br>
+                    <label><input type="checkbox" name="adaptation" value="decay"> Decay outdated or unused data</label><br>
+                    <label><input type="checkbox" name="adaptation" value="clarify"> Request clarification on ambiguous input</label>
+                </fieldset>
+                <fieldset>
+                    <legend><strong>Integration Timing</strong></legend>
+                    <label><input type="checkbox" name="context-prep" checked> Inject memory into context pre-response</label><br>
+                    <label><input type="checkbox" name="in-process-retrieval"> Enable mid-reasoning memory lookup</label><br>
+                    <label><input type="checkbox" name="post-response-update"> Post-response consolidation</label>
+                </fieldset>
+                <hr>
+                <fieldset>
+                    <legend><strong>Feedback Entry</strong> – Save a FeedbackMemory record</legend>
+                    <label for="feedback-related-entity">Related Entity:</label>
+                    <input type="text" id="feedback-related-entity" name="feedback-related-entity" class="form-input" placeholder="e.g., debtor123, deal456">
+                    <label for="feedback-type">Feedback Type:</label>
+                    <select id="feedback-type" name="feedback-type" class="form-select">
+                        <option value="">-- Select Type --</option>
+                        <option value="explicit">Explicit</option>
+                        <option value="implicit">Implicit</option>
+                    </select>
+                    <label for="feedback-content">Feedback Content:</label>
+                    <textarea id="feedback-content" name="feedback-content" class="form-textarea" placeholder="Enter feedback details here..."></textarea>
+                    <label for="feedback-action-taken">Action Taken:</label>
+                    <input type="text" id="feedback-action-taken" name="feedback-action-taken" class="form-input" placeholder="e.g., policy updated, flagged for review">
+                </fieldset>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Memory Configuration</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="tab-content" id="assign-memory-tab">
+        <h2>Assign Memory to Agent</h2>
+        <form id="assign-memory-form" method="POST" action="{% url 'efs_agents:assign_memory' %}">
+            {% csrf_token %}
+        
+            <div class="form-group">
+                <label for="select-agent"><strong>Select Agent:</strong></label>
+                <select id="select-agent" name="select_agent" class="form-select">
+                    <option value="">-- Choose an Agent --</option>
+                    {% for agent in agents %}
+                        <option value="{{ agent.id }}">
+                            {{ agent.bot_name }}{% if agent.business_function %} | {{ agent.business_function }}{% endif %}
+                        </option>
+                    {% empty %}
+                        <option disabled>(No agents found)</option>
+                    {% endfor %}
+                </select>
+            </div>
+    
+            <div class="form-group">
+                <label for="select-memory-config"><strong>Select Memory Configuration:</strong></label>
+                <select id="select-memory-config" name="memory_config_id" class="form-select">
+                    <option value="">-- Choose a Memory Config --</option>
+                    {% for config in memory_configs %}
+                        <option value="{{ config.id }}">
+                            {{ config.config_name }} | Tokens: {{ config.stm_max_tokens }}
+                        </option>
+                    {% empty %}
+                        <option disabled>(No memory configs found)</option>
+                    {% endfor %}
+                </select>
+            </div>
+    
+            <div class="form-group">
+                <label for="memory-snippet"><strong>Assign Memory Snippet:</strong></label>
+                <textarea id="memory-snippet" name="memory_snippet" class="form-textarea"
+                          placeholder="e.g., Always verify ABN before proceeding with credit checks..."
+                          rows="6" maxlength="2000"></textarea>
+            </div>
+    
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Assign Memory</button>
+            </div>
+        </form>
+    </div>
+    
+    
+    <div class="tab-content" id="agent-archive-tab">
+        <h2>Agent Archive</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Bot Name</th>
+                    <th>Created By</th>
+                    <th>Date Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for agent in agents %}
+                    <tr>
+                        <td>{{ agent.bot_name }}</td>
+                        <td>{{ agent.created_by }}</td>
+                        <td>{{ agent.date_created|date:"Y-m-d H:i" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align:center; color:#6c757d;">
+                            No agents found.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+
+    <div class="tab-content" id="memory-audit-tab">
+        <h2>Memory Audit</h2>
+        <div class="form-group">
+            <label for="audit-agent-dropdown"><strong>Select Agent:</strong></label>
+            <select
+                    id="audit-agent-dropdown"
+                    class="form-select"
+            >
+                <option value="">-- Choose an Agent --</option>
+                <option value="agent1">Example Agent 1</option>
+                <option value="agent2">Example Agent 2</option>
+            </select>
+        </div>
+        <div id="memory-audit-results" style="margin-top: 20px;">
+            <p style="text-align: center; color: #6c757d;">Please select an agent to view its memory audit.</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Tab switching
+        document.querySelectorAll('.tab-link').forEach(tab => {
+            tab.addEventListener('click', function () {
+                document.querySelectorAll('.tab-link').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active-tab'));
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                const contentDiv = document.getElementById(tabId);
+                contentDiv.classList.add('active-tab');
+            });
+        });
+
+        // Model checkbox logic
+        const modelCheckboxes = document.querySelectorAll('.model-checkbox');
+        const selectedModelsDisplay = document.getElementById('selected-models-display');
+        const clearSelectedModelsBtn = document.getElementById('clear-selected-models');
+        const modelSearchInput = document.getElementById('model-search');
+        const availableModelsList = document.getElementById('available-models');
+        let selectedModels = [];
+
+        function updateSelectedModelsDisplay() {
+            if (selectedModels.length === 0) {
+                selectedModelsDisplay.innerHTML = '<li>No models selected yet.</li>';
+            } else {
+                selectedModelsDisplay.innerHTML = '';
+                selectedModels.forEach(model => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `${model} <span class="remove-model" data-model="${model}">&times;</span>`;
+                    selectedModelsDisplay.appendChild(listItem);
+                });
+            }
+        }
+
+        function addModel(model) {
+            if (!selectedModels.includes(model)) {
+                selectedModels.push(model);
+                updateSelectedModelsDisplay();
+            }
+        }
+
+        function removeModel(modelToRemove) {
+            selectedModels = selectedModels.filter(model => model !== modelToRemove);
+            updateSelectedModelsDisplay();
+            document.querySelectorAll('.model-checkbox').forEach(checkbox => {
+                if (checkbox.value === modelToRemove) {
+                    checkbox.checked = false;
+                }
+            });
+        }
+
+        modelCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                if (this.checked) {
+                    addModel(this.value);
+                } else {
+                    removeModel(this.value);
+                }
+            });
+        });
+
+        selectedModelsDisplay.addEventListener('click', function (event) {
+            if (event.target.classList.contains('remove-model')) {
+                const modelToRemove = event.target.getAttribute('data-model');
+                removeModel(modelToRemove);
+            }
+        });
+
+        clearSelectedModelsBtn.addEventListener('click', function () {
+            selectedModels = [];
+            modelCheckboxes.forEach(checkbox => checkbox.checked = false);
+            updateSelectedModelsDisplay();
+        });
+
+        modelSearchInput.addEventListener('keyup', function () {
+            const searchTerm = this.value.toLowerCase();
+            availableModelsList.querySelectorAll('li').forEach(item => {
+                const label = item.querySelector('label');
+                if (label && label.textContent.toLowerCase().includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        document.getElementById('agent-form').addEventListener('submit', function () {
+            document.querySelectorAll('input[name="selected_models[]"]').forEach(el => el.remove());
+            selectedModels.forEach(model => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'selected_models[]';
+                input.value = model;
+                this.appendChild(input);
+            });
+        });
+
+        updateSelectedModelsDisplay();
+
+        const tokenSlider = document.getElementById('context-window-size');
+        const tokenDisplay = document.getElementById('context-window-display');
+        const relevanceSlider = document.getElementById('relevance-threshold');
+        const relevanceDisplay = document.getElementById('relevance-value');
+
+        if (tokenSlider && tokenDisplay) {
+            tokenSlider.addEventListener('input', function () {
+                tokenDisplay.textContent = `${this.value} tokens`;
+            });
+        }
+
+        if (relevanceSlider && relevanceDisplay) {
+            relevanceSlider.addEventListener('input', function () {
+                relevanceDisplay.textContent = this.value;
+            });
+        }
+
+        const auditAgentDropdown = document.getElementById('audit-agent-dropdown');
+        const auditResultsDiv = document.getElementById('memory-audit-results');
+
+        // Placeholder for a function that would fetch and render data
+        function renderPlaceholderAuditResults(agentId) {
+            let html = `
+                <div class="memory-section">
+                    <h3>Agent Details</h3>
+                    <p><strong>Agent Name:</strong> ${agentId === 'agent1' ? 'Example Agent 1' : 'Example Agent 2'}</p>
+                    <p><strong>Business Function:</strong> Placeholder Data</p>
+                    <p><strong>Persona:</strong> This is a placeholder persona for the selected agent.</p>
+                </div>
+                <div class="memory-section">
+                    <h3>Memory Configuration</h3>
+                    <p><strong>Config Name:</strong> Placeholder Config | Tokens: 8000</p>
+                    <p><strong>LTM Framework:</strong> LlamaIndex</p>
+                    <p><strong>Relevance Threshold:</strong> 0.7</p>
+                    <p><strong>Decay Period:</strong> 30 days</p>
+                </div>
+                <div class="memory-section"><h3>Semantic Memory (2 entries)</h3>
+                    <div class="memory-item"><strong>Key:</strong> placeholder_key_1<br><strong>Value:</strong> placeholder_value_1<br><strong>Category:</strong> test<br><strong>Created At:</strong> ${new Date().toLocaleString()}<br></div>
+                    <div class="memory-item"><strong>Key:</strong> placeholder_key_2<br><strong>Value:</strong> placeholder_value_2<br><strong>Category:</strong> another_test<br><strong>Created At:</strong> ${new Date().toLocaleString()}<br></div>
+                </div>
+                <div class="memory-section"><h3>Procedural Memory (1 entries)</h3>
+                    <div class="memory-item"><strong>Rule Name:</strong> Placeholder Rule<br><strong>Rule Type:</strong> Conditional<br><strong>Condition:</strong> placeholder > 100<br><strong>Action:</strong> approve<br></div>
+                </div>
+                <div class="memory-section"><h3>Feedback Memory (0 entries)</h3><p>No feedback memories found for this agent.</p></div>
+                <div class="memory-section"><h3>Episodic Memory (3 entries)</h3>
+                    <div class="memory-item"><strong>Type:</strong> history<br><strong>Content:</strong> Placeholder conversation snippet 1<br><strong>Timestamp:</strong> ${new Date().toLocaleString()}<br><strong>Promoted to LTM:</strong> No<br></div>
+                    <div class="memory-item"><strong>Type:</strong> history<br><strong>Content:</strong> Placeholder conversation snippet 2<br><strong>Timestamp:</strong> ${new Date().toLocaleString()}<br><strong>Promoted to LTM:</strong> Yes<br></div>
+                    <div class="memory-item"><strong>Type:</strong> preferences<br><strong>Content:</strong> Preferred contact method: email<br><strong>Timestamp:</strong> ${new Date().toLocaleString()}<br><strong>Promoted to LTM:</strong> No<br></div>
+                </div>
+            `;
+            auditResultsDiv.innerHTML = html;
+        }
+
+        auditAgentDropdown.addEventListener('change', function () {
+            const agentId = this.value;
+            if (agentId) {
+                renderPlaceholderAuditResults(agentId);
+            } else {
+                auditResultsDiv.innerHTML = `<p style="text-align: center; color: #6c757d;">Please select an agent to view its memory audit.</p>`;
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
+
+
+{% endblock %}

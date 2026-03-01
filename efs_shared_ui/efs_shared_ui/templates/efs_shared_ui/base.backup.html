@@ -1,0 +1,184 @@
+{% comment %} Resolve routes; missing ones become empty strings {% endcomment %}
+{% url 'efs_sales:sales_page' as sales_url %}
+{% url 'efs_operations:operations_page' as operations_url %}
+{% url 'efs_risk:risk_page' as risk_url %}
+{% url 'efs_finance:finance_page' as finance_url %}
+{% url 'efs_drawdowns:drawdowns_page' as drawdowns_url %}
+{% url 'efs_lms:lms_page' as lms_url %}
+{% url 'efs_lms:sif_page' as lms_sif_url %}
+{% url 'efs_lms:invoice_finance_page' as lms_if_url %}
+{% url 'efs_lms:trade_finance_page' as lms_tf_url %}
+{% url 'efs_lms:term_loan_page' as lms_tl_url %}
+{% url 'efs_lms:overdraft_page' as lms_od_url %}
+{% url 'efs_lms:asset_finance_page' as lms_af_url %}
+{% url 'efs_collections:collections_page' as collections_url %}
+{% url 'efs_notifications:notifications_page' as notifications_url %}
+{% url 'efs_liquidity:liquidity_home' as liquidity_url %}
+{% url 'efs_profile:profile_page' as profile_url %}
+{% url 'efs_pnl:pl_home' as pl_url %}
+{% url 'efs_settings:settings_page' as settings_url %}
+{% url 'efs_data:other' as data_other_url %}
+{% url 'efs_data:bureau' as data_bureau_url %}
+{% url 'efs_data:bank_statements' as data_bank_url %}
+{% url 'efs_data:financial' as data_financial_url %}
+{% url 'home' as apps_home_url %}
+
+<div class="toggle-btn" onclick="toggleSidebar()">&#9776;</div>
+
+<button onclick="showInputField()">Create Originator</button>
+
+<form method="POST" id="inputGroup" class="input-group" action="{% url 'create_originator' %}" style="display:none;">
+  {% csrf_token %}
+  <input type="text" id="username" name="username" placeholder="Enter Username" required>
+  <input type="text" id="originatorName" name="originator_name" placeholder="Enter Originator Name" required>
+  <button type="submit" onclick="hideInputGroup()">Submit</button>
+</form>
+
+<form method="GET" action="{{ request.path }}">
+  <select name="originators" id="originators-dropdown" onchange="this.form.submit()">
+    <option value="">Originators</option>
+    {% for originator in originators %}
+      <option value="{{ originator.id }}" {% if selected_originator and selected_originator.id == originator.id %}selected{% endif %}>
+        {{ originator.originator }}
+      </option>
+    {% endfor %}
+  </select>
+</form>
+
+<form method="GET" action="{{ request.path }}">
+  {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+  <select name="product" id="product-dropdown" style="margin-top:10px" onchange="this.form.submit()">
+    <option value="">Select Product</option>
+    <option value="invoice-finance" {% if selected_product == 'invoice-finance' %}selected{% endif %}>Invoice Finance</option>
+    <option value="trade-finance" {% if selected_product == 'trade-finance' %}selected{% endif %}>Trade Finance</option>
+    <option value="insurance-premium-funding" {% if selected_product == 'insurance-premium-funding' %}selected{% endif %}>Insurance Premium Funding</option>
+    <option value="sif" {% if selected_product == 'sif' %}selected{% endif %}>SCF</option>
+    <option value="term-loan" {% if selected_product == 'term-loan' %}selected{% endif %}>Term Loan</option>
+    <option value="asset-finance" {% if selected_product == 'asset-finance' %}selected{% endif %}>Asset Finance</option>
+    <option value="early-payment-program" {% if selected_product == 'early-payment-program' %}selected{% endif %}>Early Payment Program</option>
+  </select>
+</form>
+
+<select id="abn-dropdown" name="abn" class="styled-dropdown" style="margin-top:10px">
+  <option value="">Select ABN</option>
+</select>
+
+<input type="hidden" id="hidden-originator-id" value="{{ selected_originator.id|default:'' }}">
+<input type="hidden" id="hidden-product" value="{{ selected_product|default:'' }}">
+
+<div class="applications-section">
+  <h3><a href="{{ apps_home_url|default:'#' }}" style="text-decoration:none; color:inherit;">Applications</a></h3>
+
+  <form method="GET" action="{{ sales_url|default:'#' }}">
+    {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+    <button type="submit" id="sales-btn" class="{% if active_button == 'sales' %}active{% endif %}" {% if not sales_url %}disabled{% endif %}>Sales</button>
+  </form>
+
+  <form method="GET" action="{{ operations_url|default:'#' }}">
+    {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+    <button type="submit" id="operations-btn" class="{% if active_button == 'operations' %}active{% endif %}" {% if not operations_url %}disabled{% endif %}>Operations</button>
+  </form>
+
+  <form method="GET" action="{{ risk_url|default:'#' }}">
+    {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+    <button type="submit" id="risk-btn" class="{% if active_button == 'risk' %}active{% endif %}" {% if not risk_url %}disabled{% endif %}>Risk</button>
+  </form>
+
+  <form method="GET" action="{{ finance_url|default:'#' }}">
+    {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+    <button type="submit" id="finance-btn" class="{% if active_button == 'finance' %}active{% endif %}" {% if not finance_url %}disabled{% endif %}>Finance</button>
+  </form>
+</div>
+
+<div class="loans-section">
+  <h3>Loans</h3>
+
+  <form method="GET" action="{{ drawdowns_url|default:'#' }}">
+    {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+    <button type="submit" id="drawdowns-btn" class="{% if active_button == 'drawdowns' %}active{% endif %}"
+      {% if not drawdowns_url %}disabled{% endif %}>
+      Drawdowns
+    </button>
+  </form>
+
+  <form method="GET" action="{{ lms_url|default:'#' }}" id="lmsForm" data-lms-url="{{ lms_url }}">
+    {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+    <button type="button" id="lms-btn" class="{% if active_button == 'lms' %}active{% endif %}"
+      {% if not lms_url %}disabled{% endif %} onclick="handleLmsClick();">
+      LMS
+    </button>
+  </form>
+
+  <div id="lms-child-buttons" class="child-buttons">
+    <form method="GET" action="{{ lms_sif_url|default:'#' }}"><button type="submit" id="sif-btn" {% if not lms_sif_url %}disabled{% endif %}>SCF</button></form>
+    <form method="GET" action="{{ lms_if_url|default:'#' }}"><button type="submit" id="invoice-finance-btn" {% if not lms_if_url %}disabled{% endif %}>Invoice Finance</button></form>
+    <form method="GET" action="{{ lms_tf_url|default:'#' }}"><button type="submit" id="trade-finance-btn" {% if not lms_tf_url %}disabled{% endif %}>Trade Finance</button></form>
+    <form method="GET" action="{{ lms_tl_url|default:'#' }}"><button type="submit" id="term-loan-btn" {% if not lms_tl_url %}disabled{% endif %}>Term Loan</button></form>
+    <form method="GET" action="{{ lms_od_url|default:'#' }}"><button type="submit" id="overdraft-btn" {% if not lms_od_url %}disabled{% endif %}>Overdraft</button></form>
+    <form method="GET" action="{{ lms_af_url|default:'#' }}"><button type="submit" id="asset-finance-btn" {% if not lms_af_url %}disabled{% endif %}>Asset Finance</button></form>
+  </div>
+
+  <form method="GET" action="{{ collections_url|default:'#' }}">
+    {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+    <button type="submit" id="collections-btn" class="{% if active_button == 'collections' %}active{% endif %}" {% if not collections_url %}disabled{% endif %}>Collections</button>
+  </form>
+
+  <form method="GET" action="{{ notifications_url|default:'#' }}">
+    {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+    <button type="submit" id="notifications-btn" class="{% if active_button == 'notifications' %}active{% endif %}" {% if not notifications_url %}disabled{% endif %}>Notifications</button>
+  </form>
+
+  <form method="GET" action="{{ liquidity_url|default:'#' }}">
+    {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+    <button type="submit" id="liquidity-btn" class="{% if active_button == 'liquidity' %}active{% endif %}" {% if not liquidity_url %}disabled{% endif %}>Liquidity</button>
+  </form>
+</div>
+
+<div class="records-section">
+  <h3>Records</h3>
+  <div id="dynamic-buttons" class="dynamic-buttons">
+    <form method="GET" action="{{ profile_url|default:'#' }}">
+      {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+      <button type="submit" id="profile-btn" class="{% if active_button == 'profile' %}active{% endif %}" {% if not profile_url %}disabled{% endif %}>Client Profiles</button>
+    </form>
+
+    <form method="GET" action="{{ pl_url|default:'#' }}">
+      {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+      <button type="submit" id="p&l-btn" class="{% if active_button == 'p&l' %}active{% endif %}" {% if not pl_url %}disabled{% endif %}>P&amp;L</button>
+    </form>
+
+    <form method="GET" action="{{ settings_url|default:'#' }}">
+      {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+      <button type="submit" id="settings-btn" class="{% if active_button == 'settings' %}active{% endif %}" {% if not settings_url %}disabled{% endif %}>Compliance</button>
+    </form>
+
+    <button type="button" id="data-btn" class="{% if active_button == 'data' %}active{% endif %}" onclick="toggleDataChildButtons();">
+      Data
+    </button>
+
+    <div id="data-child-buttons" class="child-buttons">
+      <form method="GET" action="{{ data_other_url|default:'#' }}"><button type="submit" id="other-btn" {% if not data_other_url %}disabled{% endif %}>Aggregate</button></form>
+      <form method="GET" action="{{ data_bureau_url|default:'#' }}"><button type="submit" id="bureau-btn" {% if not data_bureau_url %}disabled{% endif %}>Bureau</button></form>
+      <form method="GET" action="{{ data_bank_url|default:'#' }}"><button type="submit" id="bank-statements-btn" {% if not data_bank_url %}disabled{% endif %}>Bank Statements</button></form>
+      <form method="GET" action="{{ data_financial_url|default:'#' }}"><button type="submit" id="financial-btn" {% if not data_financial_url %}disabled{% endif %}>Financial</button></form>
+    </div>
+
+    <button type="button" id="applications-btn" class="{% if active_button == 'applications' %}active{% endif %}" onclick="toggleChildButtons();">
+      Applications
+    </button>
+
+    <div id="child-buttons" class="child-buttons">
+      {% url 'efs_applications:approved_applications' as approved_apps_url %}
+      {% url 'efs_applications:rejected_applications' as rejected_apps_url %}
+      <form method="GET" action="{{ approved_apps_url|default:'#' }}"><button type="submit" id="new-applications-btn" {% if not approved_apps_url %}disabled{% endif %}>Approved Applications</button></form>
+      <form method="GET" action="{{ rejected_apps_url|default:'#' }}"><button type="submit" id="redraws-btn" {% if not rejected_apps_url %}disabled{% endif %}>Rejected Applications</button></form>
+    </div>
+
+    {% url 'efs_agents:home' as agents_url %}
+    <form method="GET" action="{{ agents_url|default:'#' }}">
+      {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}">{% endif %}
+      <button type="submit" id="agents-btn" class="{% if active_button == 'agents' %}active{% endif %}" {% if not agents_url %}disabled{% endif %}>Agents</button>
+    </form>
+  </div>
+</div>
+

@@ -1,0 +1,547 @@
+{% extends "efs_shared_ui/base.html" %}
+
+{% block title %}RAG - Embeddings{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<div id="rag-embeddings-page">
+
+  <div class="page-header-container">
+    <h2 id="originator-heading" style="flex-grow:1;">
+      {% if selected_originator %}
+        {{ selected_originator.originator }} RAG Embeddings
+      {% else %}
+        RAG Embeddings for All Originators
+      {% endif %}
+    </h2>
+
+    <div class="header-controls">
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+        <label for="embed_preset" class="hint" style="color:#666; margin:0;">Preset:</label>
+        <select id="embed_preset" style="min-width:200px;">
+          <option value="balanced" selected>Balanced (good default)</option>
+          <option value="fast_cpu">Fast (CPU)</option>
+          <option value="accurate_gpu">Accurate (GPU)</option>
+          <option value="tiny_batches">Tiny batches (low RAM)</option>
+        </select>
+        <button id="apply-embed-preset" type="button">Apply</button>
+      </div>
+  
+      <button id="run-embeddings-btn" type="button" style="margin-left: 1rem;">
+        Run Embeddings
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 1.25rem 0; font-size: 1.5rem; color: var(--color-primary);">Embedding Settings</h3>
+
+    <h3>Model and Device</h3>
+    <div class="row">
+      <div>
+        <label for="embed_model">Model</label>
+        <select id="embed_model">
+          <option value="sentence-transformers/all-mpnet-base-v2" selected>all-mpnet-base-v2 (768d, strong)</option>
+          <option value="sentence-transformers/all-MiniLM-L6-v2">all-MiniLM-L6-v2 (384d, fast)</option>
+          <option value="intfloat/e5-large-v2">e5-large-v2 (1024d, retrieval-tuned)</option>
+          <option value="openai/text-embedding-3-large" disabled>OpenAI text-embedding-3-large (requires API)</option>
+        </select>
+        <div class="hint">Pick based on speed vs accuracy vs dimension.</div>
+      </div>
+      <div>
+        <label for="embed_device">Device</label>
+        <select id="embed_device">
+          <option value="auto" selected>Auto (GPU if available)</option>
+          <option value="cuda">CUDA (GPU)</option>
+          <option value="cpu">CPU</option>
+        </select>
+        <div class="hint">Auto tries GPU; falls back to CPU.</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="embed_precision">Precision</label>
+        <select id="embed_precision">
+          <option value="auto" selected>Auto</option>
+          <option value="fp32">FP32</option>
+          <option value="fp16">FP16</option>
+          <option value="bf16">BF16</option>
+        </select>
+        <div class="hint">FP16/BF16 speed-up on modern GPUs.</div>
+      </div>
+      <div>
+        <label for="embed_batch">Batch Size</label>
+        <input type="range" id="embed_batch" min="4" max="128" step="4" value="32"
+               oninput="document.getElementById('embed_batch_val').textContent=this.value">
+        <div class="hint">Value: <strong id="embed_batch_val">32</strong></div>
+      </div>
+    </div>
+
+    <h3>Preprocessing and Filtering</h3>
+    <div class="row">
+      <div>
+        <label>Normalization & Cleanup</label>
+        <div style="display:flex;gap:1.5rem;flex-wrap:wrap; margin-top:.5rem;">
+          <label style="margin:0;"><input type="checkbox" id="embed_l2norm" checked> L2 normalize vectors</label>
+          <label style="margin:0;"><input type="checkbox" id="embed_lower"> Lowercase</label>
+          <label style="margin:0;"><input type="checkbox" id="embed_ws_norm" checked> Normalize whitespace</label>
+        </div>
+        <div class="hint" style="margin-top:.75rem;">Normalization stabilizes cosine similarity for accurate retrieval.</div>
+      </div>
+      <div>
+        <label>Filter Rules</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;">
+          <div>
+            <small class="hint">Min length (chars)</small>
+            <input type="number" id="embed_min_len" value="50" min="0" step="10">
+          </div>
+          <div>
+            <small class="hint">Max length (chars)</small>
+            <input type="number" id="embed_max_len" value="4000" min="0" step="100">
+          </div>
+        </div>
+        <div style="margin-top:.5rem;display:flex;gap:1rem;flex-wrap:wrap;">
+          <label style="margin:0;"><input type="checkbox" id="embed_drop_numeric" checked> Drop numeric-only chunks</label>
+          <label style="margin:0;"><input type="checkbox" id="embed_dedup" checked> Deduplicate identical chunks</label>
+        </div>
+      </div>
+    </div>
+
+    <h3>Target and Scope</h3>
+    <div class="row">
+      <div>
+        <label for="embed_scope">Target Elements</label>
+        <select id="embed_scope">
+          <option value="new_only" selected>Only elements without embeddings</option>
+          <option value="model_mismatch">Re-embed if model_name differs</option>
+          <option value="all">Re-embed all elements</option>
+        </select>
+        <div class="hint">Select which existing chunks should be processed.</div>
+      </div>
+      <div>
+        <label for="embed_limit">Run Limit</label>
+        <input type="number" id="embed_limit" value="1000" min="1" step="50">
+        <div class="hint">Max elements to embed in this single run.</div>
+      </div>
+    </div>
+
+    <details style="margin-top:1.5rem;">
+      <summary style="cursor:pointer; font-weight:600; color:var(--color-primary);">Retrieval Defaults (Saved with Embedding Run)</summary>
+      <div class="row" style="margin-top:1rem;">
+        <div>
+          <label for="retr_metric">Similarity Metric</label>
+          <select id="retr_metric">
+            <option value="cosine" selected>Cosine</option>
+            <option value="dot">Dot product</option>
+            <option value="l2">L2 distance</option>
+          </select>
+        </div>
+        <div>
+          <label for="retr_topk">Top-K (Default)</label>
+          <input type="number" id="retr_topk" value="10" min="1" step="1">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="retr_thresh">Score Threshold (0–1)</label>
+          <input type="number" id="retr_thresh" value="0.0" min="0" max="1" step="0.01">
+        </div>
+        <div>
+          <label for="retr_index">Index Hint</label>
+          <select id="retr_index">
+            <option value="flat" selected>Flat (brute force)</option>
+            <option value="ivf">IVF (quantized)</option>
+            <option value="hnsw">HNSW</option>
+          </select>
+        </div>
+      </div>
+      <div class="hint" style="margin-top:1rem;">These defaults are saved as run metadata and can be used by a downstream retriever service.</div>
+    </details>
+  </div>
+
+  <div id="embedding-result" class="status-result"></div>
+
+  <script>
+    (function injectRAGEmbeddingsStyles() {
+      // Prevents styles from being injected twice (idempotency check)
+      if (window._efsRAGEmbedStylesInjected) return;
+      window._efsRAGEmbedStylesInjected = true;
+    
+      // The fully SCOPED CSS as a string
+      const css = `
+        /* --- CSS Variables --- */
+        :root {
+          --color-primary: #1e3a8a; /* Dark Blue */
+          --color-secondary: #60a5fa; /* Medium Blue */
+          --color-text: #1f2937; /* Dark Grey */
+          --color-hint: #6b7280; /* Muted Grey */
+          --color-bg-light: #f9fafb; /* Very light background */
+          --color-border: #e5e7eb;
+          --color-card-bg: #ffffff;
+          --color-input-border: #d1d5db;
+          --color-progress-fill: #4f46e5; /* Indigo for fill */
+          --radius-default: 8px;
+          --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+          --focus-ring: 0 0 0 4px rgba(99, 102, 241, 0.4); /* Tailwind Indigo focus */
+        }
+    
+        /* --- SCOPED STYLES START HERE (All selectors prefixed with #rag-embeddings-page) --- */
+        #rag-embeddings-page {
+            font-family: inherit;
+            color: var(--color-text);
+        }
+        
+        #rag-embeddings-page .page-header-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid var(--color-border);
+        }
+
+        #rag-embeddings-page h2 {
+          font-size: 1.75rem;
+          font-weight: 700;
+        }
+
+        #rag-embeddings-page .header-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+    
+        #rag-embeddings-page .card {
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-default);
+          padding: 2rem;
+          max-width: 1024px;
+          margin-top: 1.5rem;
+          background: var(--color-card-bg);
+          box-shadow: var(--shadow-card);
+        }
+        
+        #rag-embeddings-page .card h3 {
+          margin: 1rem 0 0.5rem 0;
+          font-weight: 600;
+          font-size: 1.25rem;
+          color: var(--color-text);
+          border-bottom: 1px solid var(--color-border);
+          padding-bottom: 0.25rem;
+        }
+        
+        #rag-embeddings-page .card h3:first-of-type {
+            margin-top: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+            font-size: 1.5rem;
+            color: var(--color-primary);
+        }
+
+        #rag-embeddings-page label {
+          display: block;
+          margin-bottom: .3rem;
+          font-weight: 500;
+          color: var(--color-text);
+        }
+    
+        #rag-embeddings-page .hint {
+          color: var(--color-hint);
+          font-size: .85rem;
+          margin-top: .25rem;
+          line-height: 1.4;
+        }
+
+        #rag-embeddings-page small.hint {
+            display: block;
+            margin-bottom: 0.3rem;
+            margin-top: 0;
+            font-size: 0.8rem;
+        }
+
+        /* Two-column form rows with responsive stack */
+        #rag-embeddings-page .row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+          margin-bottom: 1rem;
+        }
+        @media (max-width: 720px) {
+          #rag-embeddings-page .row { grid-template-columns: 1fr; }
+        }
+        
+        /* Inputs & Controls (High Priority) */
+        #rag-embeddings-page input:not([type="checkbox"]):not([type="range"]):not([type="submit"]),
+        #rag-embeddings-page select,
+        #rag-embeddings-page textarea {
+          width: 100% !important; 
+          padding: .7rem .8rem;
+          border: 1px solid var(--color-input-border);
+          border-radius: 6px;
+          background: var(--color-card-bg);
+          font: inherit;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          box-sizing: border-box;
+        }
+
+        #rag-embeddings-page input:focus,
+        #rag-embeddings-page select:focus,
+        #rag-embeddings-page textarea:focus,
+        #rag-embeddings-page input:focus-visible,
+        #rag-embeddings-page select:focus-visible,
+        #rag-embeddings-page textarea:focus-visible {
+          outline: none;
+          border-color: var(--color-secondary);
+          box-shadow: var(--focus-ring);
+        }
+
+        /* Checkbox/Radio size fix for base theme conflicts */
+        #rag-embeddings-page input[type="checkbox"] {
+            width: auto !important;
+            height: auto !important;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
+        /* Range input styles */
+        #rag-embeddings-page input[type="range"] {
+            padding: 0;
+            height: 1.5rem;
+            background: transparent;
+            cursor: pointer;
+            width: 100% !important;
+        }
+
+
+        /* --- Buttons --- */
+        #rag-embeddings-page button {
+          background: var(--color-primary);
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: .7rem 1.2rem;
+          cursor: pointer;
+          font: inherit;
+          font-weight: 600;
+          transition: background 0.2s, box-shadow 0.2s;
+          white-space: nowrap;
+        }
+        
+        #rag-embeddings-page button:hover {
+          background: #101c4c;
+        }
+
+        #rag-embeddings-page #apply-embed-preset {
+          background: #5c627a; /* Muted secondary button */
+          padding: 8px 12px;
+          font-weight: 500;
+        }
+
+        #rag-embeddings-page #apply-embed-preset:hover {
+            background: #464b5e;
+        }
+    
+        #rag-embeddings-page #run-embeddings-btn {
+          background: #0e76a8; /* Distinct action color */
+          padding: 10px 18px;
+          border-radius: 8px;
+          font-size: 1em;
+        }
+
+        #rag-embeddings-page #run-embeddings-btn:hover {
+            background: #0a5f87;
+        }
+
+        /* Details/summary affordance */
+        #rag-embeddings-page details { margin-top: 1rem; }
+        #rag-embeddings-page details > summary {
+          cursor: pointer;
+          list-style: none;
+          font-weight: 600;
+          color: var(--color-primary);
+          padding: 0.25rem 0;
+          transition: color 0.2s;
+        }
+        #rag-embeddings-page details > summary:hover { color: var(--color-secondary); }
+        #rag-embeddings-page details > summary::-webkit-details-marker { display: none; }
+        #rag-embeddings-page details[open] summary { margin-bottom: 0.75rem; }
+
+        /* Status / results */
+        #rag-embeddings-page .status-result {
+          margin-top: 1.5rem;
+          padding: 1rem;
+          font-size: 1rem;
+          color: var(--color-text);
+          background: var(--color-bg-light);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-default);
+          font-weight: 500;
+        }
+        #rag-embeddings-page .status-result strong { font-weight: 700; color: var(--color-primary); }
+        #rag-embeddings-page .status-result::before {
+            content: "";
+            margin-right: 8px;
+        }
+        #rag-embeddings-page .status-result:empty {
+            padding: 0;
+            border: none;
+            background: none;
+        }
+        #rag-embeddings-page .status-result:not(:empty) {
+            margin-bottom: 1.5rem; /* give space after showing results */
+        }
+        
+      `;
+    
+      const style = document.createElement('style');
+      style.id = 'efs-rag-embed-style';
+      style.textContent = css;
+      document.head.appendChild(style);
+    })();
+
+
+    // --- Functional JavaScript (UNCHANGED) ---
+    
+    // CSRF from cookie (works without hidden input)
+    function getCookie(name) {
+      const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? m.pop() : '';
+    }
+    function getCsrfToken() { return getCookie('csrftoken'); }
+
+    function getEmbedConfigFromUI() {
+      return {
+        model: document.getElementById("embed_model").value,
+        device: document.getElementById("embed_device").value,
+        precision: document.getElementById("embed_precision").value,
+        batch_size: parseInt(document.getElementById("embed_batch").value || "32", 10),
+        normalize_embeddings: document.getElementById("embed_l2norm").checked,
+        preprocess: {
+          lowercase: document.getElementById("embed_lower").checked,
+          normalize_whitespace: document.getElementById("embed_ws_norm").checked,
+        },
+        filter: {
+          min_chars: parseInt(document.getElementById("embed_min_len").value || "0", 10),
+          max_chars: parseInt(document.getElementById("embed_max_len").value || "0", 10),
+          drop_numeric_only: document.getElementById("embed_drop_numeric").checked,
+          deduplicate: document.getElementById("embed_dedup").checked,
+        },
+        scope: document.getElementById("embed_scope").value,
+        limit: parseInt(document.getElementById("embed_limit").value || "1000", 10),
+        retrieval_defaults: {
+          metric: document.getElementById("retr_metric").value,
+          top_k: parseInt(document.getElementById("retr_topk").value || "10", 10),
+          score_threshold: parseFloat(document.getElementById("retr_thresh").value || "0"),
+          index: document.getElementById("retr_index").value
+        }
+      };
+    }
+
+    // Presets
+    function applyEmbedPreset() {
+      const p = document.getElementById("embed_preset").value;
+      const set = (id, val) => { const el = document.getElementById(id); if (el) { el.value = val; el.dispatchEvent(new Event("input")); } };
+      const setChk = (id, val) => { const el = document.getElementById(id); if (el) { el.checked = val; } };
+
+      if (p === "balanced") {
+        set("embed_model", "sentence-transformers/all-mpnet-base-v2");
+        set("embed_device", "auto");
+        set("embed_precision", "auto");
+        set("embed_batch", 32);
+        setChk("embed_l2norm", true);
+        setChk("embed_lower", false);
+        setChk("embed_ws_norm", true);
+        set("embed_min_len", 50);
+        set("embed_max_len", 4000);
+        setChk("embed_drop_numeric", true);
+        setChk("embed_dedup", true);
+        set("embed_scope", "new_only");
+        set("retr_metric", "cosine");
+        set("retr_topk", 10);
+        set("retr_thresh", 0.0);
+        set("retr_index", "flat");
+      } else if (p === "fast_cpu") {
+        set("embed_model", "sentence-transformers/all-MiniLM-L6-v2");
+        set("embed_device", "cpu");
+        set("embed_precision", "fp32");
+        set("embed_batch", 16);
+        setChk("embed_l2norm", true);
+        set("embed_min_len", 40);
+        set("embed_max_len", 3000);
+        set("embed_scope", "new_only");
+        set("retr_metric", "cosine");
+        set("retr_topk", 10);
+        set("retr_thresh", 0.0);
+        set("retr_index", "flat");
+      } else if (p === "accurate_gpu") {
+        set("embed_model", "sentence-transformers/all-mpnet-base-v2");
+        set("embed_device", "cuda");
+        set("embed_precision", "fp16");
+        set("embed_batch", 64);
+        setChk("embed_l2norm", true);
+        set("embed_min_len", 60);
+        set("embed_max_len", 4500);
+        set("embed_scope", "model_mismatch");
+        set("retr_metric", "cosine");
+        set("retr_topk", 10);
+        set("retr_thresh", 0.0);
+        set("retr_index", "hnsw");
+      } else if (p === "tiny_batches") {
+        set("embed_batch", 8);
+        set("embed_device", "cpu");
+        set("embed_precision", "fp32");
+        set("embed_model", "sentence-transformers/all-MiniLM-L6-v2");
+        set("embed_min_len", 30);
+        set("embed_max_len", 2500);
+        set("embed_scope", "new_only");
+        set("retr_metric", "cosine");
+        set("retr_topk", 5);
+        set("retr_thresh", 0.0);
+        set("retr_index", "flat");
+      }
+    }
+    document.getElementById("apply-embed-preset").addEventListener("click", applyEmbedPreset);
+    document.getElementById("embed_preset").addEventListener("change", applyEmbedPreset);
+    applyEmbedPreset(); // init
+
+    // Range input value update
+    document.getElementById("embed_batch").addEventListener("input", function() {
+        document.getElementById('embed_batch_val').textContent = this.value;
+    });
+
+    // Single click handler (remove any duplicate/legacy handlers)
+    document.getElementById("run-embeddings-btn").addEventListener("click", async function () {
+      const resultDiv = document.getElementById("embedding-result");
+      resultDiv.innerHTML = "⏳ Running embeddings...";
+
+      const cfg = getEmbedConfigFromUI();
+
+      try {
+        const response = await fetch("{% url 'create_embeddings' %}", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCsrfToken(),
+            "X-Requested-With": "XMLHttpRequest"
+          },
+          body: JSON.stringify({ embedding_config: cfg })
+        });
+
+        const data = await response.json().catch(() => ({}));
+        if (response.ok) {
+          const created = data.created ?? 0;
+          const updated = data.updated ?? 0;
+          resultDiv.innerHTML = `✅ Created <strong>${created}</strong> • Updated <strong>${updated}</strong> • Processed <strong>${data.processed ?? created + updated}</strong>.`;
+        } else {
+          resultDiv.innerHTML = "❌ Error: " + (data.message || "Unknown error");
+        }
+      } catch (err) {
+        resultDiv.innerHTML = "⚠️ Request failed: " + err.message;
+      }
+    });
+  </script>
+</div>
+{% endblock %}

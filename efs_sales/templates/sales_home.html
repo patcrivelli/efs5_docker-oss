@@ -1,0 +1,166 @@
+
+{% extends "efs_shared_ui/base.html" %}
+
+
+
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+
+{% comment %}
+<div style="display: flex; justify-content: flex-end; margin-bottom: 10px; gap: 10px;">
+    <form method="GET" action="{% url 'efs_tasks:tasks_home' %}">
+        {% if selected_originator %}
+            <input type="hidden" name="originators" value="{{ selected_originator.id }}">
+        {% endif %}
+        <button type="submit" id="tasks-btn"
+                class="btn btn-primary {% if active_button == 'tasks' %}active{% endif %}"
+                style="padding: 6px 12px; background-color: #0e76a8; color: white; border-radius: 4px;">
+            Tasks
+        </button>
+    </form>
+    <button id="profile-button" class="btn btn-primary"
+            style="padding: 6px 12px; background-color: #0e76a8; color: white; border-radius: 4px;">
+        Profile
+    </button>
+    <a href="{% url 'analytics' %}" class="btn btn-primary"
+       style="padding: 6px 12px; background-color: #0e76a8; color: white; border-radius: 4px; text-decoration: none;">
+        Analytics
+    </a>
+</div>
+{% endcomment %}
+
+<h2 id="originator-heading">
+    {% if selected_originator %}
+        {{ selected_originator.originator }}
+    {% else %}
+        Please select an originator.
+    {% endif %}
+</h2>
+
+<div class="dashboard-kanban-board">
+    <div class="dashboard-kanban-column">
+        <h3>Sales</h3>
+        {% for application in sales_applications %}
+            {# IMPORTANT CHANGE HERE: Linking to ticket_dashboard and passing relevant data #}
+            {# Ticket is no longer clickable #}
+            <div class="ticket">
+                <span class="status-circle"></span>
+                <strong>ABN: {{ application.abn }}</strong><br>
+                <span>Amount requested: {{ application.amount_requested }}</span><br>
+                <span>Originator: {{ application.originator }}</span><br>
+                <span>Product: {{ application.product }}</span><br>
+            </div>
+            
+        {% empty %}
+            <p>No sales applications available.</p>
+        {% endfor %}
+    </div>
+
+
+    <div class="dashboard-kanban-column">
+        <h3>Risk</h3>
+        {% for application in risk_applications %}
+            <div class="ticket">
+                <span class="status-circle"></span>
+                <strong>ABN: {{ application.abn|default:"—" }}</strong><br>
+                <span>Amount requested: {{ application.amount_requested|default:"—" }}</span><br>
+                <span>Originator: {{ application.originator|default:"—" }}</span><br>
+                <span>Product: {{ application.product|default:"—" }}</span><br>
+            </div>
+        {% empty %}
+            <p>No risk applications available.</p>
+        {% endfor %}
+    </div>
+    
+
+
+
+
+    <div class="dashboard-kanban-column">
+        <h3>Operations</h3>
+        {% for application in operations_applications %}
+            <div class="ticket">
+                <span class="status-circle"></span>
+                <strong>ABN: {{ application.abn|default:"—" }}</strong><br>
+                <span>Amount requested: {{ application.amount_requested|default:"—" }}</span><br>
+                <span>Originator: {{ application.originator|default:"—" }}</span><br>
+                <span>Product: {{ application.product|default:"—" }}</span><br>
+            </div>
+        {% empty %}
+            <p>No operations applications available.</p>
+        {% endfor %}
+    </div>
+    
+
+
+
+    <div class="dashboard-kanban-column">
+        <h3>Finance</h3>
+        {% for application in finance_applications %}
+            <div class="ticket">
+                <span class="status-circle"></span>
+                <strong>ABN: {{ application.abn|default:"—" }}</strong><br>
+                <span>Amount requested: {{ application.amount_requested|default:"—" }}</span><br>
+                <span>Originator: {{ application.originator|default:"—" }}</span><br>
+                <span>Product: {{ application.product|default:"—" }}</span><br>
+            </div>
+        {% empty %}
+            <p>No finance applications available.</p>
+        {% endfor %}
+    </div>
+    
+</div>
+
+{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .dashboard-kanban-board {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+    }
+
+    .dashboard-kanban-column {
+        background-color: #f4f4f4;
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        width: 22%;
+    }
+
+    .dashboard-kanban-column h3 {
+        text-align: center;
+        margin-bottom: 10px;
+        color: #333;
+    }
+
+    .ticket {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+
+    .status-circle {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        border-radius: 50%;
+    }
+
+    .ticket-link {
+        text-decoration: none;
+        color: inherit;
+    }
+</style>
+{% endblock %}

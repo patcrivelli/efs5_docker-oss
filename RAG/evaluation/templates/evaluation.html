@@ -1,0 +1,20 @@
+{% extends "efs_shared_ui/base.html" %}
+
+{% block title %}RAG - Evaluation{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;">
+  <h2 id="originator-heading" style="flex-grow:1;">
+    {% if selected_originator %}
+      {{ selected_originator.originator }} RAG Evaluation
+    {% else %}
+      RAG Evaluation for All Originators
+    {% endif %}
+  </h2>
+
+  <button id="evaluation-btn"
+          style="padding:8px 14px;background:#0e76a8;color:#fff;border:none;border-radius:6px;cursor:pointer;">
+    + Start Evaluation
+  </button>
+</div>
+{% endblock %}

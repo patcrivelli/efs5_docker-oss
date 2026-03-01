@@ -1,0 +1,378 @@
+{% extends "efs_shared_ui/base.html" %}
+
+{% block title %}RAG - Retrieval{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<div id="rag-retrieval-page">
+
+  <div class="page-header-container">
+    <h2 style="flex-grow:1;">
+      {% if selected_originator %}
+        {{ selected_originator.originator }} RAG Retrieval
+      {% else %}
+        RAG Retrieval for All Originators
+      {% endif %}
+    </h2>
+  </div>
+
+  <div class="query-actions-card">
+    <div class="query-input-group">
+      <input id="query-input"
+             type="text"
+             placeholder="Enter your query..."
+             class="main-input-field">
+      <button id="retrieval-run-btn" class="btn-primary">
+        🔍 Run Retrieval
+      </button>
+    </div>
+    
+    <div class="action-buttons-group">
+      <button id="retrieval-save-btn" class="btn-secondary" style="display:none;">
+        💾 Save Query
+      </button>
+    </div>
+  </div>
+
+  <div id="retrieval-result" class="status-result"></div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function injectRAGRetrievalStyles() {
+    if (window._efsRAGRetrStylesInjected) return;
+    window._efsRAGRetrStylesInjected = true;
+
+    // Define CSS Variables
+    const cssVars = `
+      --color-primary: #1e3a8a; /* Dark Blue */
+      --color-secondary: #28a745; /* Green for Save */
+      --color-accent: #0e76a8; /* Action Blue for Run */
+      --color-text: #1f2937;
+      --color-hint: #6b7280;
+      --color-bg-light: #f9fafb;
+      --color-card-bg: #ffffff;
+      --color-border: #e5e7eb;
+      --radius-default: 8px;
+      --focus-ring: 0 0 0 4px rgba(99, 102, 241, 0.4);
+      --color-success: #1e8449; /* Darker green */
+      --color-error: #cc3333; /* Darker red */
+    `;
+
+    // The fully SCOPED CSS as a string
+    const css = `
+      :root { ${cssVars} }
+
+      /* --- General Scoping --- */
+      #rag-retrieval-page {
+        font-family: inherit;
+        color: var(--color-text);
+      }
+      
+      #rag-retrieval-page .page-header-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      #rag-retrieval-page h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+        color: var(--color-text);
+      }
+
+      /* --- Action Card / Input Bar --- */
+      #rag-retrieval-page .query-actions-card {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-default);
+        background: var(--color-card-bg);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      
+      #rag-retrieval-page .query-input-group {
+        display: flex;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      #rag-retrieval-page .main-input-field {
+        flex-grow: 1;
+        width: 70%; /* Maintain original relative width logic but let it grow */
+        padding: 10px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-sizing: border-box;
+      }
+      
+      #rag-retrieval-page .main-input-field:focus {
+        outline: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 1px var(--color-accent);
+      }
+
+      /* --- Buttons --- */
+      #rag-retrieval-page button {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font: inherit;
+        font-weight: 600;
+        transition: background-color 0.2s, box-shadow 0.2s;
+        white-space: nowrap;
+      }
+
+      #rag-retrieval-page .btn-primary {
+        background: var(--color-accent); 
+        color: #fff;
+      }
+      #rag-retrieval-page .btn-primary:hover { background: #0a5f87; }
+
+      #rag-retrieval-page .btn-secondary {
+        background: var(--color-secondary);
+        color: #fff;
+      }
+      #rag-retrieval-page .btn-secondary:hover { background: var(--color-success); }
+
+
+      /* --- Results Area --- */
+      #rag-retrieval-page .status-result {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        font-size: 1rem;
+        color: var(--color-text);
+        background: var(--color-card-bg);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-default);
+        line-height: 1.6;
+      }
+
+      #rag-retrieval-page .status-result:empty {
+        padding: 0;
+        border: none;
+        background: none;
+      }
+      
+      #rag-retrieval-page .status-result > p {
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+        color: var(--color-primary);
+        font-weight: 600;
+      }
+      
+      #rag-retrieval-page .status-result ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      
+      #rag-retrieval-page .status-result li {
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        background: var(--color-bg-light);
+        display: flex;
+        align-items: flex-start;
+      }
+      
+      #rag-retrieval-page .status-result label {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 0.95rem;
+      }
+
+      #rag-retrieval-page .status-result input[type="checkbox"] {
+        width: auto;
+        height: auto;
+        flex-shrink: 0;
+        margin-top: 3px;
+      }
+      
+      #rag-retrieval-page .status-result li span {
+          line-height: 1.4;
+          color: var(--color-text);
+      }
+
+      /* Specific message styles */
+      #rag-retrieval-page .status-result .retrieval-msg {
+          padding: 8px 12px;
+          margin-top: 10px;
+          border-radius: 4px;
+          font-weight: 500;
+          font-size: 0.9rem;
+      }
+
+      #rag-retrieval-page .status-result .retrieval-msg[style*="green"] {
+          background-color: #e6f7e6;
+          color: var(--color-success) !important;
+          border: 1px solid var(--color-success);
+      }
+      
+      #rag-retrieval-page .status-result .retrieval-msg[style*="red"] {
+          background-color: #ffe6e6;
+          color: var(--color-error) !important;
+          border: 1px solid var(--color-error);
+      }
+    `;
+
+    const style = document.createElement('style');
+    style.id = 'efs-rag-retr-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  })();
+
+  
+  // --------------------------------
+  // JavaScript Functionality (UNCHANGED)
+  // --------------------------------
+  document.addEventListener("DOMContentLoaded", () => {
+    // CSRF token retrieval helper (assuming it's available via standard Django means)
+    function getCsrfToken() {
+        const tokenElement = document.querySelector('[name="csrfmiddlewaretoken"]');
+        return tokenElement ? tokenElement.value : '';
+    }
+    
+    const runBtn = document.getElementById("retrieval-run-btn");
+    const saveBtn = document.getElementById("retrieval-save-btn");
+    let lastQuery = null;
+    let lastResults = null;
+
+    if (!runBtn) {
+      console.error("❌ Retrieval button not found");
+      return;
+    }
+
+    // --- Run Retrieval ---
+    runBtn.addEventListener("click", async function() {
+      const resultDiv = document.getElementById("retrieval-result");
+      const queryText = document.getElementById("query-input").value.trim();
+
+      if (!queryText) {
+        resultDiv.innerHTML = `<p class="retrieval-msg" style="color:red;">⚠️ Please enter a query.</p>`;
+        return;
+      }
+
+      resultDiv.innerHTML = `<p class="retrieval-msg" style="color:var(--color-primary);">⏳ Running retrieval...</p>`;
+      saveBtn.style.display = "none"; // hide until retrieval success
+
+      try {
+        let response = await fetch("{% url 'test_retrieval' %}", {
+          method: "POST",
+          headers: { 
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCsrfToken() // Add CSRF token for POST
+          },
+          body: JSON.stringify({ query: queryText })
+        });
+
+        let data = await response.json();
+        if (response.ok) {
+          let html = `<p><b>Query:</b> ${data.query}</p><ul>`;
+          data.results.forEach((r, idx) => {
+            html += `
+              <li style="margin-bottom:8px;">
+                <label>
+                  <input type="checkbox" class="chunk-select" data-index="${idx}">
+                  <span><b>Chunk:</b> ${r.chunk_text}</span>
+                </label>
+              </li>`;
+          });
+          html += "</ul>";
+          resultDiv.innerHTML = html;
+
+
+          // Save for evaluation
+          lastQuery = data.query;
+          lastResults = data.results;
+          saveBtn.style.display = "inline-block";
+        } else {
+          resultDiv.innerHTML = `<p class="retrieval-msg" style="color:red;">❌ Error: ${data.message || "Unknown error"}</p>`;
+        }
+      } catch (err) {
+        resultDiv.innerHTML = `<p class="retrieval-msg" style="color:red;">⚠️ Request failed: ${err.message}</p>`;
+      }
+    });
+
+    // --- Save Retrieval ---
+    saveBtn.addEventListener("click", async function() {
+      const resultDiv = document.getElementById("retrieval-result");
+
+      // Gather only checked chunks
+      const checkedIndices = Array.from(document.querySelectorAll("#retrieval-result .chunk-select:checked"))
+        .map(cb => parseInt(cb.dataset.index));
+
+      const selectedChunks = lastResults.filter((_, i) => checkedIndices.includes(i));
+
+      // Remove previous messages
+      const msgElements = resultDiv.querySelectorAll(".retrieval-msg");
+      msgElements.forEach(el => el.remove());
+
+      if (selectedChunks.length === 0) {
+        resultDiv.insertAdjacentHTML(
+          "beforeend",
+          `<div class="retrieval-msg" style="color:red;">⚠️ Please select at least one chunk to save.</div>`
+        );
+        return;
+      }
+
+      // Only show "Saving..." if there’s something to save
+      resultDiv.insertAdjacentHTML("beforeend", `<div class="retrieval-msg" style="color:var(--color-primary);">💾 Saving...</div>`);
+
+      try {
+        const response = await fetch("{% url 'save_retrieval' %}", {
+          method: "POST",
+          headers: { 
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCsrfToken() // Add CSRF token for POST
+          },
+          body: JSON.stringify({ query: lastQuery, results: selectedChunks })
+        });
+
+        const data = await response.json();
+
+        // Remove the "Saving..." message
+        resultDiv.querySelector(".retrieval-msg").remove();
+
+        if (response.ok) {
+          resultDiv.insertAdjacentHTML(
+            "beforeend",
+            `<div class="retrieval-msg" style="color:green;">✅ Saved (ID: ${data.log_id})</div>`
+          );
+        } else {
+          resultDiv.insertAdjacentHTML(
+            "beforeend",
+            `<div class="retrieval-msg" style="color:red;">❌ Save failed: ${data.message}</div>`
+          );
+        }
+      } catch (err) {
+        // Remove the "Saving..." message if it's still there
+        const savingMsg = resultDiv.querySelector(".retrieval-msg");
+        if(savingMsg) savingMsg.remove();
+        
+        resultDiv.insertAdjacentHTML(
+          "beforeend",
+          `<div class="retrieval-msg" style="color:red;">⚠️ Request failed: ${err.message}</div>`
+        );
+      }
+    });
+
+  });
+</script>
+{% endblock %}

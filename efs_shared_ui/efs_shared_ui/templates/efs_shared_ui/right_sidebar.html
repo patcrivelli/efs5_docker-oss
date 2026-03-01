@@ -1,0 +1,1370 @@
+<button id="toggleRightSidebarBtn" onclick="toggleRightSidebar()" style="
+    position: fixed;
+    right: 400px; /* Aligned to the left edge of the initially wider sidebar */
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--primary-green); /* Consistent green */
+    color: white; /* Text color for visibility */
+    border: none; /* No border for a cleaner look */
+    padding: 8px 12px; /* Increased padding */
+    cursor: pointer;
+    z-index: 9999;
+    border-radius: 6px 0 0 6px; /* More rounded, specific for the button */
+    box-shadow: -2px 2px 8px rgba(0,0,0,0.15); /* More prominent shadow */
+    transition: all 0.3s ease; /* Smooth transition for position and background */
+">⮜</button> {# Initial arrow pointing left, assuming it starts open #}
+
+
+<div class="right-sidebar" id="rightSidebar"> {# Removed 'retracted' class for default open state #}
+    <div id="resizeHandle"></div>
+    <div class="right-sidebar-inner">
+        <div class="section-card"> {# Renamed from company-card for reusability #}
+            <h4>
+                {% if selected_originator %}
+                    {{ selected_originator.originator }}
+                {% else %}
+                    All Originators
+                {% endif %}
+            </h4>
+
+        </div>
+
+
+        <div class="gemini-chat-container" id="geminiChatContainer">
+            <div class="chat-header">
+                <span>AI Assistant</span>
+                <div style="display: flex; gap: 10px;"> {# Group buttons for better spacing #}
+                    <button class="chat-header-btn" onclick="resetGeminiChat()">Reset</button>
+                    <button class="chat-header-btn" id="expandChatBtn" onclick="toggleChatExpansion()">
+                        Expand
+                    </button>
+                </div>
+            </div>
+        
+            <div id="gemini-chat-messages" class="chat-messages">
+                </div>
+        
+            <div id="chatResizeHandle"></div> 
+            <div class="chat-input-area">
+                <textarea id="gemini-input" placeholder="Type your message..."></textarea>
+                <button class="chat-send-btn" onclick="sendGeminiPrompt()">Send</button>
+            </div>
+        </div>
+        
+        
+        <!-- Live Deals dropdown (between AI Assistant and Conditions) -->
+        <div class="section-card">
+            <div class="live-deals">
+            <div class="user-select">
+                <label for="live-deals-select">Live Deals</label>
+        
+                <select id="live-deals-select">
+                <option value="">Select Deal…</option>
+        
+                {# ✅ Server-render from context processor (works even if JS fails) #}
+                {% if live_deals %}
+                    {% for deal in live_deals %}
+                    <option
+                    value="{{ deal.transaction_id|default:'' }}"
+                    data-company="{{ deal.company_name|default:'' }}"
+                    data-product="{{ deal.product|default:'' }}"
+                  >
+                    {{ deal.company_name|default:"Unnamed Company" }}{% if deal.product %} — {{ deal.product }}{% endif %}
+                  </option>
+                  
+                    {% endfor %}
+                {% endif %}
+                </select>
+        
+            </div>
+            </div>
+        </div>
+        
+        <div class="section-card"> {# Wrapped Assigned Users section in a tile #}
+            <div class="assigned-users">
+                <h5>Assigned Users</h5>
+                <div class="user-select">
+                    <label for="bdm-select">BDM</label>
+                    <select id="bdm-select">
+                        <option>Select User</option>
+                        <option>BDM1</option>
+                        <option>BDM2</option>
+                        <option>BDM3</option>
+                    </select>
+                </div>
+                <div class="user-select">
+                    <label for="credit-risk-select">Credit & Risk</label>
+                    <select id="credit-risk-select">
+                        <option>Select User…</option>
+                        <option>risk_1</option>
+                        <option>risk_2</option>
+                        <option>risk_3</option>
+
+                    </select>
+                </div>
+                <div class="user-select">
+                    <label for="operations-select">Operations</label>
+                    <select id="operations-select">
+                        <option>Select User…</option>
+                        <option>ops_1</option>
+                        <option>ops_2</option>
+                        <option>ops_3</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-card"> {# Wrapped Conditions section in a tile #}
+            <div class="conditions-section">
+                <h5 class="conditions-title">
+                    Conditions
+                    <span id="selected-deal-badge" class="deal-badge" style="display:none;"></span>
+                  </h5>
+                
+                <div class="condition-block">
+                    <strong>PRE-Settlement Conditions 
+                        <button class="add-condition-btn" onclick="addCondition('pre')">+</button>
+                    </strong>
+                    <div id="pre-settlement-conditions">
+                        </div>
+                </div>
+
+                <div class="condition-block">
+                    <strong>POST-Settlement Conditions 
+                        <button class="add-condition-btn" onclick="addCondition('post')">+</button> {# Re-added this button #}
+                    </strong>
+                    <div id="post-settlement-conditions">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function toggleRightSidebar() {
+    const sidebar = document.getElementById("rightSidebar");
+    const toggleBtn = document.getElementById("toggleRightSidebarBtn");
+    const defaultSidebarWidth = 400;
+
+    sidebar.classList.toggle("retracted");
+
+    if (sidebar.classList.contains("retracted")) {
+        toggleBtn.innerHTML = "⮞"; // Arrow pointing right
+        toggleBtn.style.right = "0px"; // Stick to edge of screen
+    } else {
+        toggleBtn.innerHTML = "⮜"; // Arrow pointing left
+        // Get actual width of sidebar
+        const currentWidth = sidebar.offsetWidth || defaultSidebarWidth;
+        toggleBtn.style.right = `${currentWidth}px`;
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const sidebar = document.getElementById("rightSidebar");
+    const toggleBtn = document.getElementById("toggleRightSidebarBtn");
+    const defaultSidebarWidth = 400;
+
+    // If retracted, keep button on screen edge
+    if (sidebar.classList.contains("retracted")) {
+        toggleBtn.innerHTML = "⮞";
+        toggleBtn.style.right = "0px";
+    } else {
+        toggleBtn.innerHTML = "⮜";
+        toggleBtn.style.right = `${defaultSidebarWidth}px`;
+    }
+});
+
+
+</script>
+
+<script>
+    /******************************************************************
+     * Conditions UI (LocalStorage + POST on Complete)
+     * - Fixes "addCondition is not defined" by:
+     *   1) Making addCondition global (window.addCondition)
+     *   2) Ensuring all braces are properly closed
+     * - Persists edits to localStorage
+     * - Posts to /api/deal-conditions/ on green tick
+     ******************************************************************/
+  
+    // ---------- Safe HTML escaping ----------
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  
+    // ---------- Helpers (fallbacks if you already define elsewhere) ----------
+    // Selected Originator shown at the top of the sidebar
+    function getSelectedOriginatorText() {
+      const h4 = document.querySelector("#rightSidebar .section-card h4");
+      const txt = (h4?.textContent || "").trim();
+      return txt || null;
+    }
+  
+    // Live deal selection meta (transaction_id, company_name, product)
+    function getSelectedDealMeta() {
+      const sel = document.querySelector("#rightSidebar #live-deals-select");
+      if (!sel) return { transaction_id: null, company_name: null, product: null };
+  
+      const transaction_id = sel.value || null;
+      const opt = sel.options[sel.selectedIndex];
+  
+      const company_name = opt?.dataset?.company || null;
+      const product = opt?.dataset?.product || null;
+  
+      return { transaction_id, company_name, product };
+    }
+  
+    // POST helper to your aggregate service endpoint
+    async function postDealCondition(payload) {
+      const svcMap = window.SERVICES || {};
+      const base = (svcMap.application_aggregate || "").replace(/\/+$/, "");
+      if (!base) {
+        console.warn("DealCondition POST: SERVICES.application_aggregate missing.");
+        return { ok: false, error: "missing_service_url" };
+      }
+  
+      const url = new URL("/api/deal-conditions/", base);
+  
+      try {
+        const resp = await fetch(url.toString(), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            // If you later add auth headers, do it here
+            // "Authorization": `Bearer ${window.EFS_ACCESS_TOKEN}`,
+          },
+          body: JSON.stringify(payload),
+        });
+  
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) {
+          console.error("DealCondition POST failed:", resp.status, data);
+          return { ok: false, error: data };
+        }
+        return { ok: true, data };
+      } catch (err) {
+        console.error("DealCondition POST error:", err);
+        return { ok: false, error: String(err) };
+      }
+    }
+  
+    // ---------- Public API (inline onclick needs global scope) ----------
+    window.addCondition = function addCondition(type) {
+      const container =
+        type === "pre"
+          ? document.getElementById("pre-settlement-conditions")
+          : document.getElementById("post-settlement-conditions");
+  
+      if (!container) {
+        console.warn("addCondition: container missing for type:", type);
+        return;
+      }
+  
+      const today = new Date();
+      const dateStr = today.toLocaleDateString("en-AU");
+  
+      const selectedUser = window.RIGHT_SIDEBAR_SELECTED_USER || "Unassigned";
+  
+      const conditionData = {
+        type: type, // "pre" | "post"
+        date: dateStr,
+        createdBy: "admin",
+        assignedTo: selectedUser,
+        title: "New condition title",
+        description: "",
+        posted: false, // whether we've already POSTed this completed condition
+        completed: false, // purely UI/local flag
+      };
+  
+      const conditions = JSON.parse(localStorage.getItem("conditions") || "[]");
+      conditions.push(conditionData);
+      localStorage.setItem("conditions", JSON.stringify(conditions));
+  
+      renderCondition(container, conditionData, conditions.length - 1);
+    };
+  
+    // ---------- Render one condition tile ----------
+    function renderCondition(container, data, index = null) {
+      const conditionDiv = document.createElement("div");
+      conditionDiv.classList.add("condition");
+      conditionDiv.classList.add(data.type === "post" ? "ongoing" : "once");
+  
+      if (index !== null) {
+        conditionDiv.setAttribute("data-index", index);
+      }
+  
+      // Backwards compatible with older localStorage objects
+      const titleVal = data.title ?? data.conditionText ?? "New condition title";
+      const descVal = data.description ?? "";
+      const postedVal = Boolean(data.posted);
+      const completedVal = Boolean(data.completed);
+  
+      conditionDiv.dataset.posted = postedVal ? "1" : "0";
+      if (completedVal) conditionDiv.classList.add("completed");
+  
+      conditionDiv.innerHTML = `
+        <div class="condition-header">
+          <p><a href="#">${data.type === "pre" ? "Once-Off" : "On-Going"}</a></p>
+          <div class="condition-actions">
+            <span class="complete-condition" title="Mark Complete">✓</span>
+            <span class="delete-condition" title="Delete Condition">✕</span>
+          </div>
+        </div>
+  
+        <input
+          type="text"
+          class="condition-title-input"
+          value="${escapeHtml(titleVal)}"
+          placeholder="Condition title..."
+        />
+  
+        <textarea
+          class="condition-desc-input"
+          placeholder="Add a description..."
+          rows="3"
+        >${escapeHtml(descVal)}</textarea>
+  
+        <small>
+          Created by <strong>${escapeHtml(data.createdBy || "admin")}</strong> on ${escapeHtml(data.date || "")}<br>
+          Assigned to <strong class="assigned-user">${escapeHtml(data.assignedTo || "Unassigned")}</strong>
+        </small>
+      `;
+  
+      container.appendChild(conditionDiv);
+  
+      // ----- Persist edits (title + description) -----
+      const titleInput = conditionDiv.querySelector(".condition-title-input");
+      const descInput = conditionDiv.querySelector(".condition-desc-input");
+  
+      function saveEdits() {
+        const allConditions = JSON.parse(localStorage.getItem("conditions") || "[]");
+        const idx = parseInt(conditionDiv.getAttribute("data-index"), 10);
+        if (!Number.isInteger(idx) || !allConditions[idx]) return;
+  
+        allConditions[idx].title = titleInput.value;
+        allConditions[idx].description = descInput.value;
+  
+        // keep for older code compatibility
+        allConditions[idx].conditionText = titleInput.value;
+  
+        localStorage.setItem("conditions", JSON.stringify(allConditions));
+      }
+  
+      titleInput.addEventListener("input", saveEdits);
+      descInput.addEventListener("input", saveEdits);
+  
+      // ----- Delete -----
+      const deleteBtn = conditionDiv.querySelector(".delete-condition");
+      deleteBtn.addEventListener("click", function () {
+        const allConditions = JSON.parse(localStorage.getItem("conditions") || "[]");
+        const indexToDelete = parseInt(conditionDiv.getAttribute("data-index"), 10);
+  
+        const updatedConditions = allConditions.filter((_, i) => i !== indexToDelete);
+        localStorage.setItem("conditions", JSON.stringify(updatedConditions));
+  
+        // Clear + reload to reindex safely
+        const pre = document.getElementById("pre-settlement-conditions");
+        const post = document.getElementById("post-settlement-conditions");
+        if (pre) pre.innerHTML = "";
+        if (post) post.innerHTML = "";
+        loadConditions();
+      });
+  
+      // ----- Complete (POST + mark completed) -----
+      const completeBtn = conditionDiv.querySelector(".complete-condition");
+      completeBtn.addEventListener("click", async function () {
+        // prevent double posts
+        if (conditionDiv.dataset.posted === "1") {
+          conditionDiv.classList.toggle("completed");
+          // keep localStorage in sync with the visual toggle
+          syncCompletedFlag(conditionDiv);
+          return;
+        }
+  
+        // Require a live deal selection (transaction_id/company/product)
+        const deal = getSelectedDealMeta();
+        if (!deal.transaction_id) {
+          alert("Please select a Live Deal before completing a condition.");
+          return;
+        }
+  
+        // Grab latest title/description from inputs
+        const latestTitle = (titleInput?.value || "").trim() || "Untitled condition";
+        const latestDesc = (descInput?.value || "").trim();
+        const assignedStrong = conditionDiv.querySelector("strong.assigned-user");
+  
+        const payload = {
+          originator: getSelectedOriginatorText(),
+          company_name: deal.company_name,
+          product: deal.product,
+  
+          condition_type: data.type, // "pre" or "post"
+          title: latestTitle,
+          description: latestDesc,
+  
+          created_by: data.createdBy || "admin",
+          assigned_to: (assignedStrong?.textContent || data.assignedTo || "Unassigned").trim(),
+  
+          transaction_id: deal.transaction_id,
+          is_completed: true,
+        };
+  
+        // UI feedback
+        completeBtn.style.pointerEvents = "none";
+        completeBtn.style.opacity = "0.6";
+  
+        const result = await postDealCondition(payload);
+  
+        completeBtn.style.pointerEvents = "auto";
+        completeBtn.style.opacity = "1";
+  
+        if (result.ok) {
+          conditionDiv.dataset.posted = "1";
+          conditionDiv.classList.add("completed");
+  
+          // Persist flags to localStorage
+          const allConditions = JSON.parse(localStorage.getItem("conditions") || "[]");
+          const idx = parseInt(conditionDiv.getAttribute("data-index"), 10);
+          if (Number.isInteger(idx) && allConditions[idx]) {
+            allConditions[idx].posted = true;
+            allConditions[idx].completed = true;
+            localStorage.setItem("conditions", JSON.stringify(allConditions));
+          }
+        } else {
+          alert("Could not save condition. Check console logs.");
+        }
+      });
+  
+      // Keep localStorage "completed" in sync when user toggles an already-posted tile
+      function syncCompletedFlag(tile) {
+        const allConditions = JSON.parse(localStorage.getItem("conditions") || "[]");
+        const idx = parseInt(tile.getAttribute("data-index"), 10);
+        if (!Number.isInteger(idx) || !allConditions[idx]) return;
+  
+        allConditions[idx].completed = tile.classList.contains("completed");
+        localStorage.setItem("conditions", JSON.stringify(allConditions));
+      }
+    } // ✅ closes renderCondition
+  
+    // ---------- Load all conditions from localStorage ----------
+    function loadConditions() {
+      const preContainer = document.getElementById("pre-settlement-conditions");
+      const postContainer = document.getElementById("post-settlement-conditions");
+      if (!preContainer || !postContainer) return;
+  
+      const conditions = JSON.parse(localStorage.getItem("conditions") || "[]");
+  
+      conditions.forEach((data, index) => {
+        const container =
+          data.type === "pre" ? preContainer : postContainer;
+  
+        renderCondition(container, data, index);
+      });
+    }
+  
+    // Run on page load
+    document.addEventListener("DOMContentLoaded", loadConditions);
+  </script>
+  
+  
+
+
+<script>
+    function appendMessage(sender, message) {
+        const chatMessages = document.getElementById("gemini-chat-messages");
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("chat-message");
+        if (sender === "user") {
+            messageDiv.classList.add("user-message");
+            messageDiv.innerHTML = `<p>${message}</p>`;
+        } else {
+            messageDiv.classList.add("ai-message");
+            // Process markdown if you want to display it formatted
+            // For now, just display as plain text
+            messageDiv.innerHTML = `<p>${message}</p>`;
+        }
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom
+    }
+
+    function sendGeminiPrompt() {
+        const inputElement = document.getElementById("gemini-input");
+        const prompt = inputElement.value.trim();
+
+        if (prompt === "") {
+            return; // Don't send empty prompts
+        }
+
+        appendMessage("user", prompt);
+        inputElement.value = ""; // Clear input
+
+        fetch("/gemini-agent/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({ prompt })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const aiResponse = data.response || "No response.";
+            appendMessage("ai", aiResponse);
+        })
+        .catch(err => {
+            console.error("Gemini error:", err);
+            appendMessage("ai", "Error contacting Gemini.");
+        });
+    }
+
+    function resetGeminiChat() {
+        fetch("/reset-gemini-memory/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken")  // Or use {{ csrf_token }} if inline
+            }
+        }).then(() => {
+            document.getElementById("gemini-chat-messages").innerHTML = "";
+        });
+    }
+
+    // Helper to get CSRF token from cookie if needed (for external JS files)
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+
+    // Auto-resize textarea
+    document.addEventListener('input', function (event) {
+        if (event.target.tagName.toLowerCase() === 'textarea' && event.target.id === 'gemini-input') {
+            event.target.style.height = 'auto';
+            event.target.style.height = (event.target.scrollHeight) + 'px';
+        }
+    });
+
+    const textarea = document.getElementById('gemini-input');
+        textarea.addEventListener('input', () => {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        });
+
+    function toggleChatExpansion() {
+        const rightSidebar = document.getElementById('rightSidebar');
+        const chatContainer = document.getElementById('geminiChatContainer');
+        const toggleBtn = document.getElementById('toggleRightSidebarBtn');
+
+        const isExpanded = rightSidebar.classList.contains('expanded-sidebar');
+
+        // Define the default/contracted width
+        const defaultSidebarWidth = 400; // Must match initial CSS width
+        const defaultChatHeight = 300;
+
+        if (isExpanded) {
+            // Revert to default
+            rightSidebar.style.width = `${defaultSidebarWidth}px`;
+            chatContainer.style.height = `${defaultChatHeight}px`;
+            toggleBtn.style.right = `${defaultSidebarWidth}px`;
+            rightSidebar.classList.remove('expanded-sidebar');
+        } else {
+            // Expand to 3 times the default height and 1.5 times the default width
+            const newHeight = defaultChatHeight * 3;
+            const newWidth = defaultSidebarWidth * 1.5;
+            
+            rightSidebar.style.width = `${newWidth}px`;
+            chatContainer.style.height = `${newHeight}px`;
+            toggleBtn.style.right = `${newWidth}px`;
+            rightSidebar.classList.add('expanded-sidebar');
+        }
+    }
+</script>
+    
+<script>
+    const rightSidebar = document.getElementById("rightSidebar");
+    const resizeHandle = document.getElementById("resizeHandle");
+
+    let isResizing = false;
+
+    resizeHandle.addEventListener("mousedown", function (e) {
+        isResizing = true;
+        document.body.style.cursor = "ew-resize";
+    });
+
+    document.addEventListener("mousemove", function (e) {
+        if (!isResizing) return;
+
+        const newWidth = window.innerWidth - e.clientX;
+        // Ensure minimum width is 400px (the default open width)
+        const clampedWidth = Math.max(400, Math.min(newWidth, window.innerWidth * 0.8)); 
+        rightSidebar.style.width = clampedWidth + "px";
+
+        const toggleBtn = document.getElementById("toggleRightSidebarBtn");
+        toggleBtn.style.right = clampedWidth + "px";
+    });
+
+    document.addEventListener("mouseup", function () {
+        isResizing = false;
+        document.body.style.cursor = "default";
+    });
+
+(function () {
+    const chatContainer = document.getElementById('geminiChatContainer');
+    const resizeHandle = document.getElementById('chatResizeHandle');
+
+    let isResizing = false;
+
+    resizeHandle.addEventListener('mousedown', function (e) {
+        isResizing = true;
+        document.body.style.cursor = 'ns-resize';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function (e) {
+        if (!isResizing) return;
+
+        const containerTop = chatContainer.getBoundingClientRect().top;
+        const newHeight = e.clientY - containerTop;
+
+        const clampedHeight = Math.max(200, Math.min(newHeight, window.innerHeight * 0.8));
+        chatContainer.style.height = clampedHeight + 'px';
+    });
+
+    document.addEventListener('mouseup', function () {
+        isResizing = false;
+        document.body.style.cursor = "default";
+    });
+})();
+
+document.addEventListener("DOMContentLoaded", function() {
+    const sidebar = document.getElementById("rightSidebar");
+    const toggleBtn = document.getElementById("toggleRightSidebarBtn");
+    const defaultSidebarWidth = 400;
+
+    // Ensure the sidebar is closed on load
+    sidebar.classList.add("retracted");  // ✅ Force it closed initially
+
+    // Detect if the sidebar is retracted on page load
+    const isRetracted = sidebar.classList.contains("retracted");
+
+    if (isRetracted) {
+        toggleBtn.innerHTML = "⮞";
+        toggleBtn.style.right = "0px"; // Stick to edge
+    } else {
+        toggleBtn.innerHTML = "⮜";
+        toggleBtn.style.right = `${defaultSidebarWidth}px`; // Align with open sidebar
+    }
+});
+
+</script>
+
+
+
+
+<script>
+function appendMessage(sender, message) {
+    const chatMessages = document.getElementById("gemini-chat-messages");
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("chat-message");
+
+    if (sender === "user") {
+        messageDiv.classList.add("user-message");
+        messageDiv.innerHTML = `<p>${message}</p>`;
+    } else {
+        messageDiv.classList.add("ai-message");
+        // Use marked.js to convert Markdown to HTML
+        messageDiv.innerHTML = marked.parse(message);
+    }
+
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", async function () {
+      // Scope to the right sidebar so we never grab the wrong select
+      const select = document.querySelector("#rightSidebar #live-deals-select");
+      if (!select) return;
+    
+      try {
+        const svcMap = window.SERVICES || {};
+        const aggBase = (svcMap.application_aggregate || "").replace(/\/+$/, "");
+    
+        // If not configured, don’t wipe server-rendered options—just log
+        if (!aggBase) {
+          console.warn("Live Deals: SERVICES.application_aggregate missing. Using server-rendered options only.");
+          return;
+        }
+    
+        // Preserve selected originator
+        const currentParams = new URLSearchParams(window.location.search);
+        const originatorId = currentParams.get("originators");
+    
+        // Build absolute aggregate URL
+        const url = new URL("/api/live-deals/", aggBase);
+        if (originatorId) url.searchParams.set("originators", originatorId);
+    
+        const resp = await fetch(url.toString(), { headers: { "Accept": "application/json" }});
+        const payload = await resp.json();
+    
+        if (!resp.ok) {
+          console.error("Live Deals: API error", resp.status, payload);
+          return;
+        }
+    
+        // Accept list OR dict shapes
+        const deals = Array.isArray(payload)
+          ? payload
+          : (payload.live_deals || payload.results || []);
+    
+        console.log("Live Deals: fetched", deals.length, "items from", url.toString());
+    
+        // Rebuild options (keep placeholder)
+        select.innerHTML = '<option value="">Select Deal…</option>';
+    
+        deals.forEach(deal => {
+          const tx = deal.transaction_id || "";
+          if (!tx) return;
+    
+          const company = deal.company_name || "Unnamed Company";
+          const product = deal.product ? ` — ${deal.product}` : "";
+    
+          const opt = document.createElement("option");
+            opt.value = tx;
+            opt.textContent = `${company}${product}`;
+            opt.dataset.company = company;
+            opt.dataset.product = (deal.product || "");
+            select.appendChild(opt);
+        });
+    
+        // Optional: auto-select if URL has transaction_id
+        const txFromUrl = currentParams.get("transaction_id");
+        if (txFromUrl) select.value = txFromUrl;
+    
+      } catch (err) {
+        console.error("Live Deals: fetch failed", err);
+        // Don’t wipe server-rendered options
+      }
+    });
+    </script>
+    
+    <script>
+        (function () {
+          // ---- Helpers ----
+          function getSelectedDealText() {
+            const liveDeals = document.querySelector("#rightSidebar #live-deals-select");
+            if (!liveDeals) return "";
+            const opt = liveDeals.options[liveDeals.selectedIndex];
+            return opt ? (opt.textContent || "").trim() : "";
+          }
+        
+          function setDealBadge(text) {
+            const badge = document.getElementById("selected-deal-badge");
+            if (!badge) return;
+        
+            if (!text || text === "Select Deal…") {
+              badge.style.display = "none";
+              badge.textContent = "";
+              return;
+            }
+        
+            badge.textContent = text;
+            badge.style.display = "inline-flex";
+          }
+        
+          // Priority: BDM > Credit/Risk > Ops (or change order if you want)
+          function getSelectedAssignedUser() {
+            const bdm = document.getElementById("bdm-select");
+            const risk = document.getElementById("credit-risk-select");
+            const ops = document.getElementById("operations-select");
+        
+            const clean = (v) => (v || "").trim();
+        
+            const bdmVal = bdm ? clean(bdm.value) : "";
+            const riskVal = risk ? clean(risk.value) : "";
+            const opsVal = ops ? clean(ops.value) : "";
+        
+            // ignore placeholder-ish values
+            const isPlaceholder = (v) =>
+              !v ||
+              v.toLowerCase().includes("select user") ||
+              v.toLowerCase().includes("select user…") ||
+              v.toLowerCase().includes("select user...");
+        
+            if (bdmVal && !isPlaceholder(bdmVal)) return bdmVal;
+            if (riskVal && !isPlaceholder(riskVal)) return riskVal;
+            if (opsVal && !isPlaceholder(opsVal)) return opsVal;
+        
+            return ""; // means "no selection"
+          }
+        
+          function updateAssignedToInAllTiles(selectedUser) {
+            // Find every condition tile and replace the "Assigned to <strong>...</strong>"
+            const tiles = document.querySelectorAll("#rightSidebar .condition");
+            tiles.forEach(tile => {
+              const assignedStrong = tile.querySelector("small strong:last-of-type");
+              // Your structure is:
+              // Created by <strong>...</strong> on ...
+              // Assigned to <strong>...</strong>
+              // so the last strong is the assigned user.
+              if (assignedStrong) {
+                assignedStrong.textContent = selectedUser || "Unassigned";
+              }
+            });
+          }
+        
+          // Expose a single source of truth for addCondition:
+          // We'll store it on window so your existing addCondition can read it.
+          function updateGlobalSelectedUser() {
+            const selectedUser = getSelectedAssignedUser();
+            window.RIGHT_SIDEBAR_SELECTED_USER = selectedUser || "";
+            updateAssignedToInAllTiles(selectedUser);
+          }
+        
+          // ---- Hook Live Deals -> Deal badge ----
+          function attachLiveDealsListener() {
+            const liveDeals = document.querySelector("#rightSidebar #live-deals-select");
+            if (!liveDeals) return;
+        
+            // Set initial badge
+            setDealBadge(getSelectedDealText());
+        
+            liveDeals.addEventListener("change", function () {
+              setDealBadge(getSelectedDealText());
+            });
+          }
+        
+          // ---- Hook Assigned Users selects -> update tiles ----
+          function attachAssignedUsersListeners() {
+            const ids = ["bdm-select", "credit-risk-select", "operations-select"];
+            ids.forEach(id => {
+              const el = document.getElementById(id);
+              if (!el) return;
+              el.addEventListener("change", updateGlobalSelectedUser);
+            });
+        
+            // Initialize once on load
+            updateGlobalSelectedUser();
+          }
+        
+          document.addEventListener("DOMContentLoaded", function () {
+            attachLiveDealsListener();
+            attachAssignedUsersListeners();
+          });
+        
+        })();
+        </script>
+        
+
+        <script>
+        function getSelectedOriginatorText() {
+            const h4 = document.querySelector("#rightSidebar .section-card h4");
+            return (h4?.textContent || "").trim() || null;
+          }
+          
+          function getSelectedDealMeta() {
+            const sel = document.querySelector("#rightSidebar #live-deals-select");
+            if (!sel) return { transaction_id: null, company_name: null, product: null };
+          
+            const transaction_id = sel.value || null;
+            const opt = sel.options[sel.selectedIndex];
+          
+            // Prefer dataset (reliable), fallback to parsing label
+            const company_name = opt?.dataset?.company || null;
+            const product = opt?.dataset?.product || null;
+          
+            return { transaction_id, company_name, product };
+          }
+          
+          async function postDealCondition(payload) {
+            const svcMap = window.SERVICES || {};
+            const base = (svcMap.application_aggregate || "").replace(/\/+$/, "");
+            if (!base) {
+              console.warn("DealCondition POST: SERVICES.application_aggregate missing.");
+              return { ok: false, error: "missing_service_url" };
+            }
+          
+            const url = new URL("/api/deal-conditions/", base);
+          
+            try {
+              const resp = await fetch(url.toString(), {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Accept": "application/json",
+                  // If you later add auth:
+                  // "Authorization": `Bearer ${window.EFS_ACCESS_TOKEN}`,
+                },
+                body: JSON.stringify(payload),
+              });
+          
+              const data = await resp.json().catch(() => ({}));
+              if (!resp.ok) {
+                console.error("DealCondition POST failed:", resp.status, data);
+                return { ok: false, error: data };
+              }
+              return { ok: true, data };
+            } catch (err) {
+              console.error("DealCondition POST error:", err);
+              return { ok: false, error: String(err) };
+            }
+          }
+        </script>
+
+
+<style>
+    /* Define color variables for consistency */
+    :root {
+        --primary-green: #28a745; /* Your original primary green */
+        --primary-green-hover: #218838; /* Darker green for hover */
+        --light-green: #e6ffe6; /* Light green from pre-settlement box */
+        --light-green-border: #c8e6c9; /* Border color for light green elements */
+        --primary-blue: #007bff; /* Primary blue for actions */
+        --primary-blue-hover: #0056b3;
+    }
+
+    .right-sidebar {
+        width: 400px; /* Increased default width */
+        min-width: 400px; /* New minimum width */
+        background: #f9f9f9;
+        border-left: 1px solid #ddd;
+        padding: 20px;
+        position: fixed;
+        right: 0;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+        box-shadow: -2px 0 10px rgba(0,0,0,0.1); /* Slightly stronger shadow */
+        transition: transform 0.3s ease, width 0.3s ease; /* Smooth transitions */
+        z-index: 9998;
+        border-radius: 8px 0 0 8px; /* Rounded top-left, bottom-left */
+    }
+
+    .right-sidebar.retracted {
+        transform: translateX(100%);
+    }
+
+    .right-sidebar-inner {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Consistent font */
+        color: #333;
+    }
+
+    /* Renamed from .company-card to .section-card for broader use */
+    .section-card {
+        border-bottom: 1px solid #eee; /* Lighter border - note: this will be overridden by the card's own border if applied */
+        padding-bottom: 15px; /* This padding applies to content *before* the card's own padding */
+        margin-bottom: 20px; /* Space between cards */
+        border-radius: 8px; /* Rounded corners */
+        background-color: #fff;
+        padding: 15px; /* Internal padding for the card content */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Subtle shadow for the tile effect */
+    }
+    .section-card h4 {
+        margin: 0;
+        color: #004085; /* Consistent with main heading in app */
+        font-size: 1.3em;
+    }
+
+    .conditions-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        }
+
+    .deal-badge {
+        font-size: 0.85em;
+        font-weight: 600;
+        color: #004085;
+        background: #e9f5ff;
+        border: 1px solid #cce5ff;
+        padding: 4px 8px;
+        border-radius: 999px;
+        white-space: nowrap;
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        }
+
+    .conditions-section h5,
+    .assigned-users h5 {
+        color: var(--primary-green); /* Consistent green */
+        margin-top: 0; /* Remove top margin as it's now inside a card */
+        margin-bottom: 15px;
+        font-size: 1.1em;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .condition-block {
+        margin-bottom: 20px;
+    }
+
+    .condition-block strong {
+        display: flex; /* Allow button to align with text */
+        align-items: center;
+        margin-bottom: 10px;
+        color: #555;
+    }
+
+    .add-condition-btn {
+        background-color: var(--primary-green); /* Consistent green */
+        color: white;
+        border: none;
+        border-radius: 50%; /* Make it round */
+        width: 24px;
+        height: 24px;
+        font-size: 1.2em;
+        line-height: 1; /* Center the + */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        margin-left: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .add-condition-btn:hover {
+        background-color: var(--primary-green-hover);
+    }
+
+    .condition {
+        background: var(--light-green); /* Lighter green background for pre-settlement */
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 8px; /* More rounded edges */
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        border: 1px solid var(--light-green-border); /* Subtle border */
+    }
+    .condition.ongoing {
+        background: #e9f5ff; /* Light blue background for post-settlement */
+        border: 1px solid #cce5ff;
+    }
+
+    .condition-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    .condition-header p {
+        margin: 0;
+        font-weight: bold;
+        color: #333;
+    }
+    .condition-header a {
+        color: var(--primary-blue); /* Use primary blue for links */
+        text-decoration: none;
+        font-size: 0.9em;
+    }
+    .condition-header a:hover {
+        text-decoration: underline;
+    }
+    /* --- Condition inputs (Title + Description) --- */
+    .condition-title-input,
+    .condition-desc-input {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+    font-size: 0.95em;
+    color: #222;
+
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: rgba(255,255,255,0.75);
+
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    }
+
+    /* Title should look like a “header input” */
+    .condition-title-input {
+    font-weight: 600;
+    margin: 8px 0 10px;
+    height: 40px;            /* keeps it consistent */
+    }
+
+    /* Description textarea */
+    .condition-desc-input {
+    margin: 0 0 10px;
+    min-height: 90px;
+    resize: vertical;        /* optional: vertical only */
+    line-height: 1.35;
+    }
+
+    /* Focus styling */
+    .condition-title-input:focus,
+    .condition-desc-input:focus {
+    border-color: rgba(0,123,255,0.45);
+    background: rgba(255,255,255,0.92);
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+    }
+
+    /* Slightly different focus color depending on tile type */
+    .condition.ongoing .condition-title-input:focus,
+    .condition.ongoing .condition-desc-input:focus {
+    border-color: rgba(0,123,255,0.55);
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.18);
+    }
+    .condition.once .condition-title-input:focus,
+    .condition.once .condition-desc-input:focus {
+    border-color: rgba(40,167,69,0.55);
+    box-shadow: 0 0 0 3px rgba(40,167,69,0.18);
+    }
+
+    /* Make placeholders look nicer */
+    .condition-title-input::placeholder,
+    .condition-desc-input::placeholder {
+    color: rgba(0,0,0,0.45);
+    }
+
+    /* Optional: give inputs a nicer “embedded” look inside the tile */
+    .condition-title-input,
+    .condition-desc-input {
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .delete-condition {
+        cursor: pointer;
+        color: #dc3545; /* Red for delete */
+        font-weight: bold;
+        font-size: 1.1em;
+        transition: color 0.2s ease;
+    }
+    .delete-condition:hover {
+        color: #c82333;
+    }
+
+    .condition p {
+        margin: 5px 0;
+        font-size: 0.95em;
+    }
+    .condition small {
+        display: block; /* Ensure small text goes to new line */
+        font-size: 0.8em;
+        color: #666;
+        margin-top: 10px;
+        line-height: 1.4;
+    }
+
+    .user-select {
+        margin-bottom: 15px;
+    }
+    .user-select label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #555;
+        font-size: 0.95em;
+    }
+    .user-select select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px; /* More rounded */
+        background-color: #fff;
+        font-size: 0.9em;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        -webkit-appearance: none; /* Remove default dropdown arrow */
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%204%205%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M2%200L0%202h4zm0%205L0%203h4z%22%2F%3E%3C%2Fsvg%3E'); /* Custom arrow */
+        background-repeat: no-repeat;
+        background-position: right 10px center;
+        background-size: 8px;
+    }
+    .user-select select:focus {
+        border-color: var(--primary-blue);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+
+    .gemini-chat-container {
+        display: flex;
+        flex-direction: column;
+        height: 300px; /* Default height */
+        border: 1px solid #ddd;
+        border-radius: 12px; /* More rounded corners */
+        overflow: hidden;
+        margin-bottom: 25px;
+        min-height: 200px; /* Keep minimum height */
+        max-height: 80vh; /* Prevent it from getting too tall */
+        position: relative;
+        background-color: #fff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* Better shadow */
+    }
+
+    .chat-header {
+        background-color: var(--light-green); /* Changed to light green */
+        color: #333; /* Changed text color for better contrast on light green */
+        padding: 12px 15px; /* More padding */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        font-size: 1.1em;
+        border-bottom: 1px solid var(--light-green-border); /* Added border */
+    }
+
+    .chat-header-btn {
+        background: rgba(0, 0, 0, 0.08); /* Slightly transparent dark for contrast */
+        border: none;
+        border-radius: 6px;
+        padding: 5px 10px;
+        color: #333; /* Dark text for contrast */
+        font-size: 0.9em;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+    .chat-header-btn:hover {
+        background-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 15px; /* More padding */
+        overflow-y: auto;
+        background-color: #fcfcfc; /* Very light background */
+        border-bottom: 1px solid #eee; /* Separator for input area */
+    }
+
+    .chat-message {
+        margin-bottom: 10px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        max-width: 80%; /* Limit message width */
+        line-height: 1.4;
+    }
+
+    .user-message {
+        background-color: #e0f2f0; /* Light blue-green for user */
+        align-self: flex-end; /* Align to right for user */
+        margin-left: auto; /* Push to right */
+        border-bottom-right-radius: 2px; /* Slight corner adjustment */
+    }
+
+    .ai-message {
+        background-color: #f0f0f0; /* Light grey for AI */
+        align-self: flex-start; /* Align to left for AI */
+        border-bottom-left-radius: 2px; /* Slight corner adjustment */
+    }
+
+    .chat-input-area {
+        display: flex;
+        padding: 15px; /* More padding */
+        background-color: #fff;
+        gap: 10px; /* Space between textarea and button */
+        border-top: 1px solid #eee; /* Visual separation */
+    }
+
+    .chat-input-area textarea {
+        flex: 1;
+        height: 80px; /* Start with a more compact height */
+        max-height: 200px;
+        min-height: 50px; /* Adjusted min height */
+        padding: 12px;
+        font-size: 1em; /* Readable font size */
+        border: 1px solid #ddd;
+        border-radius: 8px; /* More rounded */
+        resize: vertical;
+        box-sizing: border-box; /* Include padding in height calculation */
+        transition: height 0.2s ease; /* Smooth height transition */
+    }
+    .chat-input-area textarea:focus {
+        border-color: var(--primary-blue);
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+    }
+
+    .chat-send-btn {
+        background-color: var(--light-green); /* Changed to light green */
+        color: #333; /* Changed text color for better contrast on light green */
+        border: 1px solid var(--light-green-border); /* Added border for consistency */
+        border-radius: 8px; /* More rounded */
+        padding: 0 25px; /* More horizontal padding */
+        font-size: 1em;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+        flex-shrink: 0; /* Prevent button from shrinking */
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Keep a subtle shadow */
+    }
+    .chat-send-btn:hover {
+        background-color: #d6f2d6; /* Slightly darker light green for hover */
+        transform: translateY(-1px);
+    }
+
+
+    /* Draggable handle on the left edge of sidebar */
+    #resizeHandle {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 8px; /* Wider for easier grabbing */
+        height: 100%;
+        cursor: ew-resize;
+        z-index: 10000;
+        background-color: transparent; /* Invisible, but present for grabbing */
+    }
+
+    /* Draggable bottom edge for chat container */
+    #chatResizeHandle {
+        height: 8px; /* Taller for easier grabbing */
+        background: #f0f0f0; /* Light grey handle */
+        cursor: ns-resize;
+        width: 100%;
+        z-index: 1000;
+        transition: background-color 0.2s ease;
+    }
+    #chatResizeHandle:hover {
+        background-color: #e0e0e0;
+    }
+
+    /* New class for expanded sidebar */
+    .right-sidebar.expanded-sidebar {
+        /* This class will be added/removed by JavaScript */
+        /* Specific width and height set directly in JS for more control */
+    }
+    .condition-actions{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    }
+
+    .complete-condition{
+    cursor: pointer;
+    color: #28a745;        /* green */
+    font-weight: bold;
+    font-size: 1.1em;
+    transition: color 0.2s ease, transform 0.1s ease;
+    }
+
+    .complete-condition:hover{
+    color: #218838;
+    transform: translateY(-1px);
+    }
+
+</style>

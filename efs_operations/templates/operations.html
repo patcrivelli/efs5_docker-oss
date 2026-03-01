@@ -1,0 +1,482 @@
+{% extends "efs_shared_ui/base.html" %}
+
+{% block title %}Operations{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .tab-container {
+        margin-top: 20px;
+    }
+
+    .tabs {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        border-bottom: 2px solid #ddd;
+    }
+
+    .tabs li {
+        margin-right: 15px;
+        padding: 10px 20px;
+        cursor: pointer;
+        border: 1px solid #ddd;
+        border-bottom: none;
+    }
+
+    .tabs li.active {
+        background-color: #f4f4f4;
+        border-top: 2px solid #333;
+        border-left: 2px solid #333;
+        border-right: 2px solid #333;
+    }
+
+    .tab-content {
+        display: none;
+        padding: 20px;
+        background-color: #f4f4f4;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        font-size: 14px;
+    }
+
+    .fetch-btn {
+        background-color: #0056b3;
+        color: white;
+        padding: 5px 10px;
+        cursor: pointer;
+        border: none;
+        border-radius: 3px;
+        transition: background-color 0.3s;
+    }
+
+    .fetch-btn:hover {
+        background-color: #003d80;
+    }
+
+    .tab-link {
+        padding: 10px 20px;
+        background: #f1f1f1;
+        border: none;
+        cursor: pointer;
+        outline: none;
+        font-size: 16px;
+        transition: 0.3s;
+    }
+
+    .tab-link.active {
+        background: #ddd;
+        font-weight: bold;
+    }
+
+    .tabs .tab-link {
+  margin-right: 15px;
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 1px solid #ddd;
+  border-bottom: none;
+}
+
+.tabs .tab-link.active {
+  background-color: #f4f4f4;
+  border-top: 2px solid #333;
+  border-left: 2px solid #333;
+  border-right: 2px solid #333;
+}
+
+
+    /* Modal overlay */
+#task-modal.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: none;                  /* becomes flex when opened */
+  justify-content: center;
+  align-items: center;
+  z-index: 5000;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+/* Container that receives injected HTML */
+#task-modal-content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* The actual modal card coming from efs_agents */
+#task-modal .modal-content {
+  width: min(1100px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  margin: 0 auto;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 60px rgba(0,0,0,.25);
+  padding: 20px;
+  position: relative;
+}
+
+/* Close button */
+#task-modal .close {
+  color: #aaa;
+  font-size: 28px;
+  font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  cursor: pointer;
+}
+#task-modal .close:hover { color: #000; }
+
+</style>
+
+
+{% endblock %}
+
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;">
+  <h2 id="originator-heading" style="flex-grow:1;">
+    {% if selected_originator %}
+      {{ selected_originator.originator }} Operations
+    {% else %}
+      Operations for All Originators
+    {% endif %}
+  </h2>
+</div>
+
+<div class="tab-container">
+  <ul class="tabs">
+    <li class="tab-link active" data-tab="tab-2">Review</li>
+    <li class="tab-link" data-tab="tab-3">Status</li>
+  </ul>
+</div>
+
+<!-- REVIEW TAB -->
+<div id="tab-2" class="tab-content active">
+  <h3>Review</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tasks</th>
+        <th>Company</th>
+        <th>ABN</th>
+        <th>ACN</th>
+        <th>Product</th>
+        <th>State</th>
+        <th>Transaction</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      {% for a in review_applications %}
+      <tr>
+        <td>
+          <button class="fetch-btn" type="button"
+                  onclick="openTaskModal('{{ a.transaction_id }}','{{ a.abn }}')">
+            Tasks
+          </button>
+        </td>
+        <td>{{ a.company_name|default_if_none:"" }}</td>
+        <td>{{ a.abn|default:"" }}</td>
+        <td>{{ a.acn|default_if_none:"" }}</td>
+        <td>{{ a.product|default_if_none:"IF" }}</td>
+        <td>{{ a.state|default_if_none:"" }}</td>
+        <td>{{ a.transaction_id|default_if_none:"" }}</td>
+        <td>
+          <form method="post" action="{% url 'operations_submit' %}?originators={{ selected_originator.id }}">
+            {% csrf_token %}
+            <input type="hidden" name="transaction_id" value="{{ a.transaction_id }}">
+            <input type="hidden" name="product" value="IF">
+            <button class="fetch-btn" type="submit">Submit</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+
+      {% for a in review_tf_applications %}
+      <tr>
+        <td>
+          <button class="fetch-btn" type="button"
+                  onclick="openTaskModal('{{ a.transaction_id }}','{{ a.abn }}')">
+            Tasks
+          </button>
+        </td>
+        <td>{{ a.company_name|default_if_none:"" }}</td>
+        <td>{{ a.abn|default:"" }}</td>
+        <td>{{ a.acn|default_if_none:"" }}</td>
+        <td>{{ a.product|default_if_none:"TF" }}</td>
+        <td>{{ a.state|default_if_none:"" }}</td>
+        <td>{{ a.transaction_id|default_if_none:"" }}</td>
+        <td>
+          <form method="post" action="{% url 'operations_submit' %}?originators={{ selected_originator.id }}">
+            {% csrf_token %}
+            <input type="hidden" name="transaction_id" value="{{ a.transaction_id }}">
+            <input type="hidden" name="product" value="TF">
+            <button class="fetch-btn" type="submit">Submit</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+
+      {% for a in review_scf_applications %}
+      <tr>
+        <td>
+          <button class="fetch-btn" type="button"
+                  onclick="openTaskModal('{{ a.transaction_id }}','{{ a.abn }}')">
+            Tasks
+          </button>
+        </td>
+        <td>{{ a.company_name|default_if_none:"" }}</td>
+        <td>{{ a.abn|default:"" }}</td>
+        <td>{{ a.acn|default_if_none:"" }}</td>
+        <td>{{ a.product|default_if_none:"SCF" }}</td>
+        <td>{{ a.state|default_if_none:"" }}</td>
+        <td>{{ a.transaction_id|default_if_none:"" }}</td>
+        <td>
+          <form method="post" action="{% url 'operations_submit' %}?originators={{ selected_originator.id }}">
+            {% csrf_token %}
+            <input type="hidden" name="transaction_id" value="{{ a.transaction_id }}">
+            <input type="hidden" name="product" value="SCF">
+            <button class="fetch-btn" type="submit">Submit</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+
+      {% for a in review_ipf_applications %}
+      <tr>
+        <td>
+          <button class="fetch-btn" type="button"
+                  onclick="openTaskModal('{{ a.transaction_id }}','{{ a.abn }}')">
+            Tasks
+          </button>
+        </td>
+        <td>{{ a.company_name|default_if_none:"" }}</td>
+        <td>{{ a.abn|default:"" }}</td>
+        <td>{{ a.acn|default_if_none:"" }}</td>
+        <td>{{ a.product|default_if_none:"IPF" }}</td>
+        <td>{{ a.state|default_if_none:"" }}</td>
+        <td>{{ a.transaction_id|default_if_none:"" }}</td>
+        <td>
+          <form method="post" action="{% url 'operations_submit' %}?originators={{ selected_originator.id }}">
+            {% csrf_token %}
+            <input type="hidden" name="transaction_id" value="{{ a.transaction_id }}">
+            <input type="hidden" name="product" value="IPF">
+            <button class="fetch-btn" type="submit">Submit</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+
+      {% if review_applications %}
+      {% elif review_tf_applications %}
+      {% elif review_scf_applications %}
+      {% elif review_ipf_applications %}
+      {% else %}
+        <tr><td colspan="8">No applications available in the "Review" tab.</td></tr>
+      {% endif %}
+
+    </tbody>
+  </table>
+</div>
+
+<!-- STATUS TAB -->
+<div id="tab-3" class="tab-content">
+  <h3>Status</h3>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tasks</th>
+        <th>Company</th>
+        <th>ABN</th>
+        <th>ACN</th>
+        <th>Product</th>
+        <th>State</th>
+        <th>Transaction</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      {% for a in status_applications %}
+      <tr>
+        <td>
+          <button class="fetch-btn" type="button"
+                  onclick="openTaskModal('{{ a.transaction_id }}','{{ a.abn }}')">
+            Tasks
+          </button>
+        </td>
+        <td>{{ a.company_name|default_if_none:"" }}</td>
+        <td>{{ a.abn|default:"" }}</td>
+        <td>{{ a.acn|default_if_none:"" }}</td>
+        <td>{{ a.product|default_if_none:"" }}</td>
+        <td>{{ a.state|default_if_none:"" }}</td>
+        <td>{{ a.transaction_id|default_if_none:"" }}</td>
+      </tr>
+      {% endfor %}
+
+      {% for a in status_tf_applications %}
+      <tr>
+        <td>
+          <button class="fetch-btn" type="button"
+                  onclick="openTaskModal('{{ a.transaction_id }}','{{ a.abn }}')">
+            Tasks
+          </button>
+        </td>
+        <td>{{ a.company_name|default_if_none:"" }}</td>
+        <td>{{ a.abn|default:"" }}</td>
+        <td>{{ a.acn|default_if_none:"" }}</td>
+        <td>{{ a.product|default_if_none:"" }}</td>
+        <td>{{ a.state|default_if_none:"" }}</td>
+        <td>{{ a.transaction_id|default_if_none:"" }}</td>
+      </tr>
+      {% endfor %}
+
+      {% for a in status_scf_applications %}
+      <tr>
+        <td>
+          <button class="fetch-btn" type="button"
+                  onclick="openTaskModal('{{ a.transaction_id }}','{{ a.abn }}')">
+            Tasks
+          </button>
+        </td>
+        <td>{{ a.company_name|default_if_none:"" }}</td>
+        <td>{{ a.abn|default:"" }}</td>
+        <td>{{ a.acn|default_if_none:"" }}</td>
+        <td>{{ a.product|default_if_none:"" }}</td>
+        <td>{{ a.state|default_if_none:"" }}</td>
+        <td>{{ a.transaction_id|default_if_none:"" }}</td>
+      </tr>
+      {% endfor %}
+
+      {% for a in status_ipf_applications %}
+      <tr>
+        <td>
+          <button class="fetch-btn" type="button"
+                  onclick="openTaskModal('{{ a.transaction_id }}','{{ a.abn }}')">
+            Tasks
+          </button>
+        </td>
+        <td>{{ a.company_name|default_if_none:"" }}</td>
+        <td>{{ a.abn|default:"" }}</td>
+        <td>{{ a.acn|default_if_none:"" }}</td>
+        <td>{{ a.product|default_if_none:"" }}</td>
+        <td>{{ a.state|default_if_none:"" }}</td>
+        <td>{{ a.transaction_id|default_if_none:"" }}</td>
+      </tr>
+      {% endfor %}
+
+      {% if status_applications %}
+      {% elif status_tf_applications %}
+      {% elif status_scf_applications %}
+      {% elif status_ipf_applications %}
+      {% else %}
+        <tr><td colspan="7">No applications available in the "Status" tab.</td></tr>
+      {% endif %}
+
+    </tbody>
+  </table>
+</div>
+
+
+<!-- Tasks Modal -->
+<div id="task-modal" class="modal" style="display:none;">
+  <div id="task-modal-content"></div>
+</div>
+
+<script>
+  // Tab switching functionality (same behaviour as Sales)
+  document.addEventListener("DOMContentLoaded", function () {
+    var tabs = document.getElementsByClassName('tab-link');
+    var contents = document.getElementsByClassName('tab-content');
+
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].addEventListener('click', function() {
+        var tabId = this.getAttribute('data-tab');
+
+        for (var j = 0; j < tabs.length; j++) {
+          tabs[j].classList.remove('active');
+          contents[j].classList.remove('active');
+        }
+
+        this.classList.add('active');
+        document.getElementById(tabId).classList.add('active');
+      });
+    }
+  });
+
+  // ----------------------------
+  // Tasks modal (Operations -> BFF -> efs_agents)
+  // ----------------------------
+  function openTaskModal(transactionId, abn) {
+    const modal = document.getElementById("task-modal");
+    const content = document.getElementById("task-modal-content");
+
+    // show immediately with loading state
+    modal.style.display = "flex";
+    content.innerHTML = `
+      <div class="modal-content">
+        <span class="close" onclick="closeTaskModal()">&times;</span>
+        <h3>Loading tasks...</h3>
+      </div>
+    `;
+
+    // ✅ Operations BFF endpoint (you add this in efs_operations urls/views)
+    const url = `/modal/tasks/?abn=${encodeURIComponent(abn || "")}&tx=${encodeURIComponent(transactionId || "")}`;
+
+    fetch(url, { credentials: "same-origin" })
+      .then(r => r.ok ? r.text() : r.text().then(t => Promise.reject({status: r.status, text: t})))
+      .then(html => {
+        content.innerHTML = html;
+      })
+      .catch(err => {
+        content.innerHTML = `
+          <div class="modal-content">
+            <span class="close" onclick="closeTaskModal()">&times;</span>
+            <h3>Failed to load tasks</h3>
+            <pre style="white-space:pre-wrap;margin-top:10px;">${(err && (err.text || err.status)) || err}</pre>
+          </div>
+        `;
+      });
+  }
+
+  function closeTaskModal(){
+    const modal = document.getElementById("task-modal");
+    const content = document.getElementById("task-modal-content");
+    modal.style.display = "none";
+    content.innerHTML = "";
+  }
+
+  // Close modal when clicking outside
+  window.addEventListener("click", function(ev){
+    const tm = document.getElementById("task-modal");
+    if (ev.target === tm) closeTaskModal();
+  });
+</script>
+
+
+
+
+
+
+{% endblock %}

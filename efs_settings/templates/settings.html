@@ -1,0 +1,1317 @@
+
+{% extends "efs_shared_ui/base.html" %}
+
+
+{% block title %}Settings{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 id="originator-heading" style="flex-grow: 1;">
+        {% if selected_originator %}
+            {{ selected_originator.originator }} Settings
+        {% else %}
+        Settings for All Originators
+        {% endif %}
+    </h2>
+
+    <!-- Insert the JavaScript variable -->
+    <script type="text/javascript">
+        const selected_originator = "{{ selected_originator.originator }}";  // Ensure selected_originator is available in the template
+    </script>
+
+</div>
+
+
+
+</head>
+<body>
+
+<div class="settings-page-container">
+    <h2 id="originator-heading">
+        Global Settings
+    </h2>
+
+    <form method="post" action="{% url 'save_settings' %}">
+        {% csrf_token %}
+        <input type="hidden" name="originator_id" value="{{ selected_originator.id|default:'' }}">
+    
+        <div class="button-group">
+            <button type="submit" class="save-btn">Save Settings</button>
+            <button type="button" class="post-btn" id="post-settings-btn">Post Settings</button>
+        </div>
+
+        <div class="tab">
+            <button class="tablinks active" type="button" onclick="openTab(event, 'EligibilityCriteria')">Eligibility Criteria</button>
+            <button class="tablinks" type="button" onclick="openTab(event, 'Parameters')">Parameters</button>
+            <button class="tablinks" type="button" onclick="openTab(event, 'History')">History</button>
+            <button class="tablinks" type="button" onclick="openTab(event, 'RiskAuthorities')">Risk Authorities</button>
+        </div>
+
+        <div id="EligibilityCriteria" class="tabcontent" style="display: block;">
+            <h3>Eligibility Criteria Settings</h3>
+            <p>Here you can view the most recent global settings applied across different categories, which collectively form the eligibility criteria.</p>
+        
+            <h4>Current Credit Decision Parameters</h4>
+            <ul>
+                {% if credit_decision_settings %}
+                    <li>
+                        <span>Credit Score Threshold: {{ credit_decision_settings.credit_score_threshold }}</span>
+                        <span class="boolean-display {{ credit_decision_settings.credit_score_switch|yesno:'true,false' }}">
+                            (Active: {{ credit_decision_settings.credit_score_switch|yesno:"Enabled,Disabled" }})
+                        </span>
+                    </li>
+                    <li>
+                        <span>Credit Enquiries:</span>
+                        <span class="boolean-display {{ credit_decision_settings.credit_enquiries_switch|yesno:'true,false' }}">
+                            {{ credit_decision_settings.credit_enquiries_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </li>
+                    <li>
+                        <span>Current Court Actions:</span>
+                        <span class="boolean-display {{ credit_decision_settings.court_actions_current_switch|yesno:'true,false' }}">
+                            {{ credit_decision_settings.court_actions_current_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </li>
+                    <li>
+                        <span>Resolved Court Actions:</span>
+                        <span class="boolean-display {{ credit_decision_settings.court_actions_resolved_switch|yesno:'true,false' }}">
+                            {{ credit_decision_settings.court_actions_resolved_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </li>
+                    <li>
+                        <span>Current Payment Defaults:</span>
+                        <span class="boolean-display {{ credit_decision_settings.payment_defaults_current_switch|yesno:'true,false' }}">
+                            {{ credit_decision_settings.payment_defaults_current_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </li>
+                    <li>
+                        <span>Resolved Payment Defaults:</span>
+                        <span class="boolean-display {{ credit_decision_settings.payment_defaults_resolved_switch|yesno:'true,false' }}">
+                            {{ credit_decision_settings.payment_defaults_resolved_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </li>
+                    <li>
+                        <span>Insolvencies:</span>
+                        <span class="boolean-display {{ credit_decision_settings.insolvencies_switch|yesno:'true,false' }}">
+                            {{ credit_decision_settings.insolvencies_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </li>
+                    <li>
+                        <span>ATO Tax Default:</span>
+                        <span class="boolean-display {{ credit_decision_settings.ato_tax_default_switch|yesno:'true,false' }}">
+                            {{ credit_decision_settings.ato_tax_default_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </li>
+                    <li><small>Last Updated: {{ credit_decision_settings.timestamp|date:"d M Y H:i" }}</small></li>
+                {% else %}
+                    <li>No Credit Decision settings saved yet.</li>
+                {% endif %}
+            </ul>
+        
+            <h4>Current Bank Statements Settings</h4>
+            <ul>
+                {% if bank_statements_settings %}
+                    <li>
+                        <span>Debt Serviceability Coverage: {{ bank_statements_settings.debt_serviceability_coverage }}</span>
+                        <span class="boolean-display {{ bank_statements_settings.debt_serviceability_switch|yesno:'true,false' }}">
+                            (Active: {{ bank_statements_settings.debt_serviceability_switch|yesno:"Enabled,Disabled" }})
+                        </span>
+                    </li>
+                    <li>
+                        <span>Inflow vs Outflow Ratio: {{ bank_statements_settings.inflow_outflow_ratio }}</span>
+                        <span class="boolean-display {{ bank_statements_settings.inflow_outflow_switch|yesno:'true,false' }}">
+                            (Active: {{ bank_statements_settings.inflow_outflow_switch|yesno:"Enabled,Disabled" }})
+                        </span>
+                    </li>
+                    <li><small>Last Updated: {{ bank_statements_settings.timestamp|date:"d M Y H:i" }}</small></li>
+                {% else %}
+                    <li>No Bank Statements settings saved yet.</li>
+                {% endif %}
+            </ul>
+        
+            <h4>Current Financials Settings</h4>
+            <ul>
+                {% if financials_settings %}
+                    <li>
+                        <span>EBITDA Margin: {{ financials_settings.ebitda_margin }}</span>
+                        <span class="boolean-display {{ financials_settings.ebitda_margin_switch|yesno:'true,false' }}">
+                            (Active: {{ financials_settings.ebitda_margin_switch|yesno:"Enabled,Disabled" }})
+                        </span>
+                    </li>
+                    <li>
+                        <span>Debt to Equity Ratio: {{ financials_settings.debt_to_equity_ratio }}</span>
+                        <span class="boolean-display {{ financials_settings.debt_to_equity_ratio_switch|yesno:'true,false' }}">
+                            (Active: {{ financials_settings.debt_to_equity_ratio_switch|yesno:"Enabled,Disabled" }})
+                        </span>
+                    </li>
+                    <li>
+                        <span>Liquidity Ratio: {{ financials_settings.liquidity_ratio }}</span>
+                        <span class="boolean-display {{ financials_settings.liquidity_ratio_switch|yesno:'true,false' }}">
+                            (Active: {{ financials_settings.liquidity_ratio_switch|yesno:"Enabled,Disabled" }})
+                        </span>
+                    </li>
+                    <li><small>Last Updated: {{ financials_settings.timestamp|date:"d M Y H:i" }}</small></li>
+                {% else %}
+                    <li>No Financials settings saved yet.</li>
+                {% endif %}
+            </ul>
+        
+            <h4>Current Products Settings</h4>
+            <ul>
+                {% if products_settings %}
+                    <li>
+                        <span>Term Loan:</span>
+                        <span class="boolean-display {{ products_settings.term_loan_switch|yesno:'true,false' }}">
+                            {{ products_settings.term_loan_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                        <span class="duration-display">
+                            (Duration: {{ products_settings.term_loan_duration_years|default:"N/A" }} Years,
+                            {{ products_settings.term_loan_duration_months|default:"N/A" }} Months)
+                        </span>
+                    </li>
+                    <li>
+                        <span>Overdraft:</span>
+                        <span class="boolean-display {{ products_settings.overdraft_switch|yesno:'true,false' }}">
+                            {{ products_settings.overdraft_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                        <span class="duration-display">
+                            (Duration: {{ products_settings.overdraft_duration_years|default:"N/A" }} Years,
+                            {{ products_settings.overdraft_duration_months|default:"N/A" }} Months)
+                        </span>
+                    </li>
+                    <li>
+                        <span>Credit Card:</span>
+                        <span class="boolean-display {{ products_settings.credit_card_switch|yesno:'true,false' }}">
+                            {{ products_settings.credit_card_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                        <span class="duration-display">
+                            (Duration: {{ products_settings.credit_card_duration_years|default:"N/A" }} Years,
+                            {{ products_settings.credit_card_duration_months|default:"N/A" }} Months)
+                        </span>
+                    </li>
+                    <li>
+                        <span>Bulk Invoice Finance:</span>
+                        <span class="boolean-display {{ products_settings.bulk_invoice_finance_switch|yesno:'true,false' }}">
+                            {{ products_settings.bulk_invoice_finance_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </li>
+                    <li>
+                        <span>Single Invoice Finance:</span>
+                        <span class="boolean-display {{ products_settings.single_invoice_finance_switch|yesno:'true,false' }}">
+                            {{ products_settings.single_invoice_finance_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                    </li>
+                    <li>
+                        <span>Trade Finance:</span>
+                        <span class="boolean-display {{ products_settings.trade_finance_switch|yesno:'true,false' }}">
+                            {{ products_settings.trade_finance_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                        <span class="installments-display">
+                            (Installments: {{ products_settings.trade_finance_installments|default:"N/A" }}, 
+                            Frequency: {{ products_settings.trade_finance_installment_frequency|default:"N/A" }})
+                        </span>
+                    </li>
+                    <li>
+                        <span>Insurance Premium Funding:</span>
+                        <span class="boolean-display {{ products_settings.insurance_premium_funding_switch|yesno:'true,false' }}">
+                            {{ products_settings.insurance_premium_funding_switch|yesno:"Enabled,Disabled" }}
+                        </span>
+                        <span class="installments-display">
+                            (Installments: {{ products_settings.insurance_premium_funding_installments|default:"N/A" }}, 
+                            Frequency: {{ products_settings.insurance_premium_funding_installment_frequency|default:"N/A" }})
+                        </span>
+                    </li>
+                    <li><small>Last Updated: {{ products_settings.timestamp|date:"d M Y H:i" }}</small></li>
+                {% else %}
+                    <li>No Products settings saved yet.</li>
+                {% endif %}
+            </ul>
+
+            <h4>Current Invoice Finance Settings</h4>
+            <ul>
+                {% if invoice_finance_settings %}
+                    <li>
+                        <span>Advance Rate: {{ invoice_finance_settings.advance_rate|default:"50" }}%</span>
+                    </li>
+            
+                    <li>
+                        <span>Concentration Limit: {{ invoice_finance_settings.concentration_limit|default:"100" }}%</span>
+                    </li>
+            
+                    <li>
+                        <span>Exclude 0–30 days:</span>
+                        <span class="boolean-display {{ invoice_finance_settings.exclude_d0_30|yesno:'true,false' }}">
+                            {{ invoice_finance_settings.exclude_d0_30|yesno:"Excluded,Included" }}
+                        </span>
+                    </li>
+            
+                    <li>
+                        <span>Exclude 30+:</span>
+                        <span class="boolean-display {{ invoice_finance_settings.exclude_d31_60|yesno:'true,false' }}">
+                            {{ invoice_finance_settings.exclude_d31_60|yesno:"Excluded,Included" }}
+                        </span>
+                    </li>
+            
+                    <li>
+                        <span>Exclude 60+:</span>
+                        <span class="boolean-display {{ invoice_finance_settings.exclude_d61_90|yesno:'true,false' }}">
+                            {{ invoice_finance_settings.exclude_d61_90|yesno:"Excluded,Included" }}
+                        </span>
+                    </li>
+            
+                    <li>
+                        <span>Exclude 90+:</span>
+                        <span class="boolean-display {{ invoice_finance_settings.exclude_d90_plus|yesno:'true,false' }}">
+                            {{ invoice_finance_settings.exclude_d90_plus|yesno:"Excluded,Included" }}
+                        </span>
+                    </li>
+            
+                    <li>
+                        <span>Exclude Older:</span>
+                        <span class="boolean-display {{ invoice_finance_settings.exclude_older|yesno:'true,false' }}">
+                            {{ invoice_finance_settings.exclude_older|yesno:"Excluded,Included" }}
+                        </span>
+                    </li>
+            
+                    {% if invoice_finance_settings.timestamp %}
+                        <li><small>Last Updated: {{ invoice_finance_settings.timestamp|date:"d M Y H:i" }}</small></li>
+                    {% endif %}
+                {% else %}
+                    <li>No Invoice Finance settings saved yet.</li>
+                {% endif %}
+            </ul>
+
+
+        </div>
+
+
+        
+        
+
+        <div id="Parameters" class="tabcontent" style="display: none;">
+            <h3>Credit Decision Parameters</h3>
+            <table class="settings-table">
+                <tr>
+                    <td>Credit Score</td>
+                    <td>
+                        <input type="range" id="credit-score-slider" name="credit_score_threshold" min="0" max="1000" step="50" value="500">
+                        <span id="slider-value">500</span>
+                    </td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="credit_score_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Credit Enquiries</td>
+                    <td></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="credit_enquiries_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Current Court Actions</td>
+                    <td></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="court_actions_current_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Resolved Court Actions</td>
+                    <td></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="court_actions_resolved_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Current Payment Defaults</td>
+                    <td></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="payment_defaults_current_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Resolved Payment Defaults</td>
+                    <td></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="payment_defaults_resolved_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Insolvencies</td>
+                    <td></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="insolvencies_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>ATO Tax Default</td>
+                    <td></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="ato_tax_default_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+
+            <h3>Bank Statements</h3>
+            <table class="settings-table">
+                <tr>
+                    <td>Debt Serviceability Coverage</td>
+                    <td>
+                        <input type="range" id="debt-serviceability-slider" name="debt_serviceability_slider" min="0" max="5" step="0.1" value="2.5">
+                        <span id="debt-serviceability-value">2.5</span>
+                    </td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="debt_serviceability_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Current Inflow vs Outflow</td>
+                    <td>
+                        <input type="range" id="inflow-outflow-slider" name="inflow_outflow_slider" min="0" max="5" step="0.5" value="2.5">
+                        <span id="inflow-outflow-value">2.5</span>
+                    </td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="inflow_outflow_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+
+            <h3>Financials</h3>
+            <table class="settings-table">
+                <tr>
+                    <td>EBITDA Margin</td>
+                    <td>
+                        <input type="range" id="ebitda-margin-slider" name="ebitda_margin_slider" min="0" max="1" step="0.05" value="0.5">
+                        <span id="ebitda-margin-value">0.5</span>
+                    </td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="ebitda_margin_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Debt to Equity Ratio</td>
+                    <td>
+                        <input type="range" id="debt-equity-ratio-slider" name="debt_equity_ratio_slider" min="0" max="5" step="0.5" value="2.5">
+                        <span id="debt-equity-ratio-value">2.5</span>
+                    </td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="debt_equity_ratio_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Liquidity Ratio</td>
+                    <td>
+                        <input type="range" id="liquidity-ratio-slider" name="liquidity_ratio_slider" min="0" max="5" step="0.5" value="2.5">
+                        <span id="liquidity-ratio-value">2.5</span>
+                    </td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="liquidity_ratio_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                </tr>
+            </table>
+
+            <h3>Products</h3>
+            <table class="settings-table">
+                <tr>
+                    <td>Term Loan</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="term_loan_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <select name="term_loan_duration_years" class="years-dropdown"></select>
+                    </td>
+                    <td>
+                        <select name="term_loan_duration_months" class="months-dropdown"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Overdraft</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="overdraft_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <select name="overdraft_duration_years" class="years-dropdown"></select>
+                    </td>
+                    <td>
+                        <select name="overdraft_duration_months" class="months-dropdown"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Credit Card</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="credit_card_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <select name="credit_card_duration_years" class="years-dropdown"></select>
+                    </td>
+                    <td>
+                        <select name="credit_card_duration_months" class="months-dropdown"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Bulk Invoice Finance</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="bulk_invoice_finance_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <select name="bulk_invoice_finance_duration_years" class="years-dropdown"></select>
+                    </td>
+                    <td>
+                        <select name="bulk_invoice_finance_duration_months" class="months-dropdown"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Single Invoice Finance</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="single_invoice_finance_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <select name="single_invoice_finance_duration_years" class="years-dropdown"></select>
+                    </td>
+                    <td>
+                        <select name="single_invoice_finance_duration_months" class="months-dropdown"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Trade Finance</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="trade_finance_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <select name="trade_finance_installments" class="installments-dropdown"></select>
+                    </td>
+                    <td>
+                        <select name="trade_finance_frequency" class="frequency-dropdown"></select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Insurance Premium Funding</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" name="insurance_premium_funding_switch">
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <select name="insurance_premium_funding_installments" class="installments-dropdown"></select>
+                    </td>
+                    <td>
+                        <select name="insurance_premium_funding_frequency" class="frequency-dropdown"></select>
+                    </td>
+                </tr>
+            </table>
+
+            <h3>Current Invoice Finance Settings</h3>
+
+            <div class="if-settings-card">
+                <p style="margin-top:0; color:#555;">
+                    Configure invoice finance controls used for AR ledger analysis.
+                </p>
+            
+                <div class="if-tiles">
+                    <!-- Advance Rate tile -->
+                    <div class="if-tile">
+                        <label for="if-advance-rate-slider" style="white-space:nowrap; display:block; margin-bottom:8px;">
+                            <strong>Advance Rate</strong>
+                        </label>
+                        <div class="if-small-slider">
+                            <input
+                                id="if-advance-rate-slider"
+                                type="range"
+                                name="invoice_finance_advance_rate"
+                                min="50"
+                                max="100"
+                                step="1"
+                                value="{{ invoice_finance_settings.advance_rate|default:50 }}"
+                            />
+                            <span id="if-advance-rate-value" class="pct">
+                                {{ invoice_finance_settings.advance_rate|default:"50" }}%
+                            </span>
+                        </div>
+                    </div>
+            
+                    <!-- Concentration Limit tile -->
+                    <div class="if-tile">
+                        <label for="if-concentration-limit-slider" style="white-space:nowrap; display:block; margin-bottom:8px;">
+                            <strong>Concentration Limit</strong>
+                        </label>
+                        <div class="if-small-slider">
+                            <input
+                                id="if-concentration-limit-slider"
+                                type="range"
+                                name="invoice_finance_concentration_limit"
+                                min="0"
+                                max="100"
+                                step="5"
+                                value="{{ invoice_finance_settings.concentration_limit|default:100 }}"
+                            />
+                            <span id="if-concentration-limit-value" class="pct">
+                                {{ invoice_finance_settings.concentration_limit|default:"100" }}%
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- Aged Bucket Exclusions -->
+                <div class="if-aged-buckets">
+                    <h4 style="margin-top:0;">Aged Bucket Exclusions</h4>
+                    <div class="if-bucket-grid">
+                        <label class="if-bucket-item">
+                            <input type="checkbox" name="if_exclude_d0_30" {% if invoice_finance_settings.exclude_d0_30 %}checked{% endif %}>
+                            <span>0–30 days</span>
+                        </label>
+            
+                        <label class="if-bucket-item">
+                            <input type="checkbox" name="if_exclude_d31_60" {% if invoice_finance_settings.exclude_d31_60 %}checked{% endif %}>
+                            <span>30+</span>
+                        </label>
+            
+                        <label class="if-bucket-item">
+                            <input type="checkbox" name="if_exclude_d61_90" {% if invoice_finance_settings.exclude_d61_90 %}checked{% endif %}>
+                            <span>60+</span>
+                        </label>
+            
+                        <label class="if-bucket-item">
+                            <input type="checkbox" name="if_exclude_d90_plus" {% if invoice_finance_settings.exclude_d90_plus %}checked{% endif %}>
+                            <span>90+</span>
+                        </label>
+            
+                        <label class="if-bucket-item">
+                            <input type="checkbox" name="if_exclude_older" {% if invoice_finance_settings.exclude_older %}checked{% endif %}>
+                            <span>Older</span>
+                        </label>
+                    </div>
+                </div>
+           
+
+            </div> 
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+        <div id="History" class="tabcontent" style="display: none;">
+            <h3>History</h3>
+            <table class="history-table">
+                <tr>
+                    <th>Date Set</th>
+                    <th>User</th>
+                </tr>
+                <tr>
+                    <td>01/01/2024</td>
+                    <td>Admin</td>
+                </tr>
+                <tr>
+                    <td>25/08/2025</td>
+                    <td>user456</td>
+                </tr>
+            </table>
+        </div>
+
+        <div id="RiskAuthorities" class="tabcontent" style="display: none;">
+            <h3>Risk Authorities</h3>
+            <p>Content for Risk Authorities will go here.</p>
+        </div>
+    </form>
+</div>
+
+</div>
+
+
+
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+
+    // Slider input handlers
+    const creditScoreSlider = document.getElementById("credit-score-slider");
+    const creditScoreValue = document.getElementById("slider-value");
+
+    if (creditScoreSlider && creditScoreValue) {
+        creditScoreSlider.oninput = function() {
+            creditScoreValue.textContent = this.value;
+        };
+    }
+
+    const debtServiceabilitySlider = document.getElementById("debt-serviceability-slider");
+    const debtServiceabilityValue = document.getElementById("debt-serviceability-value");
+
+    if (debtServiceabilitySlider && debtServiceabilityValue) {
+        debtServiceabilitySlider.oninput = function() {
+            debtServiceabilityValue.textContent = this.value;
+        }
+    }
+
+    const inflowOutflowSlider = document.getElementById("inflow-outflow-slider");
+    const inflowOutflowValue = document.getElementById("inflow-outflow-value");
+
+    if (inflowOutflowSlider && inflowOutflowValue) {
+        inflowOutflowSlider.oninput = function() {
+            inflowOutflowValue.textContent = this.value;
+        }
+    }
+
+    const ebitdaMarginSlider = document.getElementById("ebitda-margin-slider");
+    const ebitdaMarginValue = document.getElementById("ebitda-margin-value");
+
+    if (ebitdaMarginSlider && ebitdaMarginValue) {
+        ebitdaMarginSlider.oninput = function() {
+            ebitdaMarginValue.textContent = this.value;
+        }
+    }
+
+    const debtEquityRatioSlider = document.getElementById("debt-equity-ratio-slider");
+    const debtEquityRatioValue = document.getElementById("debt-equity-ratio-value");
+
+    if (debtEquityRatioSlider && debtEquityRatioValue) {
+        debtEquityRatioSlider.oninput = function() {
+            debtEquityRatioValue.textContent = this.value;
+        };
+    }
+
+    const liquidityRatioSlider = document.getElementById("liquidity-ratio-slider");
+    const liquidityRatioValue = document.getElementById("liquidity-ratio-value");
+
+    if (liquidityRatioSlider && liquidityRatioValue) {
+        liquidityRatioSlider.oninput = function() {
+            liquidityRatioValue.textContent = this.value;
+        }
+    }
+
+    function populateDropdowns() {
+        const yearsOptions = ["1 Year", "2 Years", "3 Years", "4 Years", "5 Years"];
+        const monthsOptions = [
+            "0 Month", "1 Month", "2 Months", "3 Months", "4 Months", "5 Months",
+            "6 Months", "7 Months", "8 Months", "9 Months", "10 Months", "11 Months", "12 Months",
+        ];
+        const installmentsOptions = ["3 installments", "4 installments", "5 installments"];
+        const frequencyOptions = ["Fortnightly", "Monthly"];
+
+        const yearsDropdowns = document.getElementsByClassName("years-dropdown");
+        const monthsDropdowns = document.getElementsByClassName("months-dropdown");
+        const installmentsDropdowns = document.getElementsByClassName("installments-dropdown");
+        const frequencyDropdowns = document.getElementsByClassName("frequency-dropdown");
+
+        for (let dropdown of yearsDropdowns) {
+            dropdown.innerHTML = "";
+            yearsOptions.forEach((optionText) => {
+                const option = document.createElement("option");
+                option.value = optionText;
+                option.text = optionText;
+                dropdown.appendChild(option);
+            });
+        }
+
+        for (let dropdown of monthsDropdowns) {
+            dropdown.innerHTML = "";
+            monthsOptions.forEach((optionText) => {
+                const option = document.createElement("option");
+                option.value = optionText;
+                option.text = optionText;
+                dropdown.appendChild(option);
+            });
+        }
+
+        for (let dropdown of installmentsDropdowns) {
+            dropdown.innerHTML = "";
+            installmentsOptions.forEach((optionText) => {
+                const option = document.createElement("option");
+                option.value = optionText;
+                option.text = optionText;
+                dropdown.appendChild(option);
+            });
+        }
+
+        for (let dropdown of frequencyDropdowns) {
+            dropdown.innerHTML = "";
+            frequencyOptions.forEach((optionText) => {
+                const option = document.createElement("option");
+                option.value = optionText;
+                option.text = optionText;
+                dropdown.appendChild(option);
+            });
+        }
+    }
+
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+        const csrftoken = getCookie("csrftoken");
+
+        document.addEventListener("DOMContentLoaded", function () {
+        populateDropdowns();
+        document.querySelector('.tablinks.active').click();
+
+        const postSettingsBtn = document.getElementById("post-settings-btn");
+        postSettingsBtn.addEventListener("click", function (event) {
+            event.preventDefault();
+
+            fetch("{% url 'post_settings' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrftoken
+                },
+                body: JSON.stringify({
+                    originator: selected_originator || null
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || "Unknown response from server.");
+            })
+            .catch(error => {
+                alert("Error posting settings: " + error);
+            });
+        });
+    });
+
+
+</script>
+
+<script>
+    // ... your existing JS above ...
+
+    const ifAdvanceRateSlider = document.getElementById("if-advance-rate-slider");
+    const ifAdvanceRateValue = document.getElementById("if-advance-rate-value");
+
+    if (ifAdvanceRateSlider && ifAdvanceRateValue) {
+        ifAdvanceRateSlider.oninput = function () {
+            ifAdvanceRateValue.textContent = this.value + "%";
+        };
+    }
+
+    const ifConcentrationLimitSlider = document.getElementById("if-concentration-limit-slider");
+    const ifConcentrationLimitValue = document.getElementById("if-concentration-limit-value");
+
+    if (ifConcentrationLimitSlider && ifConcentrationLimitValue) {
+        ifConcentrationLimitSlider.oninput = function () {
+            ifConcentrationLimitValue.textContent = this.value + "%";
+        };
+    }
+
+    // ... your existing JS below ...
+</script>
+
+
+
+</body>
+</html>
+
+
+
+<style>
+    /* General Body Styling for better typography and background */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+        background-color: #f4f7f6; /* Light grey background */
+        line-height: 1.6;
+    }
+
+    .settings-page-container {
+        max-width: 1000px; /* Constrain width for better readability */
+        margin: 30px auto; /* Center the container with top/bottom margin */
+        padding: 30px; /* Inner padding */
+        background-color: #fff; /* White background for the content area */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+        border-radius: 8px; /* Rounded corners */
+    }
+
+    /* Headings */
+    h2#originator-heading {
+        color: #004085; /* Darker blue for main heading */
+        font-size: 2em; /* Larger font size */
+        margin-bottom: 25px; /* More space below heading */
+        text-align: center;
+        border-bottom: 2px solid #e0e0e0; /* Separator line */
+        padding-bottom: 15px;
+    }
+
+    h3 {
+        color: #0056b3; /* Blue for sub-headings */
+        font-size: 1.5em;
+        margin-top: 30px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee; /* Light separator */
+        padding-bottom: 8px;
+    }
+
+    h4 {
+        color: #3f668f; /* Slightly lighter blue for section headings */
+        font-size: 1.2em;
+        margin-top: 25px;
+        margin-bottom: 10px;
+    }
+
+
+    /* Buttons */
+    .button-group {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: flex-end; /* Align buttons to the right */
+        gap: 15px; /* Space between buttons using flexbox gap property */
+    }
+
+    .settings-page-container .save-btn,
+    .settings-page-container .post-btn {
+        padding: 12px 25px; /* Larger padding */
+        font-size: 1em; /* Readable font size */
+        border-radius: 6px; /* Slightly more rounded */
+        transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+        display: inline-block; /* Allows them to sit side-by-side */
+        text-align: center;
+        cursor: pointer;
+        border: none; /* No default border */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle button shadow */
+    }
+
+    .settings-page-container .save-btn {
+        background-color: #28a745; /* Green for Save */
+        color: white;
+    }
+
+    .settings-page-container .save-btn:hover {
+        background-color: #218838; /* Darker green on hover */
+        transform: translateY(-1px); /* Slight lift effect */
+    }
+
+    .settings-page-container .post-btn {
+        background-color: #007bff; /* Blue for Post (primary action style) */
+        color: white;
+    }
+
+    .settings-page-container .post-btn:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+        transform: translateY(-1px);
+    }
+
+
+    /* Tabs */
+    .settings-page-container .tab {
+        overflow: hidden;
+        border-bottom: 1px solid #ddd; /* Lighter border for tabs */
+        background-color: #e9ecef; /* Light grey background for tab bar */
+        margin-top: 25px;
+        border-radius: 6px 6px 0 0; /* Rounded top corners */
+    }
+
+    .settings-page-container .tab button {
+        background-color: transparent; /* Transparent background */
+        color: #495057; /* Darker text for inactive tabs */
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 15px 20px; /* More padding */
+        transition: background-color 0.3s ease, color 0.3s ease, border-bottom 0.3s ease;
+        font-size: 1.05em; /* Slightly larger text */
+        font-weight: 500;
+        border-radius: 0; /* Remove individual button border-radius */
+    }
+
+    .settings-page-container .tab button:hover {
+        background-color: #dee2e6; /* Lighter hover background */
+        color: #212529; /* Darker text on hover */
+    }
+
+    .settings-page-container .tab button.active {
+        background-color: #fff; /* White background for active tab */
+        color: #0056b3; /* Blue text for active tab */
+        border-bottom: 3px solid #0056b3; /* Blue underline for active tab */
+        font-weight: 600;
+    }
+
+    .settings-page-container .tabcontent {
+        background-color: #ffffff; /* White background for content */
+        padding: 25px; /* More padding */
+        border: 1px solid #ddd; /* Consistent border */
+        border-top: none; /* No top border, connects to tab */
+        border-radius: 0 0 8px 8px; /* Rounded bottom corners */
+        margin-bottom: 30px; /* Space below tab content */
+    }
+
+    /* Tables (Settings and History) */
+    .settings-table,
+    .history-table {
+        width: 100%;
+        border-collapse: collapse; /* Collapse borders for clean look */
+        margin-top: 15px; /* Space above tables */
+        margin-bottom: 25px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Subtle shadow for tables */
+        border-radius: 6px;
+        overflow: hidden; /* Ensures border-radius applies to content */
+    }
+
+    .settings-table th,
+    .settings-table td,
+    .history-table th,
+    .history-table td {
+        padding: 12px 15px; /* More padding in cells */
+        text-align: left;
+        border-bottom: 1px solid #eee; /* Lighter cell borders */
+    }
+
+    .settings-table th,
+    .history-table th {
+        background-color: #f8f9fa; /* Light background for headers */
+        color: #495057; /* Darker text for headers */
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6; /* Slightly thicker bottom border for header */
+    }
+
+    .settings-table tbody tr:nth-child(even),
+    .history-table tbody tr:nth-child(even) {
+        background-color: #fdfdfd; /* Very light zebra stripe */
+    }
+
+    .settings-table tbody tr:hover,
+    .history-table tbody tr:hover {
+        background-color: #f0f0f0; /* Subtle hover effect */
+    }
+
+    /* Switches */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 45px;
+        height: 25px;
+        vertical-align: middle;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: .4s;
+    }
+
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+
+    input:focus + .slider {
+        box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+
+    .slider.round {
+        border-radius: 25px;
+    }
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+    
+    /* Sliders */
+    input[type="range"] {
+        -webkit-appearance: none; /* Override default browser style */
+        width: 100%; /* Full width within its container */
+        height: 8px; /* Thinner slider track */
+        background: #d3d3d3; /* Light grey track */
+        outline: none;
+        opacity: 0.7;
+        transition: opacity .2s;
+        border-radius: 5px;
+    }
+
+    input[type="range"]:hover {
+        opacity: 1;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px; /* Larger thumb */
+        height: 20px;
+        background: #007bff; /* Blue thumb */
+        cursor: pointer;
+        border-radius: 50%; /* Circular thumb */
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #007bff;
+        cursor: pointer;
+        border-radius: 50%;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Slider value span */
+    .settings-table span[id$="-value"],
+    .settings-table span#slider-value { /* Targeting all slider value spans */
+        margin-left: 10px; /* Space between slider and value */
+        font-weight: bold;
+        color: #0056b3;
+    }
+
+
+    /* Dropdowns for Products */
+    select.years-dropdown,
+    select.months-dropdown,
+    select.installments-dropdown,
+    select.frequency-dropdown {
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    select.years-dropdown:focus,
+    select.months-dropdown:focus,
+    select.installments-dropdown:focus,
+    select.frequency-dropdown:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+
+
+    /* Eligibility Criteria List Formatting */
+    #EligibilityCriteria ul {
+        list-style: none; /* Remove default bullet points */
+        padding: 0;
+        margin-bottom: 20px;
+    }
+
+    #EligibilityCriteria ul li {
+        padding: 8px 0;
+        border-bottom: 1px dashed #e0e0e0; /* Dashed line for subtle separation */
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* Distribute content */
+        flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    }
+
+    #EligibilityCriteria ul li:last-child {
+        border-bottom: none; /* No border for the last item */
+    }
+
+    #EligibilityCriteria ul li small {
+        color: #666;
+        font-size: 0.85em;
+        margin-top: 5px; /* Space above timestamp */
+        width: 100%; /* Full width for timestamp */
+        text-align: right;
+    }
+
+    /* Specific styling for boolean display */
+    .boolean-display {
+        font-weight: bold;
+        margin-left: 10px; /* Space after the label */
+    }
+    .boolean-display.true { /* Added a specific class for true values */
+        color: #28a745; /* Green for Enabled */
+    }
+    .boolean-display.false {
+        color: #dc3545; /* Red for Disabled */
+    }
+
+    /* Adjustment for duration/installments display */
+    .duration-display, .installments-display {
+        font-style: italic;
+        color: #555;
+        margin-left: 5px;
+    }
+
+    /* Invoice Finance Settings section */
+.if-settings-card {
+    margin-top: 15px;
+    padding: 18px;
+    border: 1px solid #e6e9ee;
+    border-radius: 8px;
+    background: #fafcff;
+}
+
+.if-tiles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.if-tile {
+    border: 1px solid #e1e6ef;
+    border-radius: 8px;
+    background: #fff;
+    padding: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.if-small-slider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.if-small-slider input[type="range"] {
+    flex: 1;
+    margin: 0;
+}
+
+.if-small-slider .pct {
+    min-width: 52px;
+    text-align: right;
+    font-weight: 600;
+    color: #0056b3;
+}
+
+.if-aged-buckets {
+    border-top: 1px solid #edf1f5;
+    padding-top: 14px;
+}
+
+.if-bucket-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+}
+
+.if-bucket-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 1px solid #e6e9ee;
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.if-bucket-item:hover {
+    background: #f5f9ff;
+    border-color: #cfe0ff;
+}
+
+.if-bucket-item input[type="checkbox"] {
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .if-tiles {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+
+{% endblock %}

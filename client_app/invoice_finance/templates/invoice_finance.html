@@ -1,0 +1,1588 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Invoice Finance{% endblock %}
+
+
+{% block content %}
+   <h1>Invoice Finance</h1>
+
+
+   <!-- Connect Xero Button (Optional: may be repurposed) -->
+   <button id="connectXeroBtn" class="btn-xero">Upload AR Ledger</button>
+
+
+<!-- Application Status Widget -->
+<div class="application-progress-widget">
+   <h3>Application Status</h3>
+   <div class="progress-container">
+       <div class="progress-line"></div>
+       <div class="progress-step">
+           <div class="progress-dot" id="dotXero"></div>
+           <p>Xero</p>
+       </div>
+       <div class="progress-step">
+           <div class="progress-dot" id="dotSubmit"></div>
+           <p>Submit</p>
+       </div>
+       <div class="progress-step">
+           <div class="progress-dot" id="dotReview"></div>
+           <p>Review</p>
+       </div>
+       <div class="progress-step">
+           <div class="progress-dot" id="dotComplete"></div>
+           <p>Complete</p>
+       </div>
+   </div>
+</div>
+
+
+<div style="display: flex; gap: 10px; margin-top: 15px;">
+    <button id="postButton">Post</button>
+    <button id="drawdownBtn" class="btn-post" type="button">Drawdown</button>
+</div>
+
+
+
+<!-- Drawdown Modal -->
+<div id="drawdownModal" class="modal" aria-hidden="true" role="dialog" aria-labelledby="drawdownTitle" style="display:none;">
+    <div class="modal-content" style="max-width: 320px; text-align: center;">
+      <button class="close" id="closeDrawdownModal" aria-label="Close">&times;</button>
+      <h2 id="drawdownTitle">Request Amount</h2>
+  
+      <input
+        type="text"
+        id="drawdownAmountInput"
+        class="request-amount-input"
+        placeholder="Enter amount"
+        inputmode="numeric"
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="Drawdown amount"
+      />
+  
+      <button id="applyDrawdownBtn" class="btn-apply" type="button">Apply</button>
+    </div>
+  </div>
+  
+
+
+
+   <!-- Tiles Section -->
+   <div class="tiles-container">
+       <div class="tile">
+           <h3>Total Amount Due</h3>
+           <p id="totalAmountDue">$0.00</p>
+       </div>
+       <div class="tile">
+           <h3>Debtors Selected</h3>
+           <p id="selectedAmountDue">$0.00</p>
+       </div>
+       <div class="tile">
+           <h3>Request Amount</h3>
+           <input type="text"
+                  id="requestAmountInput"
+                  class="request-amount-input"   
+                  placeholder="Enter amount"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  aria-autocomplete="none"
+                  autocorrect="off"
+                  spellcheck="false">
+           <button id="applyFundingBtn" class="btn-apply">Apply</button>
+       </div>
+   </div>
+
+
+   <!-- Apply for Funding Modal -->
+   <div id="fundingModal" class="modal">
+       <div class="modal-content">
+           <span class="close" id="closeFundingModal">&times;</span>
+            <!-- Page 1 -->
+           <div class="form-page active" id="fundingPage1">
+               <h2>Enter Your Details</h2>
+               <label for="fundingUsername">Username:</label>
+               <input type="text" id="fundingUsername" name="fundingUsername"><br><br>
+                <label for="fundingABN">ABN:</label>
+               <input type="text" id="fundingABN" name="fundingABN" readonly><br><br>
+                <label for="fundingACN">ACN:</label>
+               <input type="text" id="fundingACN" name="fundingACN" readonly><br><br>
+                <button type="button" class="btn-next" id="nextPage1">Next</button>
+           </div>
+            <!-- Page 2 -->
+           <div class="form-page" id="fundingPage2" style="display:none;">
+               <h2>Connect Bank Account</h2>
+               <label for="bankAccountID">Bank Account ID:</label>
+               <input type="text" id="bankAccountID" name="bankAccountID"><br><br>
+                <label for="bankPassword">Password:</label>
+               <input type="password" id="bankPassword" name="bankPassword"><br><br>
+                <button type="button" class="btn-next" id="nextPage2">Next</button>
+           </div>
+            <!-- Page 3 -->
+           <div class="form-page" id="fundingPage3" style="display:none;">
+               <h2>Loan Application</h2>
+               <p>Selected Funding Amount: <strong id="selectedFundingAmount">$0.00</strong></p>
+               <p id="displayRequestAmount">Request Amount: $0.00</p>
+               <button type="submit" class="btn-submit">Submit Application</button>
+           </div>
+       </div>
+   </div>
+   <!-- Table to Display Fetched Data -->
+<!-- Table to Display Fetched Data -->
+<h2>Ledger Data - Open Status</h2>
+<table border="1" id="ledgerTable">
+    <thead>
+        <tr>
+            <th>Debtor Name</th>
+            <th>Amount Due</th>
+            <th>Activate</th>
+        </tr>
+    </thead>
+    <tbody id="ledgerBody">
+        <!-- Rows will be dynamically injected here -->
+    </tbody>
+</table>
+
+<!-- Drawdown Modal (moved OUTSIDE the table) -->
+<div id="drawdownModal" class="modal">
+    <div class="modal-content" style="max-width: 320px; text-align: center;">
+        <span class="close" id="closeDrawdownModal">&times;</span>
+        <h2>Request Amount</h2>
+        <input type="text"
+            id="drawdownAmountInput"
+            class="request-amount-input"
+            placeholder="Enter amount"
+            inputmode="numeric"
+            autocomplete="off"
+            spellcheck="false">
+        <button id="applyDrawdownBtn" class="btn-apply">Apply</button>
+    </div>
+</div>
+
+ </tbody>
+   </table>
+
+
+   <!-- Xero Modal -->
+<!-- AR Ledger Upload Modal -->
+<div id="xeroModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeXeroModal">&times;</span>
+        <h2>Upload AR Ledger</h2>
+        <form id="ledgerUploadForm" enctype="multipart/form-data" method="POST" action="{% url 'invoice_finance:upload_ledger_csv' %}">
+            {% csrf_token %}
+            
+            <label for="ledgerABN">ABN:</label>
+            <input type="text" id="ledgerABN" name="abn" value="{{ selected_abn }}" readonly><br><br>
+
+            <label for="ledgerCSV">CSV File:</label>
+            <input type="file" id="ledgerCSV" name="file" accept=".csv" required><br><br>
+
+            <button type="submit" class="btn-apply">Upload</button>
+        </form>
+    </div>
+</div>
+
+<!-- Funding Application Modal -->
+<div id="applicationModal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="closeApplicationModal">&times;</span>
+  
+      <!-- Page 1 -->
+      <div class="form-page active" id="appPage1">
+        <h2>Funding Request</h2>
+        <label for="appABN">ABN:</label>
+        <input type="text" id="appABN" name="abn" readonly><br><br>
+  
+        <label for="appRequestedAmount">Requested Amount:</label>
+        <input type="text" id="appRequestedAmount" name="requested_amount" readonly><br><br>
+        <input type="hidden" id="currentUsername" value="{{ request.user.username }}">
+
+        <button type="button" class="btn-next" id="nextAppPage1">Next</button>
+      </div>
+  
+      <!-- Page 2 -->
+      <div class="form-page" id="appPage2" style="display:none;">
+        <h2>Bank Statements</h2>
+        <label for="appBSB">BSB:</label>
+        <input type="text" id="appBSB" name="bsb"><br><br>
+  
+        <label for="appAccountNumber">Account Number:</label>
+        <input type="text" id="appAccountNumber" name="account_number"><br><br>
+  
+        <button type="button" class="btn-next" id="nextAppPage2">Next</button>
+      </div>
+  
+      <!-- Page 3 -->
+      <div class="form-page" id="appPage3" style="display:none;">
+        <h2>Confirmation</h2>
+        <p>Please confirm your details and submit the application.</p>
+        <button type="button" class="btn-submit" id="submitApplicationBtn">Submit</button>
+      </div>
+    </div>
+  </div>
+  
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const xeroModal = document.getElementById("xeroModal");
+        const openXeroBtn = document.getElementById("connectXeroBtn");
+        const closeXeroBtn = document.getElementById("closeXeroModal");
+    
+        if (openXeroBtn && xeroModal) {
+            openXeroBtn.addEventListener("click", () => {
+                console.log("📂 Opening AR Ledger modal");
+                xeroModal.style.display = "block";
+            });
+        }
+    
+        if (closeXeroBtn) {
+            closeXeroBtn.addEventListener("click", () => {
+                xeroModal.style.display = "none";
+            });
+        }
+    
+        // Close modal when clicking outside of it
+        window.addEventListener("click", function (event) {
+            if (event.target === xeroModal) {
+                xeroModal.style.display = "none";
+            }
+        });
+    });
+    </script>
+    
+
+
+<script>
+
+window.init_invoice_finance = function () {
+    const abn = document.querySelector('#abnDropdown')?.value;
+    if (!abn) return;
+
+    fetch(`/api/fetch-ledger-data/?abn=${abn}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("✅ Invoice data loaded", data);
+            // Render the invoice data into the DOM
+        })
+        .catch(err => console.error("Invoice fetch failed", err));
+};
+
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ledgerBody = document.getElementById("ledgerBody");
+        const selectedAmountDueEl = document.getElementById("selectedAmountDue");
+        const totalAmountDueEl = document.getElementById("totalAmountDue");
+    
+        let selectedTotal = 0;
+        let allTotal = 0;
+    
+        // Format numbers as currency
+        function formatCurrency(amount) {
+            return `$${parseFloat(amount).toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        }
+    
+        // Refresh selected total tile
+        function updateSelectedTile() {
+            selectedAmountDueEl.textContent = formatCurrency(selectedTotal);
+        }
+    
+        // Fetch ledger data and populate the table
+        async function fetchLedgerData() {
+            try {
+                const resp = await fetch("{% url 'invoice_finance:fetch_ledger_data' %}");
+                const data = await resp.json();
+    
+                ledgerBody.innerHTML = "";
+                selectedTotal = 0;
+                allTotal = 0;
+    
+                if (data.error) {
+                    ledgerBody.innerHTML = `<tr><td colspan="3">${data.error}</td></tr>`;
+                    return;
+                }
+    
+                data.forEach(entry => {
+                    const amount = parseFloat(entry.total_due);
+                    allTotal += amount;
+    
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${entry.debtor}</td>
+                        <td>${formatCurrency(amount)}</td>
+                        <td style="text-align:center;">
+                            <label class="switch">
+                                <input type="checkbox" class="activate-switch" 
+                                       data-amount="${amount}" data-debtor="${entry.debtor}">
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                    `;
+                    ledgerBody.appendChild(row);
+                });
+    
+                // Update total tile
+                totalAmountDueEl.textContent = formatCurrency(allTotal);
+    
+                // Attach listeners to all switches
+                document.querySelectorAll(".activate-switch").forEach(checkbox => {
+                    checkbox.addEventListener("change", function () {
+                        const value = parseFloat(this.dataset.amount);
+                        if (this.checked) {
+                            selectedTotal += value;
+                        } else {
+                            selectedTotal -= value;
+                        }
+                        updateSelectedTile();
+                    });
+                });
+    
+            } catch (err) {
+                console.error("❌ Failed to fetch ledger data", err);
+                ledgerBody.innerHTML = `<tr><td colspan="3">Error loading data</td></tr>`;
+            }
+        }
+    
+        // Initial load
+        fetchLedgerData();
+    });
+    </script>
+    
+ 
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const appModal = document.getElementById("applicationModal");
+            const closeModalBtn = document.getElementById("closeApplicationModal");
+            const applyFundingBtn = document.getElementById("applyFundingBtn");
+        
+            const appABN = document.getElementById("appABN");
+            const appRequestedAmount = document.getElementById("appRequestedAmount");
+        
+            const appPage1 = document.getElementById("appPage1");
+            const appPage2 = document.getElementById("appPage2");
+            const appPage3 = document.getElementById("appPage3");
+        
+            // 👉 Open modal
+            if (applyFundingBtn) {
+                applyFundingBtn.addEventListener("click", async function () {
+                    appModal.style.display = "block";
+        
+                    // Auto-fill requested amount
+                    const requestedAmountInput = document.getElementById("requestAmountInput").value;
+                    appRequestedAmount.value = requestedAmountInput;
+        
+                    try {
+                        const resp = await fetch("{% url 'invoice_finance:fetch_ledger_data' %}");
+                        const data = await resp.json();
+        
+                        if (Array.isArray(data) && data.length > 0 && data[0].abn) {
+                            appABN.value = data[0].abn;
+                            appABN.readOnly = true;
+                        } else {
+                            appABN.value = "";
+                            appABN.placeholder = "Enter your ABN";
+                            appABN.readOnly = false;
+                        }
+                    } catch (err) {
+                        console.error("❌ Failed to fetch ABN:", err);
+                        appABN.value = "";
+                        appABN.placeholder = "Enter your ABN";
+                        appABN.readOnly = false;
+                    }
+                });
+            }
+        
+            // 👉 Close modal
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener("click", () => appModal.style.display = "none");
+            }
+            window.addEventListener("click", (e) => {
+                if (e.target === appModal) appModal.style.display = "none";
+            });
+        
+            // 👉 Navigation
+            const next1 = document.getElementById("nextAppPage1");
+            if (next1) next1.addEventListener("click", () => {
+                appPage1.style.display = "none";
+                appPage2.style.display = "block";
+            });
+        
+            const next2 = document.getElementById("nextAppPage2");
+            if (next2) next2.addEventListener("click", () => {
+                appPage2.style.display = "none";
+                appPage3.style.display = "block";
+            });
+        
+        });
+        </script>
+        
+
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+              const submitBtn = document.getElementById("submitApplicationBtn");
+              if (!submitBtn) return;
+            
+              submitBtn.addEventListener("click", async () => {
+                const abn  = document.getElementById("appABN").value.trim();
+                const name = document.getElementById("currentUsername")?.value.trim() || "";
+                const requestedAmount =
+                  parseFloat((document.getElementById("appRequestedAmount").value || "").replace(/[^0-9.]/g, "")) || 0;
+            
+                // ✅ Only send debtor names
+                const selected_debtors = Array.from(document.querySelectorAll(".activate-switch:checked"))
+                                              .map(cb => cb.dataset.debtor);
+            
+                // basic validation
+                if (!abn || !name) { alert("Please fill out ABN and Name."); return; }
+                if (selected_debtors.length === 0) { alert("Please select at least one debtor."); return; }
+                if (requestedAmount <= 0) { alert("Please enter a valid Request Amount."); return; }
+            
+                const payload = {
+                  abn,
+                  acn: "",   // ignored for now
+                  name,
+                  selected_debtors,
+                  amount_requested: requestedAmount
+                };
+            
+                try {
+                  const res = await fetch("{% url 'invoice_finance:submit_application' %}", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "X-CSRFToken": "{{ csrf_token }}"
+                    },
+                    body: JSON.stringify(payload)
+                  });
+            
+                  const data = await res.json().catch(() => ({}));
+                  if (res.ok && data.success) {
+                    alert("🚀 Application submitted successfully!");
+                    document.getElementById("applicationModal").style.display = "none";
+                  } else {
+                    alert("⚠️ Submission failed: " + (data.error || res.statusText));
+                  }
+                } catch (err) {
+                  console.error("Submit error:", err);
+                  alert("Unexpected error submitting application.");
+                }
+              });
+            });
+            </script>
+            
+
+            
+            <script>
+                // ---------- Constants ----------
+                const ABN_HARDCODED = "19155437620"; // ← your required ABN
+              
+                // ---------- CSRF (for same-origin posts to client_app endpoints) ----------
+                function getCookie(name) {
+                  let cookieValue = null;
+                  if (document.cookie && document.cookie !== "") {
+                    for (const cookie of document.cookie.split(";")) {
+                      const c = cookie.trim();
+                      if (c.substring(0, name.length + 1) === (name + "=")) {
+                        cookieValue = decodeURIComponent(c.substring(name.length + 1));
+                        break;
+                      }
+                    }
+                  }
+                  return cookieValue;
+                }
+                const csrftoken = getCookie("csrftoken");
+              
+                // ---------- "Post" button (sends to your client_app invoice_finance endpoints) ----------
+                document.getElementById("postButton").addEventListener("click", async function () {
+                  const abn = ABN_HARDCODED;
+              
+                  try {
+                    console.log("📢 Fetching Latest Transaction ID for ABN:", abn);
+              
+                    // 1) Get latest transaction_id (used for invoices)
+                    const txRes = await fetch(`/invoice_finance/api/get-latest-transaction-id/?abn=${encodeURIComponent(abn)}`);
+                    if (!txRes.ok) throw new Error(`Failed to fetch transaction ID: ${txRes.statusText}`);
+                    const txData = await txRes.json();
+                    if (!txData.success || !txData.transaction_id) {
+                      throw new Error(txData.error || "❌ No transaction ID found.");
+                    }
+                    const transaction_id = txData.transaction_id;
+                    console.log("✅ Latest Transaction ID:", transaction_id);
+              
+                    // 2) Build payloads
+                    const applicationPayload = { abn };
+                    const invoicePayload     = { abn, transaction_id };
+                    const ledgerPayload      = { abn };
+              
+                    // 3) Send ApplicationData
+                    await fetch("/invoice_finance/api/send-application-data/", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+                      body: JSON.stringify(applicationPayload),
+                    });
+              
+                    // 4) Send InvoiceData
+                    await fetch("/invoice_finance/api/send-invoice-data/", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+                      body: JSON.stringify(invoicePayload),
+                    });
+              
+                    // 5) Send LedgerData
+                    await fetch("/invoice_finance/api/send-ledger-data/", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json", "X-CSRFToken": csrftoken },
+                      body: JSON.stringify(ledgerPayload),
+                    });
+              
+                    alert("✅ Data posted successfully!");
+                  } catch (err) {
+                    console.error("❌ Error:", err);
+                    alert("❌ Error posting data: " + err.message);
+                  }
+                });
+              
+                // ---------- Drawdown modal (posts directly to efs_drawdowns 8007) ----------
+                // Helper: sanitize "$1,234.50" -> 1234.50
+                function parseMoney(val) {
+                  const n = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+                  return Number.isFinite(n) ? n : NaN;
+                }
+              
+                document.addEventListener("DOMContentLoaded", function () {
+                  const drawdownsBase = "{{ EFS_SERVICES.drawdowns|default:'http://localhost:8007' }}".replace(/\/+$/, '');
+                  const modal   = document.getElementById("drawdownModal");
+                  const openBtn = document.getElementById("drawdownBtn");
+                  const closeBtn= document.getElementById("closeDrawdownModal");
+                  const input   = document.getElementById("drawdownAmountInput");
+                  const apply   = document.getElementById("applyDrawdownBtn");
+              
+                  function openModal(){ modal.style.display = "block"; setTimeout(() => input?.focus(), 0); }
+                  function closeModal(){ modal.style.display = "none"; input.value = ""; }
+              
+                  openBtn?.addEventListener("click", openModal);
+                  closeBtn?.addEventListener("click", closeModal);
+                  modal?.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+                  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && modal.style.display === "block") closeModal(); });
+              
+                  apply?.addEventListener("click", async () => {
+                    const amount = parseMoney(input.value);
+                    if (!amount || amount <= 0) {
+                      alert("Please enter a valid drawdown amount.");
+                             return;
+                    }
+              
+                    // Hard-coded fields as required
+                    const payload = {
+                      transaction_id: (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()),
+                      abn: ABN_HARDCODED,
+                      product: "Invoice Finance",
+                      originator: "Shift",
+                      state: "sales",
+                      amount_requested: amount
+                    };
+              
+                    try {
+                      const res = await fetch(drawdownsBase + "/api/drawdowns/receive/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        // CSRF not needed here if your drawdowns endpoint is @csrf_exempt + CORS allowed
+                        body: JSON.stringify(payload),
+                      });
+              
+                      const out = await res.json().catch(() => ({}));
+                      if (res.ok && out.success) {
+                        alert("✅ Drawdown submitted! Tx: " + out.transaction_id);
+                        closeModal();
+                      } else {
+                        alert("❌ Drawdown failed: " + (out.error || res.statusText));
+                      }
+                    } catch (err) {
+                      console.error("Drawdown submit error:", err);
+                      alert("❌ Network or server error submitting drawdown.");
+                    }
+                  });
+                });
+              </script>
+              
+
+
+<!--- 
+<script>
+    // Show the Drawdown modal
+    document.getElementById("drawdownBtn").addEventListener("click", function () {
+        document.getElementById("drawdownModal").style.display = "block";
+    });
+
+    // Close the Drawdown modal
+    document.getElementById("closeDrawdownModal").addEventListener("click", function () {
+        document.getElementById("drawdownModal").style.display = "none";
+    });
+
+    // Handle Drawdown Apply button
+    document.getElementById("applyDrawdownBtn").addEventListener("click", async function () {
+        const amountInput = document.getElementById("drawdownAmountInput").value;
+        const abn = document.getElementById("fundingABN")?.value || "";  // Pull from existing ABN field
+        const originator = "Shift";
+
+        const amount = parseFloat(amountInput.replace(/[^0-9.]/g, ""));
+        if (!abn || isNaN(amount) || amount <= 0) {
+            alert("Please enter a valid ABN and drawdown amount.");
+            return;
+        }
+
+        const payload = {
+            abn: abn,
+            amount_requested: amount,
+            originator: originator,
+            state: "sales",                    // ✅ Hardcoded for state field
+            product: "Invoice Finance"         // ✅ Hardcoded for product field
+        };
+
+        const localURL = "http://127.0.0.1:8000/efs_drawdowns/api/send-drawdown-data/";
+        const cloudURL = "https://efs3-docker-320779576692.australia-southeast1.run.app/efs_drawdowns/api/send-drawdown-data/";
+
+        try {
+            // Send to both local and cloud in parallel
+            const [localRes, cloudRes] = await Promise.all([
+                fetch(localURL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken"),
+                    },
+                    body: JSON.stringify(payload),
+                }),
+                fetch(cloudURL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload),
+                })
+            ]);
+
+            const localResult = await localRes.json().catch(() => ({}));
+            const cloudResult = await cloudRes.json().catch(() => ({}));
+
+            if (localResult.success || cloudResult.success) {
+                alert("✅ Drawdown submitted successfully!");
+                document.getElementById("drawdownModal").style.display = "none";
+            } else {
+                let errorMsg = localResult.error || cloudResult.error || "Unknown error.";
+                alert("❌ Error: " + errorMsg);
+            }
+
+        } catch (error) {
+            console.error("❌ Drawdown POST failed:", error);
+            alert("❌ Unexpected error submitting drawdown.");
+        }
+    });
+
+    // Close modal when clicking outside of it
+    window.addEventListener("click", function (event) {
+        const modal = document.getElementById("drawdownModal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+</script>
+
+
+
+
+
+   <script>
+document.addEventListener("DOMContentLoaded", function () {
+   // Modal and button references
+   const xeroModal = document.getElementById("xeroModal");
+   const openXeroBtn = document.getElementById("connectXeroBtn");
+   const closeXeroBtn = document.getElementById("closeXeroModal");
+   const ledgerTableBody = document.querySelector("#ledgerTable tbody");
+   const abnDropdown = document.getElementById("abnDropdown");
+
+
+   const applyFundingBtn = document.getElementById("applyFundingBtn");
+   const requestAmountInput = document.getElementById("requestAmountInput");
+
+
+   const fundingModal = document.getElementById("fundingModal");
+   const closeFundingModal = document.getElementById("closeFundingModal");
+
+
+   const nextPage1 = document.getElementById("nextPage1");
+   const nextPage2 = document.getElementById("nextPage2");
+
+
+   const fundingPage1 = document.getElementById("fundingPage1");
+   const fundingPage2 = document.getElementById("fundingPage2");
+   const fundingPage3 = document.getElementById("fundingPage3");
+
+
+   // Tile references
+   const totalAmountDueEl = document.getElementById("totalAmountDue");
+   const selectedAmountDueEl = document.getElementById("selectedAmountDue");
+   const selectedFundingAmountEl = document.getElementById("selectedFundingAmount");
+
+
+   let totalAmountDue = 0;
+   let selectedAmountDue = 0;
+   let totalActiveDebtors = 0;
+   let debtorStatus = {}; // Track debtor selection status
+
+
+   // Function to format numbers as currency
+   function formatCurrency(amount) {
+       return `$${parseFloat(amount).toLocaleString("en-US", {
+           minimumFractionDigits: 2,
+           maximumFractionDigits: 2
+       })}`;
+   }
+
+
+   function formatCurrencyInput(event) {
+       let value = event.target.value.replace(/[^0-9.]/g, ""); // Remove invalid characters
+       event.target.value = value; // Allow full typing before formatting
+   }
+
+
+   function formatOnBlur(event) {
+       let numericValue = parseFloat(event.target.value);
+       if (!isNaN(numericValue)) {
+           event.target.value = numericValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+       }
+   }
+
+
+   // Attach event listeners for request amount input
+   if (requestAmountInput) {
+       requestAmountInput.addEventListener("input", formatCurrencyInput);
+       requestAmountInput.addEventListener("blur", formatOnBlur);
+   }
+
+
+   // Open and Close Xero Modal
+   if (openXeroBtn && xeroModal) {
+       openXeroBtn.addEventListener("click", () => (xeroModal.style.display = "block"));
+   }
+   if (closeXeroBtn) {
+       closeXeroBtn.addEventListener("click", () => (xeroModal.style.display = "none"));
+   }
+
+
+   // Close modal when clicking outside
+   window.onclick = function (event) {
+       if (event.target === xeroModal) xeroModal.style.display = "none";
+       if (event.target === fundingModal) fundingModal.style.display = "none";
+   };
+
+
+
+   // Apply for funding
+   applyFundingBtn.addEventListener("click", function () {
+       let requestAmountValue = parseFloat(requestAmountInput.value.replace(/[^0-9.]/g, "")) || 0;
+       fundingModal.style.display = "block";
+       selectedFundingAmountEl.textContent = selectedAmountDueEl.textContent;
+       document.getElementById("displayRequestAmount").textContent = `Request Amount: $${requestAmountValue.toLocaleString("en-US", {
+           minimumFractionDigits: 2,
+           maximumFractionDigits: 2
+       })}`;
+   });
+
+
+   closeFundingModal.addEventListener("click", function () {
+       fundingModal.style.display = "none";
+   });
+
+
+   nextPage1.addEventListener("click", function () {
+       fundingPage1.style.display = "none";
+       fundingPage2.style.display = "block";
+   });
+
+
+   nextPage2.addEventListener("click", function () {
+       fundingPage2.style.display = "none";
+       fundingPage3.style.display = "block";
+   });
+});
+
+
+// Separate event listener for submitting the funding application
+document.addEventListener("DOMContentLoaded", function () {
+   const submitApplicationBtn = document.querySelector(".btn-submit");
+  
+   submitApplicationBtn.addEventListener("click", function () {
+       const abn = document.getElementById("fundingABN").value;
+       const acn = document.getElementById("fundingACN").value;
+       const name = document.getElementById("fundingUsername").value;
+       const requestedAmount = parseFloat(document.getElementById("requestAmountInput").value.replace(/[^0-9.]/g, "")) || 0;
+       const selectedDebtors = [];
+
+
+       document.querySelectorAll(".activate-switch:checked").forEach((checkbox) => {
+           selectedDebtors.push(checkbox.dataset.debtor);
+       });
+
+
+       if (selectedDebtors.length === 0) {
+           alert("Please select at least one debtor before applying.");
+           return;
+       }
+
+
+       if (requestedAmount <= 0) {
+           alert("Please enter a valid Request Amount.");
+           return;
+       }
+
+
+       fetch("/api/submit-funding-application/", {
+           method: "POST",
+           headers: {
+               "Content-Type": "application/json",
+               "X-CSRFToken": "{{ csrf_token }}",
+           },
+           body: JSON.stringify({
+               abn: abn,
+               acn: acn,
+               name: name,
+               selected_debtors: selectedDebtors,
+               requested_amount: requestedAmount
+           }),
+       })
+       .then(response => response.json())
+       .then(data => {
+           if (data.success) {
+               alert("Funding application submitted successfully!");
+               fundingModal.style.display = "none";
+           } else {
+               alert("Error submitting application: " + data.error);
+           }
+       })
+       .catch(error => console.error("Error:", error));
+   });
+});
+   </script>
+
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const submitApplicationBtn = document.querySelector(".btn-submit");
+    
+        submitApplicationBtn.addEventListener("click", async function (event) {
+            event.preventDefault();
+            if (submitApplicationBtn.disabled) return;
+            submitApplicationBtn.disabled = true;
+    
+            const abn = document.getElementById("fundingABN").value;
+            const acn = document.getElementById("fundingACN").value;
+            const contact_name = document.getElementById("fundingUsername").value;
+            const requestedAmount = parseFloat(document.getElementById("requestAmountInput").value.replace(/[^0-9.]/g, "")) || 0;
+    
+            if (!abn || !acn || !contact_name) {
+                alert("Please fill out all required fields.");
+                submitApplicationBtn.disabled = false;
+                return;
+            }
+    
+            if (requestedAmount <= 0) {
+                alert("Please enter a valid Request Amount.");
+                submitApplicationBtn.disabled = false;
+                return;
+            }
+    
+            const selectedDebtors = [];
+            document.querySelectorAll(".activate-switch:checked").forEach((checkbox) => {
+                selectedDebtors.push(checkbox.dataset.debtor);
+            });
+    
+            if (selectedDebtors.length === 0) {
+                alert("Please select at least one debtor before applying.");
+                submitApplicationBtn.disabled = false;
+                return;
+            }
+    
+            // ✅ Application object (for your own tracking/logging purposes)
+            const applicationData = {
+                abn: abn,
+                acn: acn,
+                contact_name: contact_name,
+                amount_requested: requestedAmount,
+                application_time: new Date().toISOString(),
+                bureau_token: null,
+                bankstatements_token: "BANK_STATEMENT_TOKEN",
+                accounting_token: "ACCOUNTING_TOKEN",
+                ppsr_token: "PPSR_TOKEN",
+                originator: "Shift",
+                transaction_id: crypto.randomUUID() // 🔄 Generate temporary UUID since no backend creates it
+            };
+    
+            // ✅ Step 1: Fetch Bureau Token
+            const tokenResponse = await fetch("/api/get-bureau-token/", {
+                method: "GET",
+                headers: { "Content-Type": "application/json" }
+            });
+            const tokenData = await tokenResponse.json();
+            if (!tokenData.success || !tokenData.bureau_token) throw new Error("Failed to retrieve bureau token.");
+            applicationData.bureau_token = tokenData.bureau_token;
+            console.log("✅ Retrieved Bureau Token:", applicationData.bureau_token);
+    
+            // ✅ Step 2: Fetch Invoice Data
+            console.log("🔄 Fetching Invoice Data for ABN:", abn);
+            const invoiceResponse = await fetch(
+                `/api/get-invoices/?abn=${encodeURIComponent(abn)}&transaction_id=${applicationData.transaction_id}`,
+                {
+                    method: "GET",
+                    headers: { "Content-Type": "application/json" }
+                }
+            );
+            const invoiceData = await invoiceResponse.json();
+    
+            if (!invoiceData.success || !invoiceData.invoices.length) {
+                console.error("❌ No invoices found for ABN:", abn);
+                alert("No invoices found. Please check if invoices exist.");
+                submitApplicationBtn.disabled = false;
+                return;
+            }
+            console.log("✅ Fetched Invoice Data:", invoiceData.invoices);
+    
+            // ✅ Step 3: Send Invoices to efs2_docker
+            const invoicePayload = {
+                abn: abn,
+                acn: acn,
+                transaction_id: applicationData.transaction_id,
+                invoices: invoiceData.invoices
+            };
+    
+            console.log("🔄 Sending Invoice Data Payload:", JSON.stringify(invoicePayload, null, 2));
+    
+            try {
+                const sendInvoiceResponse = await fetch("http://127.0.0.1:8000/efs_sales/api/send-invoice-data/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(invoicePayload),
+                });
+    
+                // Don't attempt to parse response JSON if the status is 404 or empty body
+                if (sendInvoiceResponse.ok) {
+                    const invoiceResult = await sendInvoiceResponse.json().catch(() => ({}));
+                    console.log("✅ Invoice Data Sent Successfully:", invoiceResult);
+                } else {
+                    console.warn("⚠️ Invoice data sent, but received non-200 response:", sendInvoiceResponse.status);
+                    // No alert or error thrown here
+                }
+    
+                alert("Funding application and invoices submitted successfully!");
+                fundingModal.style.display = "none";
+    
+            } catch (error) {
+                console.error("❌ Error while sending invoice data:", error);
+                alert("Unexpected error sending invoice data.");
+            }
+    
+            submitApplicationBtn.disabled = false;
+        });
+    
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+    
+  
+
+
+  
+   <script>
+       document.addEventListener("DOMContentLoaded", function () {
+           const abnDropdown = document.getElementById("abnDropdown");
+           const fundingABNInput = document.getElementById("fundingABN");
+           const fundingACNInput = document.getElementById("fundingACN");
+  
+           // Function to extract ACN from ABN (Remove first two digits)
+           function getACN(abn) {
+               return abn.length > 2 ? abn.substring(2) : abn;
+           }
+  
+           // When user selects an ABN from the sidebar, populate the ABN and ACN fields in the funding form
+           abnDropdown.addEventListener("change", function () {
+               const selectedAbn = abnDropdown.value;
+  
+               if (selectedAbn) {
+                   fundingABNInput.value = selectedAbn;
+                   fundingACNInput.value = getACN(selectedAbn);
+               } else {
+                   fundingABNInput.value = "";
+                   fundingACNInput.value = "";
+               }
+           });
+  
+           // Automatically populate the fields if an ABN is already selected on page load
+           if (abnDropdown.value) {
+               fundingABNInput.value = abnDropdown.value;
+               fundingACNInput.value = getACN(abnDropdown.value);
+           }
+       });
+   </script>
+  
+
+
+
+
+
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+   function updateProgress(step) {
+       const steps = ["dotXero", "dotSubmit", "dotReview", "dotComplete"];
+       steps.forEach((id, index) => {
+           let element = document.getElementById(id);
+           if (element) {
+               if (index <= steps.indexOf(step)) {
+                   element.classList.add("active");
+               } else {
+                   element.classList.remove("active");
+               }
+           } else {
+               console.warn(`⚠ Warning: Element with ID ${id} not found in DOM`);
+           }
+       });
+   }
+
+
+   // Simulate progress change for demo purposes
+   setTimeout(() => updateProgress("submit"), 2000);
+   setTimeout(() => updateProgress("review"), 4000);
+   setTimeout(() => updateProgress("complete"), 6000);
+});
+
+   </script>
+  
+
+
+<script>
+document.getElementById("postButton").addEventListener("click", async function () {
+    const abn = document.getElementById("fundingABN").value.trim();
+    if (!abn) {
+        alert("ABN is required to post data.");
+        return;
+    }
+
+    try {
+        console.log("📢 Fetching Latest Transaction ID for ABN:", abn);
+
+        // Step 1: Fetch the latest transaction ID
+        let transactionResponse = await fetch(`/api/get-latest-transaction-id/?abn=${encodeURIComponent(abn)}`);
+        if (!transactionResponse.ok) throw new Error(`Failed to fetch transaction ID: ${transactionResponse.statusText}`);
+        let transactionData = await transactionResponse.json();
+        if (!transactionData.success || !transactionData.transaction_id) throw new Error(transactionData.error || "❌ No transaction ID found.");
+
+        let transaction_id = transactionData.transaction_id;
+        console.log("✅ Latest Transaction ID:", transaction_id);
+
+        // Application Payload
+        const applicationPayload = { abn: abn };
+
+        // Invoice Payload
+        const invoicePayload = { abn: abn, transaction_id: transaction_id };
+
+        // Ledger Payload
+        const ledgerPayload = { abn: abn };
+
+        // Step 2: Send Application Data to both locations
+        await Promise.all([
+            fetch("/api/send-application-data/", {  // LOCAL
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(applicationPayload)
+            }),
+            fetch("https://efs3-docker-320779576692.australia-southeast1.run.app/api/send-application-data/", {  // CLOUD
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(applicationPayload)
+            })
+        ]);
+        console.log("✅ Application data sent to both local and cloud");
+
+        // Step 3: Send Invoice Data to both locations
+        await Promise.all([
+            fetch("/api/send-invoice-data/", {  // LOCAL
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(invoicePayload)
+            }),
+            fetch("https://efs3-docker-320779576692.australia-southeast1.run.app/api/send-invoice-data/", {  // CLOUD
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(invoicePayload)
+            })
+        ]);
+        console.log("✅ Invoice data sent to both local and cloud");
+
+        // Step 4: Send Ledger Data to both locations
+        await Promise.all([
+            fetch("/api/send-ledger-data/", {  // LOCAL
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(ledgerPayload)
+            }),
+            fetch("https://efs3-docker-320779576692.australia-southeast1.run.app/api/send-ledger-data/", {  // CLOUD
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(ledgerPayload)
+            })
+        ]);
+        console.log("✅ Ledger data sent to both local and cloud");
+
+        alert("✅ Data posted successfully to local and cloud!");
+
+    } catch (error) {
+        console.error("❌ Error:", error);
+        alert("❌ Error posting data: " + error.message);
+    }
+});
+
+</script>
+
+-->
+
+
+<style>
+    
+    /* Modal Styling */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+    }
+    .modal-content {
+        background-color: #fff;
+        margin: 10% auto;
+        padding: 20px;
+        width: 50%;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        position: relative;
+        border-radius: 8px;
+    }
+    .close {
+        float: right;
+        font-size: 28px;
+        cursor: pointer;
+    }
+
+
+    /* Tile Container */
+    .tiles-container {
+        display: flex;
+        gap: 20px;
+        margin-top: 20px;
+    }
+
+
+    /* Tile Styling */
+    .tile {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        flex: 1;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+
+    /* Apply for Funding Button */
+    .btn-apply {
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+        border-radius: 5px;
+    }
+    .btn-apply:hover {
+        background-color: #218838;
+    }
+
+
+    /* Next Button */
+    .btn-next {
+        background-color: #0078D4;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        cursor: pointer;
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        border-radius: 5px;
+    }
+    .btn-next:hover {
+        background-color: #0056b3;
+    }
+
+
+    /* Submit Button */
+    .btn-submit {
+        background-color: #d9534f;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        cursor: pointer;
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        border-radius: 5px;
+    }
+    .btn-submit:hover {
+        background-color: #c9302c;
+    }
+
+
+    /* Form Page Navigation */
+    .form-page {
+        display: none;
+    }
+    .form-page.active {
+        display: block;
+    }
+
+
+    /* Table Styling */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    th, td {
+        padding: 10px;
+        text-align: left;
+        border: 1px solid black;
+    }
+
+
+    /* Toggle Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 34px;
+        height: 20px;
+    }
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 20px;
+    }
+    .slider:before {
+        content: "";
+        height: 14px;
+        width: 14px;
+        position: absolute;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: #28a745;
+    }
+    input:checked + .slider:before {
+        transform: translateX(14px);
+    }
+    /* Request Amount Input Styling */
+    .request-amount-input {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+        font-size: 16px;
+    }
+    .request-amount-input:focus {
+        border-color: #0078D4;
+        outline: none;
+    }/* Application Status Widget - Smaller, Non-Overlapping */
+/* --- MODIFIED FOR CENTERING --- */
+.application-progress-widget {
+position: absolute;
+top: 10px; 
+/* New Centering Properties */
+left: 50%;
+transform: translateX(-50%);
+/* --- */
+background: white;
+padding: 10px; 
+border-radius: 8px;
+box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+text-align: center;
+width: 250px; 
+}
+
+
+/* Smaller heading */
+.application-progress-widget h3 {
+margin-bottom: 8px;
+font-size: 14px; 
+font-weight: bold;
+}
+
+
+/* Progress Container - Keep It Thin */
+.progress-container {
+display: flex;
+justify-content: space-between;
+align-items: center;
+position: relative;
+width: 100%;
+padding: 5px 10px; 
+}
+
+
+/* Connecting Line */
+.progress-line {
+position: absolute;
+top: 12px; 
+left: 12%;
+width: 75%;
+height: 3px; 
+background-color: #ccc;
+z-index: -1;
+}
+
+
+/* Individual Steps */
+.progress-step {
+display: flex;
+flex-direction: column;
+align-items: center;
+position: relative;
+}
+
+
+/* Make dots smaller */
+.progress-dot {
+width: 15px; 
+height: 15px; 
+background-color: #ccc;
+border-radius: 50%;
+position: relative;
+z-index: 1;
+}
+
+
+/* Active Dot Styling */
+.progress-dot.active {
+background-color: #28a745;
+color: white;
+font-weight: bold;
+}
+
+
+/* Reduce text size and spacing */
+.progress-step p {
+margin-top: 3px; 
+font-size: 10px; 
+color: #333;
+}
+
+.btn-post {
+ background-color: #007bff;
+ color: white;
+ border: none;
+ padding: 10px 15px;
+ border-radius: 5px;
+ cursor: pointer;
+ font-size: 14px;
+}
+
+.btn-post:hover {
+ background-color: #0056b3;
+}
+/* Toggle Switch Base */
+.switch {
+position: relative;
+display: inline-block;
+width: 50px;
+height: 24px;
+}
+
+.switch input {
+opacity: 0;
+width: 0;
+height: 0;
+}
+
+/* Background track */
+.slider {
+position: absolute;
+cursor: pointer;
+top: 0; left: 0;
+right: 0; bottom: 0;
+background-color: #ccc;
+transition: .3s;
+border-radius: 34px;
+}
+
+/* Knob */
+.slider:before {
+position: absolute;
+content: "";
+height: 18px;
+width: 18px;
+left: 3px;
+bottom: 3px;
+background-color: white;
+transition: .3s;
+border-radius: 50%;
+}
+
+input:checked + .slider {
+background-color: #4CAF50; /* green when ON */
+}
+
+input:checked + .slider:before {
+transform: translateX(26px);
+}
+
+/* Rounded style */
+.slider.round {
+border-radius: 34px;
+}
+
+
+
+.modal { display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.4); }
+.modal-content { background:#fff; margin:10% auto; padding:20px; width:50%; border-radius:8px; position:relative; }
+.close { position:absolute; top:10px; right:15px; font-size:24px; cursor:pointer; }
+.form-page { display:none; }
+.form-page.active { display:block; }
+.btn-next, .btn-submit { margin-top:15px; padding:8px 15px; cursor:pointer; }
+
+
+
+/* Button (reuse your existing .btn-post style if present) */
+.btn-post {
+background-color: #007bff;
+color: #fff;
+border: 0;
+padding: 10px 15px;
+border-radius: 5px;
+cursor: pointer;
+font-size: 14px;
+}
+.btn-post:hover { background-color: #0056b3; }
+
+/* Modal shell */
+.modal {
+display: none;                /* toggled via JS */
+position: fixed;
+z-index: 1000;
+inset: 0;
+background: rgba(0,0,0,.4);
+align-items: center;          /* center using flex */
+justify-content: center;
+}
+.modal.open { display: flex; }  /* visible state */
+
+/* Modal content */
+.modal-content {
+background: #fff;
+padding: 20px;
+width: min(90vw, 500px);
+box-shadow: 0 4px 10px rgba(0,0,0,.2);
+border-radius: 8px;
+position: relative;
+}
+
+/* Close (X) */
+.close {
+position: absolute;
+right: 10px;
+top: 8px;
+font-size: 24px;
+background: transparent;
+border: 0;
+cursor: pointer;
+}
+
+/* Apply button */
+.btn-apply {
+background-color: #28a745;
+color: white;
+padding: 10px 12px;
+border: none;
+cursor: pointer;
+width: 100%;
+font-size: 16px;
+border-radius: 5px;
+margin-top: 10px;
+}
+.btn-apply:hover { background-color: #218838; }
+
+/* Amount input */
+.request-amount-input {
+width: 100%;
+padding: 8px;
+margin-top: 10px;
+border: 1px solid #ccc;
+border-radius: 5px;
+text-align: center;
+font-size: 16px;
+}
+.request-amount-input:focus {
+border-color: #0078D4;
+outline: none;
+}
+
+
+
+</style>
+
+
+{% endblock %}
+
+
+

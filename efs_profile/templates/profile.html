@@ -1,0 +1,24 @@
+
+{% extends "efs_shared_ui/base.html" %}
+
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2 id="originator-heading" style="flex-grow: 1;">
+        {% if selected_originator %}
+            {{ selected_originator.originator }} Profile
+        {% else %}
+        Profile for All Originators
+        {% endif %}
+    </h2>
+
+    <!-- Insert the JavaScript variable -->
+    <script type="text/javascript">
+        const selected_originator = "{{ selected_originator.originator }}";  // Ensure selected_originator is available in the template
+    </script>
+
+</div>
+
+{% endblock %}

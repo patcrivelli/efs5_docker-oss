@@ -1,0 +1,282 @@
+<div id="createDealModal" class="modal-dialog-container">
+  <div class="modal-content-card">
+    
+    <button onclick="document.getElementById('createDealModal').remove()" class="modal-close-btn" type="button">
+      &times;
+    </button>
+    
+    <h3 class="modal-title">Create Deal</h3>
+
+    <form id="create-deal-form" class="deal-form">
+      {% csrf_token %}
+      <div class="form-grid">
+        <label class="form-label">Company Name
+          <input name="company_name" type="text" class="form-input" required />
+        </label>
+      
+        <label class="form-label">ABN
+          <input name="abn" type="text" class="form-input" />
+        </label>
+      
+        <label class="form-label">ACN
+          <input name="acn" type="text" class="form-input" />
+        </label>
+      
+        <label class="form-label">Email
+          <input name="contact_email" type="email" class="form-input" />
+        </label>
+      
+        <label class="form-label">Phone
+          <input name="contact_number" type="text" class="form-input" />
+        </label>
+      
+        <label class="form-label">Amount Requested
+          <input name="amount_requested" type="number" step="0.01" min="0" class="form-input" />
+        </label>
+      
+        <label class="form-label">Product
+          <select name="product" class="form-input">
+            <option value="Invoice Finance">Invoice Finance</option>
+            <option value="Term Loan">Term Loan</option>
+            <option value="Trade Finance">Trade Finance</option>
+            <option value="Supply Chain Finance">Supply Chain Finance</option>
+            <option value="ABL">ABL</option>
+          </select>
+        </label>
+        
+        </label>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" onclick="document.getElementById('createDealModal').remove()" class="btn btn-cancel">Cancel</button>
+        <button type="submit" class="btn btn-submit">
+          Create
+        </button>
+      </div>
+    </form>
+
+    <div id="create-deal-error" class="error-message"></div>
+  </div>
+
+  <script>
+    (function injectCreateDealStyles() {
+      if (window._createDealStylesInjected) return;
+      window._createDealStylesInjected = true;
+
+      const css = `
+        /* --- CSS Variables --- */
+        :root {
+          --color-primary: #1e3a8a; /* Dark Blue */
+          --color-text: #1f2937; /* Dark Grey */
+          --color-border: #e5e7eb;
+          --color-input-border: #d1d5db;
+          --color-accent: #0e76a8; /* Action Blue */
+          --color-error: #b00;
+          --color-bg-light: #f9fafb;
+          --radius-default: 8px;
+          --focus-ring: 0 0 0 3px rgba(14, 118, 168, 0.3);
+        }
+
+        /* --- Modal Container & Overlay --- */
+        .modal-dialog-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: fixed;
+          inset: 0;
+          background: rgba(0, 0, 0, 0.45); /* Slightly darker overlay */
+          z-index: 9999;
+          font-family: inherit;
+        }
+        
+        /* --- Modal Content Card --- */
+        .modal-content-card {
+          background: var(--color-card-bg, #fff);
+          max-width: 720px;
+          width: 95%;
+          border-radius: var(--radius-default);
+          padding: 24px; /* Increased padding */
+          position: relative;
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .modal-title {
+          margin-top: 0;
+          margin-bottom: 20px;
+          color: var(--color-primary);
+          font-weight: 700;
+          font-size: 1.5rem;
+        }
+
+        /* --- Close Button --- */
+        .modal-close-btn {
+          position: absolute;
+          top: 10px;
+          right: 15px;
+          font-size: 1.5rem;
+          color: var(--color-hint, #888);
+          background: none;
+          border: none;
+          cursor: pointer;
+          line-height: 1;
+          padding: 0;
+        }
+        .modal-close-btn:hover { color: var(--color-text); }
+
+
+        /* --- Form Layout --- */
+        .form-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 20px 16px;
+        }
+        
+        .form-label {
+          display: block;
+          font-weight: 500;
+          color: var(--color-text);
+          font-size: 0.95rem;
+        }
+
+        .form-input {
+          width: 100%;
+          padding: 10px 12px;
+          margin-top: 4px;
+          border: 1px solid var(--color-input-border);
+          border-radius: 6px;
+          background: #fff;
+          font: inherit;
+          box-sizing: border-box;
+        }
+
+        .form-input:focus {
+          outline: none;
+          border-color: var(--color-accent);
+          box-shadow: var(--focus-ring);
+        }
+        
+        /* --- Form Actions --- */
+        .form-actions {
+          margin-top: 30px;
+          display: flex;
+          gap: 10px;
+          justify-content: flex-end;
+        }
+
+        .btn {
+          padding: 10px 18px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 1rem;
+          transition: background-color 0.2s, opacity 0.2s;
+          border: 1px solid transparent;
+        }
+
+        .btn-cancel {
+          background: var(--color-bg-light);
+          color: var(--color-text);
+          border-color: var(--color-border);
+        }
+        .btn-cancel:hover { background: #f0f0f0; }
+
+        .btn-submit {
+          background: var(--color-accent);
+          color: #fff;
+        }
+        .btn-submit:hover { background: #0a5f87; }
+
+        /* --- Error Message --- */
+        .error-message {
+          color: var(--color-error);
+          margin-top: 15px;
+          padding: 8px;
+          background: #ffe0e0;
+          border: 1px solid var(--color-error);
+          border-radius: 4px;
+          display: none;
+          font-size: 0.9rem;
+        }
+      `;
+    
+      const style = document.createElement('style');
+      style.id = 'create-deal-modal-style';
+      style.textContent = css;
+      document.head.appendChild(style);
+    })();
+    
+    // global cookie helper (fallback)
+    window.getCookie = window.getCookie || function(name){
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+      return '';
+    };
+
+    (function () {
+      const form = document.getElementById('create-deal-form');
+      const errBox = document.getElementById('create-deal-error');
+
+      function getCsrfFromFormOrCookie() {
+        // Prefer the hidden input Django rendered in this template
+        const inp = form.querySelector('input[name="csrfmiddlewaretoken"]');
+        // Fallback to cookie if input isn't found (though it should be here)
+        return (inp && inp.value) || window.getCookie('csrftoken') || '';
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errBox.style.display = 'none';
+        
+        const submitBtn = form.querySelector('.btn-submit');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating...';
+
+
+        const fd = new FormData(form);
+        const payload = {
+          company_name:     fd.get('company_name') || '',
+          abn:              fd.get('abn') || '',
+          acn:              fd.get('acn') || '',
+          contact_email:    fd.get('contact_email') || '',
+          contact_number:   fd.get('contact_number') || '',
+          amount_requested: fd.get('amount_requested') || null,
+          product:          fd.get('product') || 'Invoice Finance',
+          originator:       (window.selected_originator || '').trim()
+        };
+
+        try {
+          // Assuming window.urlSales is a globally defined helper for your API endpoint
+          const r = await fetch(window.urlSales('create_deal/'), {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCsrfFromFormOrCookie()
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const text = await r.text();
+          let res = {};
+          try { res = JSON.parse(text); } catch(_){}
+
+          if (!r.ok || !res.success) {
+            throw new Error(res.error || `HTTP ${r.status}: ${text.slice(0,200)}`);
+          }
+
+          // success: close & refresh list
+          document.getElementById('createDealModal').remove();
+          window.location.reload();
+        } catch (err) {
+          errBox.textContent = `Create failed: ${err.message || err}`;
+          errBox.style.display = 'block';
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Create';
+        }
+      });
+    })();
+  </script>
+</div>
+

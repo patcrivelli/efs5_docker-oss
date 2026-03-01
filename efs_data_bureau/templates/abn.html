@@ -1,0 +1,863 @@
+
+<script>
+  (function injectAbnModalStyles() {
+    // keep a separate guard for styles (not the same as your behavior guard)
+    if (window._efsAbnStylesInjected) return;
+    window._efsAbnStylesInjected = true;
+  
+    const css = `
+      /* ===== ONLY STYLE #detailsModal (no globals) ===== */
+      #detailsModal, #detailsModal * {
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+  
+      #detailsModal.modal {
+        /* IMPORTANT: let JS control visibility; start hidden */
+        display: none; /* your JS sets to "flex" when opening */
+        position: fixed !important;
+        z-index: 2147483647 !important;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.6) !important;
+        justify-content: center;          /* flex container (when JS sets display:flex) */
+        align-items: flex-start;
+        padding: 40px 20px;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+  
+      #detailsModal .modal-content {
+        background-color: #ffffff !important;
+        color: #333;
+        margin: auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2) !important;
+        position: relative;
+        width: 90%;
+        max-width: 900px;
+        display: block;
+        overflow: visible;
+        max-height: none;
+      }
+  
+      #detailsModal .modal-content h2 {
+        margin: 0;
+        color: #0056b3;
+        font-size: 1.8em;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+      }
+  
+      #detailsModal .modal-content > button {
+        padding: 10px 25px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      #detailsModal .close-button { background-color: #dc3545; color: #fff; }
+      #detailsModal .close-button:hover { background-color: #c82333; transform: translateY(-2px); }
+      #detailsModal .save-button { background-color: #007bff; color: #fff; }
+      #detailsModal .save-button:hover { background-color: #0056b3; transform: translateY(-2px); }
+  
+      #detailsModal .modal-content p { margin-bottom: 10px; font-size: 1.1em; }
+      #detailsModal .modal-content strong { color: #333; }
+  
+      #detailsModal table {
+        width: 100%;
+        border-collapse: collapse !important;
+        margin-top: 15px;
+        table-layout: auto;
+      }
+      #detailsModal table th, #detailsModal table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e0e0e0 !important;
+        text-align: left;
+        vertical-align: top;
+        word-break: break-word;
+      }
+      #detailsModal table th { background-color: #e9ecef !important; color: #555; font-weight: bold; }
+  
+      #detailsModal ul { list-style-type: none; padding: 0; margin: 0; }
+      #detailsModal ul li { padding: 5px 0; border-bottom: 1px dotted #eee; }
+      #detailsModal ul li:last-child { border-bottom: none; }
+  
+      #detailsModal .switch { position: relative; display: inline-block; width: 40px; height: 20px; flex-shrink: 0; }
+      #detailsModal .switch input { opacity: 0; width: 0; height: 0; }
+      #detailsModal .slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+      #detailsModal .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+      #detailsModal input:checked + .slider { background-color: #007bff; }
+      #detailsModal input:focus + .slider { box-shadow: 0 0 1px #007bff; }
+      #detailsModal input:checked + .slider:before { transform: translateX(20px); }
+  
+      #detailsModal .compliance-status { margin-left: 10px; font-weight: bold; }
+      #detailsModal .compliance-status.on { color: #28a745; }
+      #detailsModal .compliance-status.off { color: #dc3545; }
+  
+      #details-tab-container {
+        margin-top: 30px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #ffffff;
+      }
+      #details-tab-container ul.details-tabs {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+      }
+      #details-tab-container .details-tab-link {
+        cursor: pointer;
+        padding: 12px 20px;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 1em;
+        color: #555;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        flex-grow: 1;
+        text-align: center;
+      }
+      #details-tab-container .details-tab-link:hover { background-color: #e2e6ea; }
+      #details-tab-container .details-tab-link.active {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        border-bottom: 3px solid #0056b3;
+        margin-bottom: -1px;
+      }
+      #details-tab-container .details-tab-content { display: none; padding: 20px; background-color: #ffffff; overflow: visible; height: auto; }
+      #details-tab-container .details-tab-content.active { display: block; }
+  
+      #detailsModal #sales-overrides-section {
+        background-color: #e9f5ff;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #cce5ff;
+        margin-bottom: 20px;
+      }
+      #detailsModal #sales-overrides-section h3,
+      #detailsModal #sales-history-section h3 {
+        color: #0056b3;
+        margin-top: 0;
+        border-bottom: 2px solid #a9d4fa;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        font-size: 1.4em;
+      }
+  
+      #detailsModal #sales-notes-section {
+        background-color: #f0f8ff;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #cce5ff;
+      }
+      #detailsModal #sales-notes-section label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #0056b3;
+      }
+      #detailsModal #sales-notes-section textarea {
+        min-height: 80px;
+        width: 100%;
+        resize: vertical;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #ced4da;
+        padding: 10px;
+        font-size: 1em;
+        border-radius: 4px;
+        background: #fff;
+        color: #333;
+      }
+  
+      #detailsModal #sales-history-table {
+        width: 100%;
+        border-collapse: collapse !important;
+        margin-top: 15px;
+      }
+      #detailsModal #sales-history-table th,
+      #detailsModal #sales-history-table td {
+        border: 1px solid #ddd !important;
+        padding: 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+      #detailsModal #sales-history-table th {
+        background-color: #f2f2f2 !important;
+        font-weight: bold;
+        color: #333;
+      
+      }
+      /* Target the third column header (Compliance Setting) */
+      #detailsModal table th:nth-child(3) {
+          white-space: nowrap; /* Prevents the text from wrapping to a new line */
+          word-break: normal;
+      }
+
+      /* Existing rule for the Item column */
+      #detailsModal table td:first-child {
+          white-space: nowrap;
+          word-break: normal;
+      }
+      /* Target the first cell (Item column) in the table body and header */
+      #detailsModal table th:first-child,
+      #detailsModal table td:first-child {
+          white-space: nowrap; /* Prevents the text from wrapping to a new line */
+          word-break: normal;  /* Ensure normal word breaking, not aggressive hyphenation */
+      }
+      #detailsModal #sales-history-table tbody tr:nth-child(even) { background-color: #f9f9f9; }
+      #detailsModal #sales-history-table tbody tr:hover { background-color: #f1f1f1; }
+    `;
+  
+    const style = document.createElement('style');
+    style.id = 'efs-abn-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  })();
+  </script>
+  
+
+<div id="detailsModal" class="modal">
+    
+    <div class="modal-content">
+        <button id="save-details-button" class="save-button" style="position: absolute; top: 30px; right: 30px;">
+            Save
+        </button>
+
+        <button id="close-details-button" class="close-button" style="position: absolute; top: 30px; right: 115px;">
+            Close
+        </button>
+
+        <h2>Company Details</h2>
+        <p><strong>ABN:</strong> <span id="modalABN"></span></p>
+        <p><strong>Transaction ID:</strong> <span id="modalTransactionID"></span></p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Data</th>
+                    <th>Compliance Setting</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Insolvencies</strong></td>
+                    <td><ul id="insolvencies-list"></ul></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleInsolvencies">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="statusInsolvencies" class="compliance-status off">OFF</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><strong>Payment Defaults</strong></td>
+                    <td><ul id="payment-defaults-list"></ul></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="togglePaymentDefaults">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="statusPaymentDefaults" class="compliance-status off">OFF</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><strong>Mercantile Enquiries</strong></td>
+                    <td><ul id="mercantile-enquiries-list"></ul></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleMercantileEnquiries">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="statusMercantileEnquiries" class="compliance-status off">OFF</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><strong>Court Judgements</strong></td>
+                    <td><ul id="court-judgements-list"></ul></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleCourtJudgements">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="statusCourtJudgements" class="compliance-status off">OFF</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><strong>ATO Tax Default</strong></td>
+                    <td><p id="ato-tax-default"></p></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleAtoTaxDefault">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="statusAtoTaxDefault" class="compliance-status off">OFF</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><strong>Loans</strong></td>
+                    <td><ul id="loans-list"></ul></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleLoans">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="statusLoans" class="compliance-status off">OFF</span>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td><strong>ANZSIC</strong></td>
+                    <td><p id="anzsic-description"></p></td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" id="toggleAnzsic">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="statusAnzsic" class="compliance-status off">OFF</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div id="details-tab-container">
+            <ul class="details-tabs">
+                <li class="details-tab-link active" data-tab="details-tab-overrides">Sales Overrides</li>
+                <li class="details-tab-link" data-tab="details-tab-history">History</li>
+            </ul>
+
+            <div id="details-tab-overrides" class="details-tab-content active">
+                <div id="sales-overrides-section">
+                    <h3>Current Sales Overrides</h3>
+                    <ul id="sales-overrides-list"></ul>
+                </div>
+                <div id="sales-notes-section">
+                    <label for="sales-notes"><strong>Sales Notes:</strong></label>
+                    <textarea id="sales-notes" rows="4" style="width: 100%; margin-top: 8px;" placeholder="Enter notes to explain overrides..."></textarea>
+                </div>
+            </div>
+
+            <div id="details-tab-history" class="details-tab-content">
+                <div id="sales-history-section">
+                    <h3>Override History</h3>
+                    <table id="sales-history-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Explanation</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-history-table-body">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  (function () {
+    // ---- prevent double-load / redeclaration ----
+    if (window._efsAbnModalLoaded) {
+      console.debug('[ABN modal] script already loaded; skipping');
+      return;
+    }
+    window._efsAbnModalLoaded = true;
+  
+    // ---- read the absolute base set by sales.html ----
+    // sales.html sets: window.EFS.DATA_BUREAU_BASE = "http://localhost:8018" (or from context)
+    const BUREAU_BASE = (window.EFS && window.EFS.DATA_BUREAU_BASE) || "";
+    function urlBureau(path) {
+      const base = BUREAU_BASE.replace(/\/+$/, "");
+      return base + "/" + String(path || "").replace(/^\/+/, "");
+    }
+  
+    // ---- expose selected originator if your context provides it ----
+    window.selected_originator = window.selected_originator || "{{ selected_originator.originator|default_if_none:'' }}";
+  
+    // Map visible labels -> initialState keys and DOM sources for details
+    const LABEL_TO_INITIAL_KEY = {
+      'Insolvencies': 'Insolvencies',
+      'Payment Defaults': 'PaymentDefaults',
+      'Mercantile Enquiries': 'MercantileEnquiries',
+      'Court Judgements': 'CourtJudgements',
+      'ATO Tax Default': 'AtoTaxDefault',
+      'Loans': 'Loans',
+      'ANZSIC': 'Anzsic'
+    };
+  
+    const LABEL_TO_DETAIL_DOM = {
+      'Insolvencies': '#insolvencies-list',
+      'Payment Defaults': '#payment-defaults-list',
+      'Mercantile Enquiries': '#mercantile-enquiries-list',
+      'Court Judgements': '#court-judgements-list',
+      'ATO Tax Default': '#ato-tax-default',
+      'Loans': '#loans-list',
+      'ANZSIC': '#anzsic-description'
+    };
+  
+    // In-memory overrides store
+    const currentOverrides = new Map(); // label -> detail string
+  
+    function extractOverrideDetails(label) {
+      const sel = LABEL_TO_DETAIL_DOM[label];
+      if (!sel) return '';
+      const el = document.querySelector(sel);
+      if (!el) return '';
+      if (el.tagName === 'UL') {
+        const items = Array.from(el.querySelectorAll('li')).map(li => li.textContent.trim()).filter(Boolean);
+        if (!items.length) return '';
+        const shown = items.slice(0, 3);
+        const more = items.length > 3 ? ` (+${items.length - 3} more)` : '';
+        return shown.join(' • ') + more;
+      }
+      return (el.textContent || '').trim();
+    }
+  
+    function renderOverridesList() {
+      const list = document.getElementById('sales-overrides-list');
+      list.innerHTML = '';
+      for (const [label, details] of currentOverrides.entries()) {
+        const li = document.createElement('li');
+        li.setAttribute('data-item', label);
+        li.innerHTML = `<strong>${label}</strong>: OVERRIDDEN${details ? ` — <span style="opacity:.8">${details}</span>` : ''}`;
+        list.appendChild(li);
+      }
+    }
+  
+    function addSalesOverride(label) {
+      const details = extractOverrideDetails(label);
+      currentOverrides.set(label, details);
+      renderOverridesList();
+    }
+  
+    function removeSalesOverride(label) {
+      if (currentOverrides.has(label)) {
+        currentOverrides.delete(label);
+        renderOverridesList();
+      }
+    }
+  
+    // --- GLOBAL MODAL MANAGEMENT ---
+    function closeAllModals() {
+      document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+    }
+  
+    function closeDetailsModal() {
+      const detailsModal = document.getElementById('detailsModal');
+      if (detailsModal) detailsModal.style.display = "none";
+    }
+  
+    function clearSalesOverrides() {
+      currentOverrides.clear();
+      renderOverridesList();
+    }
+  
+    function clearModalData() {
+      document.getElementById('insolvencies-list').innerHTML = '';
+      document.getElementById('payment-defaults-list').innerHTML = '';
+      document.getElementById('mercantile-enquiries-list').innerHTML = '';
+      document.getElementById('court-judgements-list').innerHTML = '';
+      document.getElementById('ato-tax-default').textContent = '';
+      document.getElementById('loans-list').innerHTML = '';
+      document.getElementById('anzsic-description').textContent = '';
+      document.getElementById('sales-notes').value = '';
+      clearSalesOverrides();
+      document.getElementById('sales-history-table-body').innerHTML = '';
+  
+      const toggleIds = ['toggleInsolvencies','togglePaymentDefaults','toggleMercantileEnquiries','toggleCourtJudgements','toggleAtoTaxDefault','toggleLoans','toggleAnzsic'];
+      toggleIds.forEach(id => {
+        const t = document.getElementById(id);
+        if (t) t.checked = false;
+        updateComplianceText(id, `status${id.replace('toggle','')}`);
+      });
+    }
+  
+    function applySwitchesFromSettings(settings) {
+      const map = [
+        ['insolvencies_switch',               'toggleInsolvencies',        'statusInsolvencies'],
+        ['payment_defaults_current_switch',   'togglePaymentDefaults',     'statusPaymentDefaults'],
+        ['credit_enquiries_switch',           'toggleMercantileEnquiries', 'statusMercantileEnquiries'],
+        ['court_actions_current_switch',      'toggleCourtJudgements',     'statusCourtJudgements'],
+        ['ato_tax_default_switch',            'toggleAtoTaxDefault',       'statusAtoTaxDefault'],
+        ['payment_defaults_resolved_switch',  'toggleLoans',               'statusLoans'],
+        ['credit_score_switch',               'toggleAnzsic',              'statusAnzsic'],
+      ];
+
+      for (const [key, toggleId, statusId] of map) {
+        const el = document.getElementById(toggleId);
+        if (!el) continue;
+        el.checked = !!settings[key];
+        updateComplianceText(toggleId, statusId);
+      }
+    }
+
+
+    // --- INITIAL STATE ---
+    let initialState = {
+      Insolvencies: false,
+      PaymentDefaults: false,
+      MercantileEnquiries: false,
+      CourtJudgements: false,
+      AtoTaxDefault: false,
+      Loans: false,
+      Anzsic: false
+    };
+  
+    function setInitialState(data) {
+      initialState.Insolvencies        = Array.isArray(data.insolvencies) && data.insolvencies.length > 0;
+      initialState.PaymentDefaults     = Array.isArray(data.paymentDefaults) && data.paymentDefaults.length > 0;
+      initialState.MercantileEnquiries = Array.isArray(data.mercantileEnquiries) && data.mercantileEnquiries.length > 0;
+      initialState.CourtJudgements     = Array.isArray(data.courtJudgements) && data.courtJudgements.length > 0;
+      initialState.AtoTaxDefault       = !!data.atoTaxDefault;
+      initialState.Loans               = Array.isArray(data.loans) && data.loans.length > 0;
+      initialState.Anzsic              = !!data.anzsic;
+    }
+  
+    // --- COMPLIANCE LABEL TEXT ---
+    function updateComplianceText(toggleId, statusId) {
+      const toggle = document.getElementById(toggleId);
+      const status = document.getElementById(statusId);
+      if (!toggle || !status) return;
+      status.textContent = toggle.checked ? "ON" : "OFF";
+      status.classList.remove('on','off');
+      status.classList.add(toggle.checked ? 'on' : 'off');
+    }
+  
+    // --- TABS ---
+    function openDetailsTab(evt, tabId) {
+      document.querySelectorAll("#details-tab-container .details-tab-content").forEach(c => {
+        c.style.display = "none";
+        c.classList.remove('active');
+      });
+      document.querySelectorAll("#details-tab-container .details-tab-link").forEach(b => b.classList.remove('active'));
+  
+      const active = document.getElementById(tabId);
+      active.style.display = "block";
+      active.classList.add('active');
+  
+      if (evt) {
+        evt.currentTarget.classList.add('active');
+      } else {
+        const buttonToActivate = document.querySelector(`#details-tab-container .details-tab-link[data-tab="${tabId}"]`);
+        if (buttonToActivate) buttonToActivate.classList.add('active');
+      }
+    }
+  
+    // --- HISTORY (calls data-bureau) ---
+    async function fetchHistoryData(abn, transactionId) {
+      const body = document.getElementById('sales-history-table-body');
+      body.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading history...</td></tr>';
+      try {
+        const resp = await fetch(urlBureau(`api/fetch_override_history/${encodeURIComponent(abn)}/${encodeURIComponent(transactionId)}/`), { credentials: 'include' });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status} for history data`);
+        const hist = await resp.json();
+        body.innerHTML = '';
+  
+        if (!Array.isArray(hist) || hist.length === 0) {
+          const row = body.insertRow();
+          const cell = row.insertCell();
+          cell.colSpan = 3;
+          cell.textContent = 'No override history found for this ABN and Transaction ID.';
+          cell.style.textAlign = 'center';
+          return;
+        }
+  
+        hist.forEach(entry => {
+          const row = body.insertRow();
+  
+          const dateCell = row.insertCell();
+          dateCell.textContent = new Date(entry.created_at).toLocaleString();
+  
+          const itemsCell = row.insertCell();
+          let overriddenItems = [];
+  
+          if (entry.Sales_notes) {
+            const lines = entry.Sales_notes.split('\n');
+            const overLine = lines.find(l => l.toUpperCase().startsWith('OVERRIDDEN:'));
+            if (overLine) {
+              const listStr = overLine.split(':', 2)[1] || '';
+              const parsed = listStr.split(',').map(s => s.trim()).filter(Boolean);
+              overriddenItems.push(...parsed);
+            }
+          }
+          if (overriddenItems.length === 0) {
+            const itemMap = {
+              "Insolvencies": entry.Insolvencies_state,
+              "Payment Defaults": entry.Payment_Defaults_state,
+              "Mercantile Enquiries": entry.Mercantile_Enquiries_state,
+              "Court Judgements": entry.Court_Judgements_state,
+              "ATO Tax Default": entry.ATO_Tax_Default_state,
+              "Loans": entry.Loans_state,
+              "ANZSIC": entry.ANZSIC_state,
+            };
+            for (const [label, state] of Object.entries(itemMap)) {
+              if (String(state).toLowerCase() === 'override yes') overriddenItems.push(label);
+            }
+          }
+          if (entry.Credit_score_threshold_state && entry.Credit_score_threshold_state.toLowerCase() === 'below') {
+            overriddenItems.push('Credit Score Threshold (below)');
+          }
+          itemsCell.innerHTML = overriddenItems.length ? overriddenItems.join('<br>') : 'No specific items overridden';
+  
+          const explanationCell = row.insertCell();
+          explanationCell.textContent = entry.Sales_notes || 'No explanation provided.';
+        });
+      } catch (e) {
+        console.error('Error fetching override history:', e);
+        body.innerHTML = '<tr><td colspan="3" style="text-align:center;color:red;">Failed to load history. Please check console.</td></tr>';
+      }
+    }
+  
+    // --- SAVE (calls data-bureau) ---
+    function getCookie(name){
+      const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? decodeURIComponent(m.pop()) : '';
+    }
+  
+    function saveABNOverrides(payload) {
+      const csrf = getCookie('csrftoken');
+      const headers = { 'Content-Type': 'application/json' };
+      if (csrf) headers['X-CSRFToken'] = csrf;
+  
+      return fetch(urlBureau('api/save_ABN_modal/'), {
+        method: 'POST',
+        headers,
+        credentials: 'same-origin',
+        body: JSON.stringify(payload)
+      }).then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status} while saving`);
+        return r.json();
+      });
+    }
+  
+    function saveModalData() {
+      const abn = document.getElementById('modalABN').textContent;
+      const transactionId = document.getElementById('modalTransactionID').textContent;
+      const salesNotes = document.getElementById('sales-notes').value.trim();
+  
+      const exists = {
+        Insolvencies:        !!initialState.Insolvencies,
+        PaymentDefaults:     !!initialState.PaymentDefaults,
+        MercantileEnquiries: !!initialState.MercantileEnquiries,
+        CourtJudgements:     !!initialState.CourtJudgements,
+        AtoTaxDefault:       !!initialState.AtoTaxDefault,
+        Loans:               !!initialState.Loans,
+        Anzsic:              !!initialState.Anzsic
+      };
+  
+      const toggleAnzsic = document.getElementById('toggleAnzsic');
+      const creditScoreState = (!toggleAnzsic.checked && exists.Anzsic) ? 'below' : 'above';
+  
+      const payload = {
+        abn,
+        transaction_id: transactionId,
+  
+        Insolvencies:            exists.Insolvencies,
+        Insolvencies_state:      exists.Insolvencies ? 'open' : 'closed',
+  
+        Payment_Defaults:        exists.PaymentDefaults,
+        Payment_Defaults_state:  exists.PaymentDefaults ? 'open' : 'closed',
+  
+        Mercantile_Enquiries:        exists.MercantileEnquiries,
+        Mercantile_Enquiries_state:  exists.MercantileEnquiries ? 'open' : 'closed',
+  
+        Court_Judgements:        exists.CourtJudgements,
+        Court_Judgements_state:  exists.CourtJudgements ? 'open' : 'closed',
+  
+        ATO_Tax_Default:         exists.AtoTaxDefault,
+        ATO_Tax_Default_state:   exists.AtoTaxDefault ? 'open' : 'closed',
+  
+        Loans:                   exists.Loans,
+        Loans_state:             exists.Loans ? 'open' : 'closed',
+  
+        ANZSIC:                  exists.Anzsic,
+        ANZSIC_state:            exists.Anzsic ? 'open' : 'closed',
+  
+        Credit_score_threshold: null,
+        Credit_score_threshold_state: creditScoreState,
+  
+        Sales_notes: salesNotes,
+  
+        overrides: Array.from(currentOverrides.keys()),
+        overrides_details: Object.fromEntries(currentOverrides)
+      };
+  
+      saveABNOverrides(payload)
+        .then(() => {
+          alert('Data saved successfully!');
+          fetchHistoryData(abn, transactionId);
+        })
+        .catch(err => {
+          console.error('Error saving data:', err);
+          alert('Error saving data. See console for details.');
+        });
+    }
+  
+    // --- one-time wiring for controls (works after dynamic injection) ---
+    let abnWired = false;
+    function wireABNModalOnce() {
+      if (abnWired) return;
+      abnWired = true;
+  
+      const toggleConfig = [
+        ['toggleInsolvencies', 'statusInsolvencies', 'Insolvencies'],
+        ['togglePaymentDefaults', 'statusPaymentDefaults', 'Payment Defaults'],
+        ['toggleMercantileEnquiries', 'statusMercantileEnquiries', 'Mercantile Enquiries'],
+        ['toggleCourtJudgements', 'statusCourtJudgements', 'Court Judgements'],
+        ['toggleAtoTaxDefault', 'statusAtoTaxDefault', 'ATO Tax Default'],
+        ['toggleLoans', 'statusLoans', 'Loans'],
+        ['toggleAnzsic', 'statusAnzsic', 'ANZSIC']
+      ];
+  
+      toggleConfig.forEach(([toggleId, statusId, label]) => {
+        const toggle = document.getElementById(toggleId);
+        if (!toggle) return;
+        toggle.addEventListener('change', function () {
+          updateComplianceText(toggleId, statusId);
+          const key = LABEL_TO_INITIAL_KEY[label];
+          const exists = key ? !!initialState[key] : false;
+          if (!this.checked && exists) addSalesOverride(label);
+          else removeSalesOverride(label);
+        });
+      });
+  
+      const closeButton = document.getElementById('close-details-button');
+      if (closeButton) closeButton.addEventListener('click', closeDetailsModal);
+  
+      const saveButton = document.getElementById('save-details-button');
+      if (saveButton) saveButton.addEventListener('click', saveModalData);
+  
+      document.querySelectorAll("#details-tab-container .details-tab-link").forEach(tab => {
+        tab.addEventListener("click", function (event) {
+          openDetailsTab(event, this.dataset.tab);
+        });
+      });
+  
+      openDetailsTab(null, 'details-tab-overrides');
+    }
+  
+    // ---------- PUBLIC INITIALIZER ----------
+    function openABNModal(abn, transactionId) {
+      wireABNModalOnce();
+  
+      closeAllModals();
+      document.getElementById('modalABN').textContent = abn || '';
+      document.getElementById('modalTransactionID').textContent = transactionId || '';
+      document.getElementById('detailsModal').style.display = "flex";
+      clearModalData();
+  
+      const originator = (window.selected_originator || '');
+  
+      /* CREDIT REPORT — from data-bureau */
+      fetch(urlBureau(`api/fetch_credit_report/${encodeURIComponent(abn)}/${encodeURIComponent(transactionId)}/`), { credentials: 'include' })
+        .then(r => {
+          if (!r.ok) {
+            if (r.redirected) console.warn('Credit report fetch redirected – auth or URL issue.');
+            throw new Error(`HTTP ${r.status} for credit report`);
+          }
+          return r.json();
+        })
+        .then(data => {
+          if (!data) return;
+  
+          const fillList = (id, arr, fmtFn) => {
+            const ul = document.getElementById(id);
+            ul.innerHTML = '';
+            (arr || []).forEach(x => {
+              const li = document.createElement('li');
+              li.textContent = fmtFn(x);
+              ul.appendChild(li);
+            });
+          };
+  
+          // Formatters
+          const fmtCurrency = v => (v === 0 || v) ? `$${Number(v).toLocaleString()}` : '';
+          fillList('insolvencies-list', data.insolvencies, x =>
+            [x.date && `Date: ${x.date}`, x.title && `Title: ${x.title}`].filter(Boolean).join(' — ')
+          );
+          fillList('payment-defaults-list', data.paymentDefaults, x =>
+            [x.posterName && `Poster: ${x.posterName}`, (x.amountOutstanding!=null) && `Outstanding: ${fmtCurrency(x.amountOutstanding)}`].filter(Boolean).join(' — ')
+          );
+          fillList('mercantile-enquiries-list', data.mercantileEnquiries, x =>
+            [x.agent && `Agent: ${x.agent}`, x.phone && `Phone: ${x.phone}`].filter(Boolean).join(' — ')
+          );
+          fillList('court-judgements-list', data.courtJudgements, j => {
+            const parts = [
+              j.action && `Action: ${j.action}`,
+              j.location && `Location: ${j.location}`,
+              j.plaintiff && `Plaintiff: ${j.plaintiff}`,
+              j.actionDate && `Date: ${j.actionDate}`,
+              (j.judgementAmount!=null) && `Amount: ${fmtCurrency(j.judgementAmount)}`,
+              j.proceedingNumber && `Proceeding: ${j.proceedingNumber}`,
+              j.natureOfClaimDesc && `Nature: ${j.natureOfClaimDesc}`,
+            ].filter(Boolean);
+            return parts.join(' — ');
+          });
+          document.getElementById('ato-tax-default').textContent = (data.atoTaxDefault == null) ? 'No data available' : String(data.atoTaxDefault);
+          fillList('loans-list', data.loans, x => String(x));
+          document.getElementById('anzsic-description').textContent =
+            (data.anzsic && (data.anzsic.anzsicDescription || data.anzsic.description || data.anzsic.groupDescription)) || 'No data available';
+  
+          setInitialState(data);
+          clearSalesOverrides();
+          openDetailsTab(null, 'details-tab-overrides');
+        })
+        .catch(err => {
+          console.error('Error fetching credit report:', err);
+          alert('Failed to load credit report data. See console for details.');
+        });
+  
+      /* SETTINGS — from data-bureau */
+      fetch(urlBureau(`api/fetch_credit_settings/?originator=${encodeURIComponent(originator)}`), { credentials: 'include' })
+        .then(r => {
+          if (!r.ok) {
+            if (r.redirected) console.warn('Credit settings fetch redirected – auth or URL issue.');
+            throw new Error(`HTTP ${r.status} for credit settings`);
+          }
+          return r.json();
+        })
+        .then(settings => {
+          if (settings?.error) {
+            console.error('Error fetching settings:', settings.error);
+            return;
+          }
+          applySwitchesFromSettings(settings);
+        })
+
+        .catch(err => {
+          console.error('Error fetching parameter settings:', err);
+          alert('Failed to load compliance settings. See console for details.');
+        });
+  
+      /* HISTORY — from data-bureau */
+      fetchHistoryData(abn, transactionId);
+    }
+  
+    // expose globals
+    window.openABNModal = openABNModal;
+    // backward-compat: some pages still call openModal(...)
+    window.openModal = openABNModal;
+  
+  })(); // end IIFE
+  </script>
+  

@@ -1,0 +1,1162 @@
+{% extends "efs_shared_ui/base.html" %}
+
+{% block title %}RAG - Generation{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<div id="rag-generation-page">
+
+  <div class="page-header-container">
+    <h2 id="originator-heading" style="flex-grow:1;">
+      {% if selected_originator %}
+        {{ selected_originator.originator }} RAG Generation
+      {% else %}
+        RAG Generation for All Originators
+      {% endif %}
+    </h2>
+  </div>
+
+  <div class="card card-actions">
+    <h3 class="card-title">Select Retrieval Log & Actions</h3>
+    
+    <div class="action-grid">
+      {# NEW: Wrapper for Query Select and Action Buttons #}
+      <div class="query-actions-group">
+        {# 1. Query Select #}
+        <div class="select-wrapper action-query-select">
+          <label for="query-select">Select a stored query:</label>
+          <select id="query-select" class="query-select-box">
+            <option value="">-- Choose a query --</option>
+            {% for log in retrieval_logs %}
+              <option value="{{ log.id }}">
+                {{ log.query_text|truncatechars:60 }} ({{ log.created_at|date:"Y-m-d H:i" }})
+              </option>
+            {% endfor %}
+          </select>
+
+          <!--- 
+          {# NEW: data category dropdown just under "Choose a query" #}
+          <label for="query-dataset-select">Select data view:</label>
+          <select id="query-dataset-select" class="query-select-box">
+            <option value="">-- Choose a data view --</option>
+            <option value="financials_pl">Financials P&amp;L</option>
+            <option value="financials_bs">Financials BS</option>
+            <option value="financials_cf">Financials CF</option>
+            <option value="financials_notes">Financials Notes</option>
+            <option value="ar_ledger">AR Ledger</option>
+            <option value="debtors">Debtors</option>
+            <option value="invoices">Invoices</option>
+            <option value="accounts_payable">Accounts Payable</option>
+            <option value="fixed_assets_property">Fixed Assets – Property</option>
+            <option value="fixed_assets_plant_equipment">
+              Fixed Assets – Plant &amp; Equipment
+            </option>
+            <option value="fixed_assets_vehicles">Fixed Assets – Vehicles</option>
+            <option value="inventory_wip">Inventory – WIP</option>
+            <option value="inventory_raw_materials">Inventory – Raw Materials</option>
+            <option value="inventory_finished">Inventory – Finished</option>
+          </select>
+        </div>
+  -->
+        {# 2. Main Action Buttons #}
+        <div class="button-group action-button-group">
+          <button id="generate-btn" class="btn-primary">
+            ⚡ Generate
+          </button>
+  
+          <button id="convert-json-btn" class="btn-secondary">
+            ⇄ Convert to JSON
+          </button>
+  
+          <button id="flush-btn" class="btn-danger">
+            🗑 Delete File Data
+          </button>
+        </div>
+      </div>
+      {# END NEW: Wrapper for Query Select and Action Buttons #}
+  
+      {# 3. Deals Widget (Right side) #}
+      <div class="deals-widget action-deals-widget">
+        <label for="deals-sales-select">Deals - Sales Review</label>
+        <div class="deals-input-group">
+          <select id="deals-sales-select" class="deals-select">
+            <option value="">
+              {% if selected_originator %}
+                -- Select deal --
+              {% else %}
+                (Select an originator to see deals)
+              {% endif %}
+            </option>
+  
+            {% for deal in sales_review_deals %}
+              <option value="{{ deal.transaction_id }}"
+                      data-abn="{{ deal.abn }}"
+                      data-acn="{{ deal.acn }}">
+                {{ deal.company_name }} — {{ deal.transaction_id }}
+              </option>
+            {% empty %}
+              {% if selected_originator %}
+                <option value="">(No deals for this originator)</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+          <button id="deals-sales-post-btn" type="button" class="btn-success">
+            Post
+          </button>
+        </div>
+        <div class="deal-meta">
+          <span id="deal-abn"></span>
+          <span id="deal-acn"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+  <div class="card-row">
+    <div class="card card-model-picker">
+      <div class="model-picker-header">
+        <div class="model-picker-title">
+          <b>Select data source models</b>
+          <div class="model-picker-hint">
+            These come from efs_data_financials on port 8019
+          </div>
+        </div>
+        <button id="select-all-models" class="btn-small-secondary">
+          ✓ Select All
+        </button>
+      </div>
+
+      <div id="model-checkbox-list" class="model-checkbox-list">
+        {% if financial_models and financial_models|length > 0 %}
+          {% for model in financial_models %}
+            <div class="model-item" data-model="{{ model.name }}">
+              <label class="model-check-label">
+                <input type="checkbox"
+                       class="model-check"
+                       name="selected_models"
+                       value="{{ model.name }}">
+                <span>{{ model.name }}</span>
+              </label>
+              {% if model.fields %}
+                <button type="button"
+                        class="toggle-fields-btn"
+                        data-model="{{ model.name }}">
+                  +
+                </button>
+              {% endif %}
+            </div>
+
+            {% if model.fields %}
+              <div class="model-fields-list"
+                   data-model="{{ model.name }}"
+                   style="display:none;">
+                {% for field_name in model.fields %}
+                  <label class="model-field-check-label">
+                    <input type="checkbox"
+                           class="model-field-check"
+                           data-model="{{ model.name }}"
+                           name="selected_fields_{{ model.name }}"
+                           value="{{ field_name }}">
+                    <span>{{ field_name }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        {% else %}
+          <div class="model-empty-state">
+            (No models returned from efs_data_financials)
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card card-evaluation">
+      <div class="evaluation-header">
+        <div class="evaluation-title">
+          <b>Evaluation</b>
+        </div>
+        <div class="evaluation-hint">
+          Use this panel to review and score generated answers.
+        </div>
+      </div>
+
+      <div class="evaluation-body">
+        <p class="evaluation-empty-state">
+          Evaluation tools are not configured yet. You can add scoring widgets or charts here later.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card card-result">
+    <div id="generation-result">
+      <p class="result-placeholder">Select a query and click '⚡ Generate' to see the answer here.</p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function injectRAGGenerationStyles() {
+    if (window._efsRAGGenStylesInjected) return;
+    window._efsRAGGenStylesInjected = true;
+    // Define CSS Variables
+    const cssVars = `
+      --color-primary: #1e3a8a; /* Dark Blue */
+      --color-secondary: #5c627a; /* Muted Grey-Blue */
+      --color-danger: #c62828; /* Deep Red */
+      --color-accent: #0e76a8; /* Action Blue */
+      --color-text: #1f2937;
+      --color-hint: #6b7280;
+      --color-bg-light: #f9fafb;
+      --color-card-bg: #ffffff;
+      --color-border: #e5e7eb;
+      --radius-default: 8px;
+      --focus-ring: 0 0 0 4px rgba(99, 102, 241, 0.4);
+    `;
+
+    const css = `
+  :root { ${cssVars} }
+
+  /* --- General Scoping --- */
+  #rag-generation-page {
+    font-family: inherit;
+    color: var(--color-text);
+  }
+  
+  #rag-generation-page .page-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  #rag-generation-page h2 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--color-text);
+  }
+
+  /* --- Cards --- */
+  #rag-generation-page .card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-default);
+    padding: 1.5rem;
+    width: 100%;
+    background: var(--color-card-bg);
+    margin-bottom: 1.5rem;
+  }
+
+  #rag-generation-page .card-actions { margin-top: 1.5rem; }
+
+  #rag-generation-page .card-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-primary);
+  }
+
+  /* --- ACTION SECTION (CLEANED UP) --- */
+  #rag-generation-page .action-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+    gap: 2rem 1.5rem;
+    align-items: start;
+  }
+
+  #rag-generation-page .action-query-select {
+    grid-column: 1 / -1; 
+  }
+
+  #rag-generation-page .select-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px; 
+    width: 100%;
+  }
+
+  #rag-generation-page .select-wrapper label {
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  #rag-generation-page .query-select-box {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+  }
+  
+  #rag-generation-page .action-button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    grid-column: 1 / 2;
+  }
+
+  #rag-generation-page .action-deals-widget {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    grid-column: 2 / 3;
+    padding: 1rem;
+    background-color: var(--color-bg-light); 
+    border-radius: var(--radius-default);
+    border: 1px solid var(--color-border);
+  }
+
+  #rag-generation-page .action-deals-widget > label {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 2px;
+  }
+
+  #rag-generation-page .deals-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  #rag-generation-page .deals-select {
+    padding: 10px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    flex-grow: 1; 
+    min-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    white-space: nowrap;
+  }
+  
+  #rag-generation-page .btn-success {
+    padding: 10px 14px; 
+    background: #16a34a;
+    color: #fff;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+
+  #rag-generation-page .btn-success:hover {
+    background: #15803d;
+  }
+
+  #rag-generation-page .deal-meta {
+    font-size: 0.8rem;
+    color: var(--color-hint);
+    text-align: right; 
+    min-height: 1.2rem;
+    padding-top: 4px;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+    white-space: nowrap;
+  }
+  
+  #rag-generation-page .deal-meta span:not(:empty) + span:not(:empty)::before {
+    content: " / ";
+  }
+
+  #rag-generation-page button {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+    transition: background-color 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+  }
+
+  #rag-generation-page .btn-primary {
+    background: var(--color-accent);
+    color: #fff;
+  }
+  #rag-generation-page .btn-primary:hover { background: #0a5f87; }
+
+  #rag-generation-page .btn-secondary {
+    background: var(--color-secondary);
+    color: #fff;
+  }
+  #rag-generation-page .btn-secondary:hover { background: #464b5e; }
+
+  #rag-generation-page .btn-danger {
+    background: var(--color-danger);
+    color: #fff;
+  }
+  #rag-generation-page .btn-danger:hover { background: #a51f1f; }
+  
+  #rag-generation-page .btn-small-secondary {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-weight: 500;
+  }
+  #rag-generation-page .btn-small-secondary:hover {
+    background: var(--color-bg-light);
+  }
+  
+  #rag-generation-page .card-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem; 
+    width: 100%;
+  }
+
+  #rag-generation-page .card-row .card {
+    flex: 1 1 0;
+    min-width: 300px;
+    max-width: none;
+  }
+
+  #rag-generation-page .card-model-picker,
+  #rag-generation-page .card-evaluation {
+    background: var(--color-bg-light);
+    padding: 1rem;
+    min-height: 260px;
+  }
+  
+  #rag-generation-page .model-picker-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 0.5rem;
+  }
+
+  #rag-generation-page .model-picker-title b,
+  #rag-generation-page .evaluation-title b {
+    font-size: 1rem;
+    color: var(--color-primary);
+  }
+
+  #rag-generation-page .model-picker-hint,
+  #rag-generation-page .evaluation-hint {
+    font-size: 0.8rem;
+    color: var(--color-hint);
+    margin-top: 2px;
+  }
+
+  #rag-generation-page .model-checkbox-list {
+    margin-top: 0.5rem; 
+    max-height: 260px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    padding-right: 10px;
+  }
+  
+  #rag-generation-page .model-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 2px 0;
+  }
+
+  #rag-generation-page .model-check-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  #rag-generation-page input.model-check {
+    width: auto !important;
+    height: auto !important;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+
+  #rag-generation-page .toggle-fields-btn {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: var(--color-card-bg);
+    color: var(--color-text);
+  }
+
+  #rag-generation-page .toggle-fields-btn:hover {
+    background: var(--color-bg-light);
+  }
+
+  #rag-generation-page .model-fields-list {
+    margin: 2px 0 8px 22px;
+    padding-left: 8px;
+    border-left: 1px dashed var(--color-border);
+  }
+
+  #rag-generation-page .model-field-check-label {
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 2px;
+  }
+
+  #rag-generation-page .model-field-check-label input {
+    margin-right: 6px;
+  }
+
+  #rag-generation-page .model-empty-state {
+    color: #999;
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+
+  #rag-generation-page .evaluation-header {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  #rag-generation-page .evaluation-title b {
+    font-size: 1rem;
+    color: var(--color-primary);
+  }
+
+  #rag-generation-page .evaluation-hint {
+    font-size: 0.8rem;
+    color: var(--color-hint);
+    margin-top: 2px;
+  }
+
+  #rag-generation-page .evaluation-body {
+    font-size: 0.9rem;
+    color: var(--color-text);
+  }
+
+  #rag-generation-page .evaluation-empty-state {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  @media (max-width: 900px) {
+    #rag-generation-page .action-grid {
+      grid-template-columns: 1fr;
+    }
+    #rag-generation-page .action-button-group,
+    #rag-generation-page .action-deals-widget {
+      grid-column: auto;
+    }
+    #rag-generation-page .action-deals-widget {
+      align-items: stretch; 
+    }
+    #rag-generation-page .deals-input-group {
+      flex-direction: row; 
+    }
+    #rag-generation-page .card-row {
+      flex-direction: column;
+    }
+  }
+`;
+
+    const style = document.createElement('style');
+    style.id = 'efs-rag-gen-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  })();
+
+  // --------------------------------
+  // JavaScript Functionality
+  // --------------------------------
+  document.addEventListener("DOMContentLoaded", () => {
+    function getCsrfToken() {
+      const tokenElement = document.querySelector('[name="csrfmiddlewaretoken"]');
+      return tokenElement ? tokenElement.value : '';
+    }
+
+    // 🔴 NEW: holds the last structured JSON returned by convert_to_json
+    let structuredJsonRows = null;
+
+    const generateBtn        = document.getElementById("generate-btn");
+    const convertBtn         = document.getElementById("convert-json-btn");
+    const flushBtn           = document.getElementById("flush-btn");
+    const querySelect        = document.getElementById("query-select");
+    const resultDiv          = document.getElementById("generation-result");
+
+    const selectAllBtn       = document.getElementById("select-all-models");
+    const modelCheckboxList  = document.getElementById("model-checkbox-list");
+
+    const dealsSelect        = document.getElementById("deals-sales-select");
+    const dealsPostBtn       = document.getElementById("deals-sales-post-btn");
+
+    const dealAbnSpan        = document.getElementById("deal-abn");
+    const dealAcnSpan        = document.getElementById("deal-acn");
+
+    // 🔴 NEW: dataset dropdown
+    const datasetSelect      = document.getElementById("query-dataset-select");
+
+    function getSelectedDataset() {
+      return datasetSelect ? datasetSelect.value : "";
+    }
+
+    // 🔴 NEW: map special datasets to their endpoints
+    const specialDatasetEndpoints = {
+      ar_ledger: "{% url 'ar_ledger_data' %}",
+      accounts_payable: "{% url 'ap_ledger_dat' %}",
+      fixed_assets_vehicles: "{% url 'fixed_assets_vehicles' %}",
+      fixed_assets_plant_equipment: "{% url 'fixed_assets_plant_equipment' %}",
+    };
+
+    // 🔹 NEW: Parse the "Aged Receivables Summary" markdown table into rows
+    function parseArLedgerMarkdown(markdown) {
+      const rows = [];
+      if (!markdown) return rows;
+
+      // Split into lines and keep only markdown table lines starting with "|"
+      const allLines = markdown
+        .split("\n")
+        .map(l => l.trim())
+        .filter(l => l.startsWith("|"));
+
+      if (allLines.length < 3) {
+        // Not enough lines for header + data
+        return rows;
+      }
+
+      // allLines[0] = header row
+      // allLines[1] = alignment row like | :--- | ----: | ...
+      // data starts at index 2
+      for (let i = 2; i < allLines.length; i++) {
+        let line = allLines[i];
+
+        // Skip total / percentage lines
+        if (line.toLowerCase().includes("**total**") ||
+            line.toLowerCase().includes("percentage of total")) {
+          continue;
+        }
+
+        // Strip leading/trailing pipe and split into columns
+        line = line.replace(/^\|/, "").replace(/\|$/, "");
+        const cols = line.split("|").map(c => c.trim());
+
+        // We expect 8 columns: CONTACT, CURRENT, < 1 MONTH, 1 MONTH, 2 MONTHS, 3 MONTHS, OLDER, TOTAL
+        if (cols.length < 8) {
+          continue;
+        }
+
+        const [
+          contact,
+          current,
+          lt1Month,
+          oneMonth,
+          twoMonths,
+          threeMonths,
+          older,
+          total,
+        ] = cols;
+
+        // Clean any bold markers
+        const debtorName = contact.replace(/\*\*/g, "").trim();
+        if (!debtorName) continue;
+
+        rows.push({
+          debtor: debtorName,      // first column in the table
+          aged_receivables: total, // treat TOTAL as "aged_receivables"
+          days_0_30: current,
+          days_31_60: lt1Month,
+          days_61_90: oneMonth,
+          // For now, keep the OLDER bucket in days_90_plus.
+          days_90_plus: older,
+          notes: "",               // per-row notes (optional)
+        });
+      }
+
+      return rows;
+    }
+
+    function updateDealMeta() {
+      if (!dealsSelect || !dealAbnSpan || !dealAcnSpan) return;
+
+      const option = dealsSelect.options[dealsSelect.selectedIndex];
+      if (!option || !option.value) {
+        dealAbnSpan.textContent = "";
+        dealAcnSpan.textContent = "";
+        return;
+      }
+
+      const abn = option.getAttribute("data-abn") || "";
+      const acn = option.getAttribute("data-acn") || "";
+
+      dealAbnSpan.textContent = abn ? `ABN: ${abn}` : "";
+      dealAcnSpan.textContent = acn ? `ACN: ${acn}` : "";
+    }
+
+    if (dealsSelect) {
+      dealsSelect.addEventListener("change", updateDealMeta);
+      updateDealMeta();
+    }
+
+    function getSelectedLogId() {
+      return querySelect ? querySelect.value : "";
+    }
+
+    function getSelectedModels() {
+      const checked = [];
+      if (!modelCheckboxList) return checked;
+      modelCheckboxList.querySelectorAll('input.model-check').forEach(cb => {
+        if (cb.checked) {
+          checked.push(cb.value);
+        }
+      });
+      return checked;
+    }
+
+    function getSelectedFieldsByModel() {
+      const mapping = {};
+      if (!modelCheckboxList) return mapping;
+
+      modelCheckboxList.querySelectorAll('.model-fields-list').forEach(list => {
+        const modelName = list.getAttribute("data-model");
+        if (!modelName) return;
+        const fields = [];
+        list.querySelectorAll('input.model-field-check').forEach(cb => {
+          if (cb.checked) {
+            fields.push(cb.value);
+          }
+        });
+        if (fields.length) {
+          mapping[modelName] = fields;
+        }
+      });
+      return mapping;
+    }
+
+    if (selectAllBtn && modelCheckboxList) {
+      selectAllBtn.addEventListener("click", () => {
+        const boxes = modelCheckboxList.querySelectorAll('input.model-check');
+        const allChecked = Array.from(boxes).every(cb => cb.checked);
+        boxes.forEach(cb => { cb.checked = !allChecked; });
+      });
+    }
+
+    function initFieldToggles() {
+      if (!modelCheckboxList) return;
+      modelCheckboxList.querySelectorAll(".toggle-fields-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const modelName = btn.getAttribute("data-model");
+          const fieldList = modelCheckboxList.querySelector(
+            `.model-fields-list[data-model="${modelName}"]`
+          );
+          if (!fieldList) return;
+          const isHidden = fieldList.style.display === "none" || !fieldList.style.display;
+          fieldList.style.display = isHidden ? "block" : "none";
+          btn.textContent = isHidden ? "−" : "+";
+        });
+      });
+    }
+    initFieldToggles();
+
+
+    // 🔴 UPDATED: Deals Post → FinancialData OR AR/AP ledger
+    if (dealsPostBtn) {
+      dealsPostBtn.addEventListener("click", async () => {
+        const selectedDataset = (getSelectedDataset() || "").trim();
+        console.log("[RAG Gen] Post clicked, dataset =", selectedDataset);
+
+        if (!dealsSelect) {
+          alert("Deals dropdown not found.");
+          return;
+        }
+
+        const selectedOption = dealsSelect.options[dealsSelect.selectedIndex];
+        if (!selectedOption || !selectedOption.value) {
+          alert("Please select a deal from 'Deals - Sales Review' first.");
+          return;
+        }
+
+        const transactionId = selectedOption.value;
+        const abn = selectedOption.getAttribute("data-abn") || "";
+        const acn = selectedOption.getAttribute("data-acn") || "";
+
+        let companyName = "";
+        const optionText = (selectedOption.textContent || selectedOption.innerText || "").trim();
+        if (optionText.includes("—")) {
+          const parts = optionText.split("—");
+          companyName = (parts[0] || "").trim();
+        } else {
+          companyName = optionText;
+        }
+
+        const selectedModels = getSelectedModels();
+        const selectedFieldsByModel = getSelectedFieldsByModel();
+
+        // ============================================
+        // 1) SPECIAL CASE: AR ledger / Accounts Payable
+        //    → NO Convert-to-JSON requirement
+        // ============================================
+        if (selectedDataset === "ar_ledger" || selectedDataset === "accounts_payable") {
+          const notesText =
+            (resultDiv && (resultDiv.innerText || resultDiv.textContent || "")).trim();
+
+          if (!notesText) {
+            alert('Please click "⚡ Generate" first so we have an answer to store.');
+            return;
+          }
+
+          let rows = [];
+
+          if (selectedDataset === "ar_ledger") {
+            // 🔹 NEW: parse the markdown table into many rows
+            rows = parseArLedgerMarkdown(notesText);
+
+            // Fallback: if parsing fails, store one summary row
+            if (!rows.length) {
+              rows.push({
+                debtor: companyName || "Aged Receivables Summary",
+                aged_receivables: "",
+                days_0_30: "",
+                days_31_60: "",
+                days_61_90: "",
+                days_90_plus: "",
+                notes: notesText,
+              });
+            }
+          } else {
+            // accounts_payable – keep simple summary for now
+            rows.push({
+              creditor: companyName || "Aged Payables Summary",
+              aged_payables: "",
+              days_0_30: "",
+              days_31_60: "",
+              days_61_90: "",
+              days_90_plus: "",
+              notes: notesText,
+            });
+          }
+
+          try {
+            const resp = await fetch("{% url 'post_ledger_data' %}", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCsrfToken(),
+              },
+              body: JSON.stringify({
+                dataset: selectedDataset,
+                transaction_id: transactionId,
+                company_name: companyName,
+                abn: abn,
+                acn: acn,
+                rows: rows,
+              }),
+            });
+
+            const data = await resp.json();
+
+            if (resp.ok) {
+              alert("✅ Ledger data posted successfully.");
+            } else {
+              alert("❌ Error posting ledger data: " + (data.message || "Unknown error"));
+            }
+          } catch (err) {
+            alert("⚠️ Ledger post failed: " + err.message);
+          }
+
+          // ⛔ IMPORTANT: do NOT fall through into the FinancialData logic
+          return;
+        }
+
+        // ============================================
+        // 2) DEFAULT: FinancialData (P&L / BS / CF)
+        //    → Requires Convert-to-JSON
+        // ============================================
+        if (!structuredJsonRows) {
+          alert("Please click '⇄ Convert to JSON' first so we have data to post.");
+          return;
+        }
+
+        if (!selectedModels.includes("FinancialData")) {
+          alert("For now, posting is limited to the FinancialData model. Please tick 'FinancialData'.");
+          return;
+        }
+
+        const fieldsForFinancial = selectedFieldsByModel["FinancialData"] || [];
+        if (fieldsForFinancial.length !== 1) {
+          alert("Please select exactly one field under FinancialData (profit_loss, balance_sheet, or cash_flow).");
+          return;
+        }
+
+        const targetField = fieldsForFinancial[0];
+        if (!["profit_loss", "balance_sheet", "cash_flow"].includes(targetField)) {
+          alert("For now only 'profit_loss', 'balance_sheet', or 'cash_flow' are supported.");
+          return;
+        }
+
+        try {
+          const resp = await fetch("{% url 'post_financial_data' %}", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCsrfToken(),
+            },
+            body: JSON.stringify({
+              model: "FinancialData",
+              field: targetField,
+              json_rows: structuredJsonRows,
+              transaction_id: transactionId,
+              company_name: companyName,
+              abn: abn,
+              acn: acn,
+            }),
+          });
+
+          const data = await resp.json();
+
+          if (resp.ok) {
+            alert("✅ JSON posted to FinancialData successfully.");
+          } else {
+            alert("❌ Error posting JSON: " + (data.message || "Unknown error"));
+          }
+        } catch (err) {
+          alert("⚠️ Post request failed: " + err.message);
+        }
+      });
+    }
+
+
+
+    // 🔵 Generate button: branch on dataset → special endpoints or normal RAG
+    if (generateBtn) {
+      generateBtn.addEventListener("click", async function() {
+        const selectedDataset = getSelectedDataset();
+        const selectedId = getSelectedLogId();
+
+        // Special datasets → placeholder endpoint
+        if (specialDatasetEndpoints[selectedDataset]) {
+          const url = specialDatasetEndpoints[selectedDataset];
+
+          try {
+            const resp = await fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCsrfToken(),
+              },
+              body: JSON.stringify({
+                dataset: selectedDataset,
+                action: "generate",
+                log_id: selectedId || null,
+              }),
+            });
+
+            const data = await resp.json();
+            resultDiv.innerHTML =
+              `<p><b>Placeholder response (${selectedDataset}):</b></p>` +
+              `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+          } catch (err) {
+            resultDiv.innerHTML = "⚠️ Request failed: " + err.message;
+          }
+
+          return; // ⛔ don't run the normal RAG generation
+        }
+
+        // Normal behaviour for Financials and other "default" datasets
+        if (!selectedId) {
+          resultDiv.innerHTML = "<p>⚠️ Please select a query first.</p>";
+          return;
+        }
+
+        const chosenModels = getSelectedModels();
+        const chosenFields = getSelectedFieldsByModel();
+
+        resultDiv.innerHTML = "<p>⏳ Running generation...</p>";
+
+        try {
+          let response = await fetch("{% url 'run_generation' %}", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCsrfToken()
+            },
+            body: JSON.stringify({
+              log_id: selectedId,
+              models: chosenModels,
+              fields_by_model: chosenFields
+            })
+          });
+
+          let data = await response.json();
+          if (response.ok) {
+            resultDiv.innerHTML =
+              `<p><b>Generated Answer:</b></p>` +
+              `<div style="white-space:pre-line;">${data.answer}</div>`;
+          } else {
+            resultDiv.innerHTML = "❌ Error: " + (data.message || "Unknown error");
+          }
+        } catch (err) {
+          resultDiv.innerHTML = "⚠️ Request failed: " + err.message;
+        }
+      });
+    }
+
+    // 🔵 Convert button: branch on dataset → special endpoints or normal convert_to_json
+    if (convertBtn) {
+      convertBtn.addEventListener("click", async function() {
+        const selectedDataset = getSelectedDataset();
+        const selectedId = getSelectedLogId();
+
+        // Special datasets → placeholder endpoint
+        if (specialDatasetEndpoints[selectedDataset]) {
+          const url = specialDatasetEndpoints[selectedDataset];
+
+          try {
+            const resp = await fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCsrfToken(),
+              },
+              body: JSON.stringify({
+                dataset: selectedDataset,
+                action: "convert",
+                log_id: selectedId || null,
+              }),
+            });
+
+            const data = await resp.json();
+            structuredJsonRows = null; // nothing real yet
+            resultDiv.innerHTML =
+              `<p><b>Placeholder response (${selectedDataset}):</b></p>` +
+              `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+          } catch (err) {
+            resultDiv.innerHTML = "⚠️ Request failed: " + err.message;
+          }
+
+          return; // ⛔ skip normal Convert-to-JSON behaviour
+        }
+
+        // Normal behaviour (e.g. Financials P&L / BS / CF)
+        if (!selectedId) {
+          resultDiv.innerHTML = "<p>⚠️ Please select a query first.</p>";
+          return;
+        }
+
+        const chosenModels = getSelectedModels();
+        const chosenFields = getSelectedFieldsByModel();
+
+        resultDiv.innerHTML = "<p>⏳ Converting retrieved context to structured JSON...</p>";
+
+        try {
+          let response = await fetch("{% url 'convert_to_json' %}", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCsrfToken()
+            },
+            body: JSON.stringify({
+              log_id: selectedId,
+              models: chosenModels,
+              fields_by_model: chosenFields
+            })
+          });
+
+          let data = await response.json();
+
+          if (response.ok) {
+            structuredJsonRows = data.json_rows;
+            const pretty = JSON.stringify(data.json_rows, null, 2);
+
+            resultDiv.innerHTML =
+              `<p><b>Structured JSON Output:</b></p>` +
+              `<pre>${pretty}</pre>`;
+          } else {
+            resultDiv.innerHTML = "❌ Error: " + (data.message || "Unknown error");
+          }
+        } catch (err) {
+          resultDiv.innerHTML = "⚠️ Request failed: " + err.message;
+        }
+      });
+    }
+
+    // 🔵 Flush button: branch on dataset → special endpoints or normal flush_rag_data
+    if (flushBtn) {
+      flushBtn.addEventListener("click", async function() {
+        const selectedDataset = getSelectedDataset();
+
+        // Special datasets → placeholder endpoint instead of flushing RAG data
+        if (specialDatasetEndpoints[selectedDataset]) {
+          const url = specialDatasetEndpoints[selectedDataset];
+
+          try {
+            const resp = await fetch(url, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCsrfToken(),
+              },
+              body: JSON.stringify({
+                dataset: selectedDataset,
+                action: "flush",
+              }),
+            });
+
+            const data = await resp.json();
+            resultDiv.innerHTML =
+              `<p><b>Placeholder response (${selectedDataset}):</b></p>` +
+              `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+          } catch (err) {
+            resultDiv.innerHTML = "⚠️ Request failed: " + err.message;
+          }
+
+          return; // ⛔ don't run the RAG flush for these datasets
+        }
+
+        // Normal RAG flush (for Financials etc.)
+        const really = confirm(
+          "This will DELETE all uploaded file data, chunks, embeddings, and retrieval logs.\n" +
+          "This cannot be undone.\n\n" +
+          "Are you sure?"
+        );
+        if (!really) {
+          return;
+        }
+
+        resultDiv.innerHTML = "<p>⏳ Flushing RAG data...</p>";
+
+        try {
+          let response = await fetch("{% url 'flush_rag_data' %}", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCsrfToken()
+            },
+            body: JSON.stringify({ confirm: true })
+          });
+
+          let data = await response.json();
+          if (response.ok) {
+            resultDiv.innerHTML =
+              `<p style="color: var(--color-primary);"><b>RAG data cleared.</b></p>` +
+              `<div style="color:var(--color-hint);font-size:0.85rem;">${data.message}</div>`;
+          } else {
+            resultDiv.innerHTML =
+              "❌ Error flushing data: " + (data.message || "Unknown error");
+          }
+        } catch (err) {
+          resultDiv.innerHTML = "⚠️ Flush request failed: " + err.message;
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}
+
+

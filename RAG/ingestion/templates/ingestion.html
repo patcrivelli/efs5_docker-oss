@@ -1,0 +1,892 @@
+{% extends "efs_shared_ui/base.html" %}
+
+{% block title %}RAG - Ingestion{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<div id="rag-ingestion-page">
+  
+  <div class="page-header-container">
+    <h2 id="originator-heading" style="flex-grow:1;">
+      {% if selected_originator %}
+        {{ selected_originator.originator }} RAG Ingestion
+      {% else %}
+        RAG Ingestion for All Originators
+      {% endif %}
+    </h2>
+
+    <button id="ingestion-btn" type="button">
+      + New Ingestion
+    </button>
+  </div>
+
+  <div class="card" style="margin-top:0;">
+    <h2>Upload Annual Report (PDF)</h2>
+    <form id="upload-form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row">
+        <div>
+          <label for="id_company_name">Company Name</label>
+          <input name="company_name" id="id_company_name" required />
+        </div>
+        <div>
+          <label for="id_ticker_symbol">Ticker (optional)</label>
+          <input name="ticker_symbol" id="id_ticker_symbol" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="id_fiscal_year">Fiscal Year (optional)</label>
+          <input name="fiscal_year" id="id_fiscal_year" type="number" min="1900" max="2100" />
+        </div>
+        <div>
+          <label for="id_source">Source</label>
+          <select name="source" id="id_source">
+            <option value="upload" selected>Upload</option>
+            <option value="web">Web</option>
+            <option value="api">API</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="file-input">PDF File</label>
+      <input id="file-input" type="file" name="file"
+             accept=".pdf,application/pdf"
+             style="display:none;" required />
+
+      <div id="dropzone" class="dropzone">
+        <p>Drag & drop the **PDF** here, or click to pick a file.</p>
+        <p class="hint">Only one PDF for this form. (You can upload more files later to add versions.)</p>
+      </div>
+
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div id="status" class="hint"></div>
+
+      <div style="margin-top: 1.5rem; text-align: right;">
+        <button type="submit">Upload & Ingest</button>
+      </div>
+    </form>
+  </div>
+
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+      <h2 style="margin:0;">Chunking Settings</h2>
+      <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;">
+        <label for="preset" class="hint" style="margin:0;">Preset:</label>
+        <select id="preset" style="min-width:220px; padding: .55rem .8rem;">
+          <option value="financials" selected>Annual Report – Financials (recommended)</option>
+          <option value="balanced">Balanced (general text)</option>
+          <option value="aggressive">Aggressive small chunks</option>
+          <option value="tables">Table-heavy docs</option>
+        </select>
+        <button type="button" id="reset-to-preset" style="white-space:nowrap;">Apply Preset</button>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <h3>Core Knobs</h3>
+      <div class="row">
+        <div>
+          <label for="chunk_size">Chunk Size (characters)</label>
+          <input type="range" id="chunk_size" min="500" max="4000" step="100" value="1800"
+                 oninput="document.getElementById('chunk_size_val').textContent=this.value">
+          <div class="hint">
+            ≈ tokens: <span id="chunk_size_tokens">~600–800</span> &nbsp;|&nbsp; Value: <strong id="chunk_size_val">1800</strong>
+          </div>
+        </div>
+        <div>
+          <label for="overlap_pct">Overlap (%)</label>
+          <input type="range" id="overlap_pct" min="0" max="40" step="5" value="15"
+                 oninput="document.getElementById('overlap_pct_val').textContent=this.value + '%'">
+          <div class="hint">Value: <strong id="overlap_pct_val">15%</strong></div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="split_strategy">Split Strategy</label>
+          <select id="split_strategy">
+            <option value="fixed">Fixed size</option>
+            <option value="sentence">Sentence windows</option>
+            <option value="paragraph">Paragraph aware</option>
+            <option value="section">Section aware (headings/regex)</option>
+            <option value="hybrid" selected>Hybrid: Section → Paragraph/Sent → Fixed</option>
+          </select>
+          <div class="hint">Hybrid respects headings, then groups paragraphs/sentences up to target size.</div>
+        </div>
+        <div>
+          <label for="min_chunk_chars">Minimum Chunk Length (chars)</label>
+          <input id="min_chunk_chars" type="number" value="200" min="0" step="50">
+          <div class="hint">Skip tiny fragments (e.g., footers, single lines).</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <h3>Document Cleaning & Structure</h3>
+      <div class="row">
+        <div>
+          <label>Header/Footer Cleanup</label>
+          <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap; margin-top:0.5rem;">
+            <label style="margin:0;"><input type="checkbox" id="strip_page_numbers" checked style="margin-right:5px;"> Strip page numbers</label>
+            <label style="margin:0;"><input type="checkbox" id="strip_headers" checked style="margin-right:5px;"> Strip repeating headers</label>
+            <label style="margin:0;"><input type="checkbox" id="strip_footers" checked style="margin-right:5px;"> Strip repeating footers</label>
+          </div>
+          <div class="hint" style="margin-top:0.75rem;">Automatic detection for repeating elements.</div>
+        </div>
+        <div>
+          <label for="boilerplate_patterns">Boilerplate Patterns (one regex per line)</label>
+          <textarea id="boilerplate_patterns" rows="3" placeholder="^\\s*Table of Contents$&#10;^This document is a draft$"></textarea>
+          <div class="hint">Patterns to strip completely from the document before chunking.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <h3>Section Detection & Weighting</h3>
+      <div class="row">
+        <div>
+          <label for="section_patterns">Major Section Headings (regex; one per line)</label>
+          <textarea id="section_patterns" rows="6">^\\s*(Consolidated\\s+)?(Statement|Balance\\s*Sheet)\\b
+^\\s*(Statement\\s+of\\s+Profit\\s+and\\s+Loss|Profit\\s*&\\s*Loss|Income\\s+Statement)\\b
+^\\s*Statement\\s+of\\s+Cash\\s+Flows?\\b
+^\\s*Statement\\s+of\\s+Changes\\s+in\\s+Equity\\b
+^\\s*Notes?\\s+to\\s+the\\s+Financial\\s+Statements?\\b
+^\\s*Auditor’s\\s+Report\\b
+^\\s*Directors’\\s+Report\\b</textarea>
+          <div class="hint">These regex patterns help isolate major financial sections first for better contextual grouping.</div>
+        </div>
+        <div>
+          <label>Section Weighting (Retrieval Boost)</label>
+          <div class="row" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label for="w_bs">Balance Sheet</label>
+              <input id="w_bs" type="number" value="1.3" step="0.1" style="width:100%;">
+            </div>
+            <div>
+              <label for="w_pl">P&amp;L / Income</label>
+              <input id="w_pl" type="number" value="1.3" step="0.1" style="width:100%;">
+            </div>
+            <div>
+              <label for="w_cf">Cash Flow</label>
+              <input id="w_cf" type="number" value="1.15" step="0.05" style="width:100%;">
+            </div>
+            <div>
+              <label for="w_notes">Notes</label>
+              <input id="w_notes" type="number" value="1.1" step="0.05" style="width:100%;">
+            </div>
+          </div>
+          <div class="hint" style="margin-top:0.75rem;">Weights are stored as metadata for your retriever to re-rank results.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:1.5rem;">
+      <h3>Table & Multimodal Handling</h3>
+      <div class="row">
+        <div>
+          <label for="table_mode">Tables Processing Mode</label>
+          <select id="table_mode">
+            <option value="as_text" selected>Extract as text (inline/markdown)</option>
+            <option value="preserve_cells">Preserve rows/cells (JSON structure)</option>
+            <option value="ignore">Ignore tables completely</option>
+          </select>
+          <div class="hint">The server needs a robust table extractor for the "Preserve rows/cells" mode.</div>
+        </div>
+        <div>
+          <label>OCR / Non-selectable Text Fallback</label>
+          <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap; margin-top:0.5rem;">
+            <label style="margin:0;"><input type="checkbox" id="enable_ocr" style="margin-right:5px;"> Enable OCR fallback</label>
+            <label style="margin:0;"><input type="checkbox" id="ocr_layout" style="margin-right:5px;"> Keep layout blocks</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <details>
+      <summary>Advanced Chunking Options</summary>
+      <div class="row" style="margin-top:.75rem;">
+        <div>
+          <label for="sent_window">Sentence Window Size (if sentence strategy)</label>
+          <input id="sent_window" type="number" value="5" min="1" step="1">
+          <div class="hint">Create overlapping windows of N sentences around each focus sentence.</div>
+        </div>
+        <div>
+          <label for="sent_overlap">Sentence Overlap (sentences)</label>
+          <input id="sent_overlap" type="number" value="1" min="0" step="1">
+          <div class="hint">Number of sentences to overlap between sentence windows.</div>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Embedding-Aware Boundaries</label>
+          <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;">
+            <label style="margin:0;"><input type="checkbox" id="semantic_boundaries" style="margin-right:5px;"> Enable</label>
+            <label style="margin:0;">Threshold: <input id="semantic_threshold" type="number" value="0.25" min="0" max="1" step="0.05" style="width:100px; padding: .55rem .6rem;"></label>
+          </div>
+          <div class="hint">(Server-side) nudges boundaries where cosine similarity dips significantly.</div>
+        </div>
+        <div>
+          <label for="min_table_row_chars">Min Table Row Length (chars)</label>
+          <input id="min_table_row_chars" type="number" value="10" min="0" step="5">
+          <div class="hint">Ignore rows shorter than this when extracting tables as text.</div>
+        </div>
+      </div>
+    </details>
+
+    <div style="margin-top:2rem;">
+      <h3>Local Preview (Client-Side Mock)</h3>
+      <div class="row">
+        <div>
+          <label for="preview_text">Paste Sample Text</label>
+          <textarea id="preview_text" rows="10" placeholder="Paste a few paragraphs or a small section of an annual report here to test chunking..."></textarea>
+        </div>
+        <div>
+          <label>Chunk Output Preview</label>
+          <div id="preview_box">
+            <div class="hint" style="text-align:center; padding:1.5rem;">Chunks will appear here after clicking "Run Preview".</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap; margin-top:1rem;">
+        <button type="button" id="run_preview" style="min-width:150px;">Run Preview</button>
+        <div>
+          <span class="hint" style="font-weight:600;">Generated <strong id="preview_count">0</strong> chunk(s)</span>
+          <span class="hint" style="margin-left:1.5rem;">Config is continuously saved to a hidden field for submission.</span>
+        </div>
+      </div>
+    </div>
+
+    <input type="hidden" id="chunk_config_json" name="chunk_config_json" value="">
+  </div>
+
+
+  <script>
+    (function injectRAGIngestionStyles() {
+      // Prevents styles from being injected twice (idempotency check)
+      if (window._efsRAGStylesInjected) return;
+      window._efsRAGStylesInjected = true;
+    
+      // The fully SCOPED CSS as a string
+      const css = `
+        /* --- CSS Variables --- */
+        :root {
+          --color-primary: #1e3a8a; /* Dark Blue */
+          --color-secondary: #60a5fa; /* Medium Blue */
+          --color-text: #1f2937; /* Dark Grey */
+          --color-hint: #6b7280; /* Muted Grey */
+          --color-bg-light: #f9fafb; /* Very light background */
+          --color-border: #e5e7eb;
+          --color-card-bg: #ffffff;
+          --color-input-border: #d1d5db;
+          --color-dropzone-border: #9ca3af;
+          --color-dropzone-bg-hover: #eff6ff; /* Lightest Blue hover */
+          --color-progress-track: #e0e7ff; /* Lighter Blue for track */
+          --color-progress-fill: #4f46e5; /* Indigo for fill */
+          --radius-default: 8px;
+          --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+          --focus-ring: 0 0 0 4px rgba(99, 102, 241, 0.4); /* Tailwind Indigo focus */
+        }
+    
+        /* --- SCOPED STYLES START HERE (All selectors prefixed with #rag-ingestion-page) --- */
+        #rag-ingestion-page {
+            font-family: inherit;
+            color: var(--color-text);
+        }
+        
+        #rag-ingestion-page h2 {
+          font-size: 1.75rem;
+          font-weight: 700;
+        }
+        
+        #rag-ingestion-page .page-header-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 1px solid var(--color-border);
+        }
+
+        #rag-ingestion-page .page-header-container h2 {
+            font-size: 1.75rem; /* Ensure main heading is correct size */
+        }
+    
+        #rag-ingestion-page .card {
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-default);
+          padding: 2rem;
+          max-width: 1024px;
+          margin-top: 1.5rem;
+          background: var(--color-card-bg);
+          box-shadow: var(--shadow-card);
+        }
+    
+        #rag-ingestion-page .card h2 {
+          margin: 0 0 1.25rem 0;
+          font-weight: 700;
+          color: var(--color-primary);
+          font-size: 1.5rem;
+        }
+        
+        #rag-ingestion-page .card h3 {
+          margin: 0.5rem 0;
+          font-weight: 600;
+          font-size: 1.15rem;
+          border-bottom: 1px solid var(--color-border);
+          padding-bottom: 0.25rem;
+        }
+    
+        #rag-ingestion-page .row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1.5rem;
+          margin-bottom: 1rem;
+        }
+    
+        @media (max-width: 720px) {
+          #rag-ingestion-page .row { grid-template-columns: 1fr; }
+        }
+        
+        #rag-ingestion-page label {
+          display: block;
+          margin-bottom: .3rem;
+          font-weight: 500;
+          color: var(--color-text);
+        }
+    
+        #rag-ingestion-page .hint {
+          color: var(--color-hint);
+          font-size: .85rem;
+          margin-top: .25rem;
+          line-height: 1.4;
+        }
+        
+        /* Inputs & Controls (High Priority needed to override base styles) */
+        #rag-ingestion-page input:not([type="checkbox"]):not([type="range"]):not([type="submit"]),
+        #rag-ingestion-page select,
+        #rag-ingestion-page textarea {
+          width: 100% !important; /* Force width override */
+          padding: .7rem .8rem;
+          border: 1px solid var(--color-input-border);
+          border-radius: 6px;
+          background: var(--color-card-bg);
+          font: inherit;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          box-sizing: border-box; /* Crucial */
+        }
+
+        /* Checkbox/Radio size fix for base theme conflicts */
+        #rag-ingestion-page input[type="checkbox"] {
+            width: auto !important;
+            height: auto !important;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        #rag-ingestion-page textarea { resize: vertical; }
+    
+        #rag-ingestion-page input:focus,
+        #rag-ingestion-page select:focus,
+        #rag-ingestion-page textarea:focus,
+        #rag-ingestion-page input:focus-visible,
+        #rag-ingestion-page select:focus-visible,
+        #rag-ingestion-page textarea:focus-visible {
+          outline: none;
+          border-color: var(--color-secondary);
+          box-shadow: var(--focus-ring);
+        }
+        
+        /* Range input styles */
+        #rag-ingestion-page input[type="range"] {
+            padding: 0;
+            height: 1.5rem;
+            background: transparent;
+            cursor: pointer;
+            width: 100% !important;
+        }
+
+        /* --- Buttons --- */
+        #rag-ingestion-page button,
+        #rag-ingestion-page .card [type="submit"] {
+          background: var(--color-primary);
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: .7rem 1.2rem;
+          cursor: pointer;
+          font: inherit;
+          font-weight: 600;
+          transition: background 0.2s, box-shadow 0.2s;
+        }
+        
+        #rag-ingestion-page button:hover,
+        #rag-ingestion-page .card [type="submit"]:hover {
+          background: #101c4c;
+        }
+    
+        #rag-ingestion-page #ingestion-btn {
+          padding: 10px 18px;
+          border-radius: 8px;
+        }
+    
+        #rag-ingestion-page #reset-to-preset,
+        #rag-ingestion-page #run_preview {
+          background: #5c627a;
+          padding: .6rem 1rem;
+          font-weight: 500;
+        }
+        
+        #rag-ingestion-page #reset-to-preset:hover,
+        #rag-ingestion-page #run_preview:hover {
+          background: #464b5e;
+        }
+    
+        /* --- Dropzone & Progress --- */
+        #rag-ingestion-page .dropzone {
+          border: 2px dashed var(--color-dropzone-border);
+          border-radius: var(--radius-default);
+          padding: 2.5rem 1.5rem;
+          text-align: center;
+          cursor: pointer;
+          margin-top: .5rem;
+          background: var(--color-card-bg);
+        }
+        
+        #rag-ingestion-page .dropzone.dragover {
+          background: var(--color-dropzone-bg-hover);
+          border-color: var(--color-secondary);
+        }
+    
+        #rag-ingestion-page .progress {
+          height: 8px;
+          background: var(--color-progress-track);
+          border-radius: 999px;
+          margin-top: 15px;
+          overflow: hidden;
+        }
+        
+        #rag-ingestion-page .progress .bar {
+          height: 100%;
+          width: 0%;
+          background: var(--color-progress-fill);
+          transition: width .3s ease;
+        }
+        
+        #rag-ingestion-page #status { margin-top: 8px; font-weight: 500; }
+    
+        /* --- Preview Box --- */
+        #rag-ingestion-page #preview_box {
+          text-align: left;
+          cursor: auto;
+          height: 250px;
+          overflow-y: auto;
+          border: 1px solid var(--color-border);
+          border-radius: 6px;
+          padding: .75rem;
+          background: var(--color-bg-light);
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          font-size: .85rem;
+          line-height: 1.35;
+        }
+    
+        #rag-ingestion-page #preview_box .hint { margin: 0; font-size: 0.9rem; }
+        
+        #rag-ingestion-page #preview_box div > div:nth-child(2) {
+          white-space: pre-wrap;
+          font-size:.8rem;
+          color: #374151;
+        }
+        
+        #rag-ingestion-page details {
+          margin-top: 1.5rem;
+          padding: 0.75rem 0;
+          border-top: 1px dashed var(--color-border);
+          border-bottom: 1px dashed var(--color-border);
+        }
+        
+        #rag-ingestion-page summary {
+          cursor: pointer;
+          font-weight: 600;
+          color: var(--color-primary);
+          padding: 0.25rem 0;
+          outline: none;
+          transition: color 0.2s;
+        }
+      `;
+    
+      const style = document.createElement('style');
+      style.id = 'efs-rag-ingestion-style';
+      style.textContent = css;
+      document.head.appendChild(style);
+    })();
+
+
+    // --- Functional JavaScript (UNCHANGED) ---
+    
+    // --- helpers
+    function linesToArray(v) {
+      return (v || "")
+        .split(/\r?\n/)
+        .map(s => s.trim())
+        .filter(Boolean);
+    }
+
+    function getConfigFromUI() {
+      const chunkSize = parseInt(document.getElementById("chunk_size").value, 10);
+      const overlapPct = parseInt(document.getElementById("overlap_pct").value, 10);
+      const overlapChars = Math.max(0, Math.floor(chunkSize * (overlapPct / 100)));
+
+      const config = {
+        preset: document.getElementById("preset").value,
+        split_strategy: document.getElementById("split_strategy").value,
+        chunk_size_chars: chunkSize,
+        overlap_chars: overlapChars,
+        min_chunk_chars: parseInt(document.getElementById("min_chunk_chars").value || "0", 10),
+
+        cleanup: {
+          strip_page_numbers: document.getElementById("strip_page_numbers").checked,
+          strip_headers: document.getElementById("strip_headers").checked,
+          strip_footers: document.getElementById("strip_footers").checked,
+          boilerplate_patterns: linesToArray(document.getElementById("boilerplate_patterns").value)
+        },
+
+        sections: {
+          patterns: linesToArray(document.getElementById("section_patterns").value),
+          weights: {
+            balance_sheet: parseFloat(document.getElementById("w_bs").value || "1"),
+            profit_and_loss: parseFloat(document.getElementById("w_pl").value || "1"),
+            cash_flow: parseFloat(document.getElementById("w_cf").value || "1"),
+            notes: parseFloat(document.getElementById("w_notes").value || "1")
+          }
+        },
+
+        tables: {
+          mode: document.getElementById("table_mode").value,
+          min_row_chars: parseInt(document.getElementById("min_table_row_chars").value || "0", 10)
+        },
+
+        ocr: {
+          enable: document.getElementById("enable_ocr").checked,
+          keep_layout_blocks: document.getElementById("ocr_layout").checked
+        },
+
+        sentence_windows: {
+          window: parseInt(document.getElementById("sent_window").value || "5", 10),
+          overlap: parseInt(document.getElementById("sent_overlap").value || "0", 10)
+        },
+
+        semantic_boundaries: {
+          enable: document.getElementById("semantic_boundaries").checked,
+          threshold: parseFloat(document.getElementById("semantic_threshold").value || "0.25")
+        }
+      };
+
+      document.getElementById("chunk_config_json").value = JSON.stringify(config);
+      return config;
+    }
+
+    // very rough client-side preview to visualize sizing & section splits
+    function simulateChunking(text, cfg) {
+      if (!text || !text.trim()) return [];
+
+      // cleanup approximations
+      const bp = (cfg.cleanup.boilerplate_patterns || []).map(p => new RegExp(p, "i"));
+      const cleaned = text
+        .split(/\n+/)
+        .filter(line => !bp.some(rx => rx.test(line)))
+        .join("\n")
+        .replace(/\f/g, "\n");
+
+      // naive section split
+      const sectionRegexes = (cfg.sections.patterns || []).map(p => new RegExp(p, "im"));
+      const lines = cleaned.split(/\r?\n/);
+
+      const sections = [];
+      let cur = { title: "Body", content: [] };
+
+      function pushCur(title) {
+        if (cur && cur.content.join("\n").trim()) sections.push({ title: cur.title, text: cur.content.join("\n").trim() });
+        cur = { title, content: [] };
+      }
+
+      for (const line of lines) {
+        const hit = sectionRegexes.find(rx => rx.test(line));
+        if (hit) pushCur(line.trim().slice(0, 120));
+        cur.content.push(line);
+      }
+      pushCur(cur.title);
+
+      // chunk each section
+      const chunks = [];
+      const max = cfg.chunk_size_chars;
+      const step = Math.max(1, max - cfg.overlap_chars);
+
+      function bySentences(str) {
+        const sents = str.split(/(?<=[\.\!\?])\s+|\n+/).filter(s => s.trim().length > 0);
+        const out = [];
+        let buf = "";
+        for (const s of sents) {
+          if ((buf + " " + s).length <= max) {
+            buf = buf ? (buf + " " + s) : s;
+          } else {
+            if (buf.trim().length >= cfg.min_chunk_chars) out.push(buf.trim());
+            buf = s;
+          }
+        }
+        if (buf.trim().length >= cfg.min_chunk_chars) out.push(buf.trim());
+        return out;
+      }
+
+      function byFixed(str) {
+        const out = [];
+        for (let start = 0; start < str.length; start += step) {
+          const piece = str.slice(start, start + max);
+          if (piece.trim().length >= cfg.min_chunk_chars) out.push(piece.trim());
+        }
+        return out;
+      }
+
+      function byParagraph(str) {
+        const paras = str.split(/\n{2,}/).filter(p => p.trim().length > 0);
+        const out = [];
+        let buf = "";
+        for (const p of paras) {
+          const newBuf = buf ? (buf + "\n\n" + p) : p;
+          if (newBuf.length <= max) {
+            buf = newBuf;
+          } else {
+            if (buf.trim().length >= cfg.min_chunk_chars) out.push(buf.trim());
+            buf = p;
+          }
+        }
+        if (buf.trim().length >= cfg.min_chunk_chars) out.push(buf.trim());
+        return out;
+      }
+
+      for (const sec of sections) {
+        const body = sec.text;
+        let pieces = [];
+        const strat = cfg.split_strategy;
+        if (strat === "fixed" || strat === "section") pieces = byFixed(body);
+        else if (strat === "sentence") pieces = bySentences(body);
+        else if (strat === "paragraph") pieces = byParagraph(body);
+        else { // hybrid
+          const prelim = byParagraph(body);
+          for (const pc of prelim) {
+            if (pc.length > max * 1.25) pieces.push(...byFixed(pc));
+            else pieces.push(pc);
+          }
+        }
+
+        // attach simple metadata for preview
+        pieces.forEach((t, i) => {
+          chunks.push({
+            section: sec.title,
+            idx: i,
+            length: t.length,
+            text: t
+          });
+        });
+      }
+      return chunks;
+    }
+
+    function renderPreview(chunks) {
+      const box = document.getElementById("preview_box");
+      box.innerHTML = "";
+      if (!chunks.length) {
+        box.innerHTML = '<div class="hint" style="text-align:center; padding:1.5rem;">No chunks generated. Try pasting some sample text or adjusting settings.</div>';
+        document.getElementById("preview_count").textContent = "0";
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      chunks.forEach((c, idx) => {
+        const d = document.createElement("div");
+        d.style.border = "1px solid var(--color-border)";
+        d.style.borderRadius = "4px";
+        d.style.padding = ".75rem";
+        d.style.marginBottom = ".75rem";
+        d.style.backgroundColor = "var(--color-card-bg)";
+        d.innerHTML = `
+          <div class="hint" style="margin-bottom:.4rem; font-size:.75rem;">
+            <strong style="color:var(--color-primary);">CHUNK #${idx+1}</strong> | Sec: <em>${c.section.replace(/</g,"&lt;").slice(0,80)}</em> | Length: ${c.length}
+          </div>
+          <div>
+            ${c.text.replace(/</g,"&lt;")}
+          </div>`;
+        frag.appendChild(d);
+      });
+      box.appendChild(frag);
+      document.getElementById("preview_count").textContent = String(chunks.length);
+    }
+
+    // tokens hint and input update listener
+    const updateChunkSizeUI = () => {
+      const v = parseInt(document.getElementById("chunk_size").value, 10);
+      const lo = Math.round(v / 3);
+      const hi = Math.round(v / 2);
+      document.getElementById("chunk_size_val").textContent = v;
+      document.getElementById("chunk_size_tokens").textContent = `~${lo}–${hi}`;
+      getConfigFromUI();
+    };
+    
+    document.getElementById("chunk_size").addEventListener("input", updateChunkSizeUI);
+    document.getElementById("overlap_pct").addEventListener("input", () => {
+        document.getElementById('overlap_pct_val').textContent = document.getElementById('overlap_pct').value + '%';
+        getConfigFromUI();
+    });
+
+
+    // preset logic
+    const applyPreset = () => {
+      const p = document.getElementById("preset").value;
+      const set = (id, val) => { const el = document.getElementById(id); if (!el) return; el.value = val; el.dispatchEvent(new Event("input")); };
+      const setChk = (id, val) => { const el = document.getElementById(id); if (!el) return; el.checked = val; };
+
+      // Common settings reset
+      setChk("strip_page_numbers", false);
+      setChk("strip_headers", false);
+      setChk("strip_footers", false);
+      set("w_bs", 1.0); set("w_pl", 1.0); set("w_cf", 1.0); set("w_notes", 1.0);
+
+      if (p === "financials") {
+        set("chunk_size", 1800);
+        set("overlap_pct", 15);
+        set("split_strategy", "hybrid");
+        set("min_chunk_chars", 200);
+        setChk("strip_page_numbers", true);
+        setChk("strip_headers", true);
+        setChk("strip_footers", true);
+        set("table_mode", "preserve_cells");
+        set("sent_window", 5);
+        set("sent_overlap", 1);
+        set("w_bs", 1.3); set("w_pl", 1.3); set("w_cf", 1.15); set("w_notes", 1.1);
+      } else if (p === "balanced") {
+        set("chunk_size", 1500);
+        set("overlap_pct", 10);
+        set("split_strategy", "paragraph");
+        set("min_chunk_chars", 150);
+        set("table_mode", "as_text");
+        set("sent_window", 4);
+        set("sent_overlap", 1);
+        set("w_bs", 1.15); set("w_pl", 1.15); set("w_cf", 1.05); set("w_notes", 1.05);
+      } else if (p === "aggressive") {
+        set("chunk_size", 900);
+        set("overlap_pct", 20);
+        set("split_strategy", "sentence");
+        set("min_chunk_chars", 120);
+        set("table_mode", "ignore");
+        set("sent_window", 3);
+        set("sent_overlap", 1);
+      } else if (p === "tables") {
+        set("chunk_size", 1600);
+        set("overlap_pct", 10);
+        set("split_strategy", "hybrid");
+        set("min_chunk_chars", 150);
+        set("table_mode", "preserve_cells");
+        set("min_table_row_chars", 5);
+      }
+      updateChunkSizeUI(); // Update range display
+      getConfigFromUI(); // Save config
+    };
+    document.getElementById("reset-to-preset").addEventListener("click", applyPreset);
+    document.getElementById("preset").addEventListener("change", applyPreset);
+    applyPreset(); // initialize
+
+    // preview button
+    document.getElementById("run_preview").addEventListener("click", () => {
+      const cfg = getConfigFromUI();
+      const txt = document.getElementById("preview_text").value;
+      const chunks = simulateChunking(txt, cfg);
+      renderPreview(chunks);
+    });
+
+    // keep config current on all relevant input changes
+    ["split_strategy","min_chunk_chars","table_mode","enable_ocr","ocr_layout",
+     "section_patterns","boilerplate_patterns","sent_window","sent_overlap",
+     "semantic_boundaries","semantic_threshold","w_bs","w_pl","w_cf","w_notes",
+     "min_table_row_chars","strip_page_numbers","strip_headers","strip_footers"
+    ].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener(el.tagName === "TEXTAREA" ? "input" : (el.type === "checkbox" ? "change" : "input"), getConfigFromUI);
+    });
+
+    // --- Upload Form Logic (No Change) ---
+    function getCsrfToken() {
+      const el = document.querySelector('input[name="csrfmiddlewaretoken"]');
+      return el ? el.value : '';
+    }
+
+    const dz = document.getElementById('dropzone');
+    const fi = document.getElementById('file-input');
+    const bar = document.getElementById('bar');
+    const statusEl = document.getElementById('status');
+
+    dz.addEventListener('click', () => fi.click());
+
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('dragover'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+    dz.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dz.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        fi.files = e.dataTransfer.files;
+        dz.innerHTML = `<p>Selected: **${e.dataTransfer.files[0].name}**</p>`;
+      }
+    });
+
+    fi.addEventListener('change', (event) => {
+      if (event.target.files.length > 0) {
+        dz.innerHTML = `<p>Selected: **${event.target.files[0].name}**</p>`;
+      }
+    });
+
+    document.getElementById('upload-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      statusEl.textContent = '';
+      bar.style.width = '0%';
+
+      const file = fi.files[0];
+      if (!file) {
+        alert('Please choose a PDF file.');
+        return;
+      }
+      if (file.type !== 'application/pdf') {
+        alert('Please upload a PDF.');
+        return;
+      }
+
+      const fd = new FormData(e.target);
+      fd.set('file', file);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '{% url "ingestion_upload" %}');
+      xhr.setRequestHeader('X-CSRFToken', getCsrfToken());
+
+      xhr.upload.addEventListener('progress', (evt) => {
+        if (evt.lengthComputable) {
+          const pct = (evt.loaded / evt.total) * 100;
+          bar.style.width = pct.toFixed(0) + '%';
+        }
+      });
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const resp = JSON.parse(xhr.responseText);
+          statusEl.textContent = `Upload successful. Document ID: ${resp.document_id}, File ID: ${resp.document_file_id}`;
+          bar.style.width = '100%';
+        } else {
+          statusEl.textContent = 'Upload failed: ' + xhr.responseText;
+        }
+      };
+
+      xhr.onerror = () => statusEl.textContent = 'Network error. Check server status.';
+      xhr.send(fd);
+    });
+  </script>
+
+</div>
+{% endblock %}

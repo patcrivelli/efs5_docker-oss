@@ -1,0 +1,251 @@
+<!-- Partial: credit_decision -->
+<div id="creditDecisionModal" class="modal" style="display:none;">
+  <div class="modal-content" style="position:relative;">
+    <!-- Close / Save -->
+    <div style="position:absolute; top:10px; right:10px; display:flex; gap:10px;">
+      <button id="close-credit-decision-button"
+              class="close-button"
+              style="background-color:green; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;"
+              onclick="closeCreditDecisionModal()">Close</button>
+      <button id="save-credit-decision-button"
+              class="save-button"
+              style="background-color:blue; color:#fff; padding:10px 20px; border:none; border-radius:5px; cursor:pointer;"
+              onclick="/* optional save hook here if needed */ void 0">Save</button>
+    </div>
+
+    <h2 style="margin-top:0;">Credit Decision</h2>
+    <p style="margin:0 0 8px 0;"><strong>Transaction ID:</strong> <span id="modalTransactionID"></span></p>
+    <p style="margin:0 0 16px 0;"><strong>ABN:</strong> <span id="modalABN">—</span></p>
+    <h3 id="decisionHeadline" style="margin:10px 0 0 0;"></h3>
+
+    <div id="modalContent" style="margin-top:16px;"></div>
+
+    <div id="sales-overrides-section" style="margin-top:24px;">
+      <h3>Sales Overrides</h3>
+      <ul id="sales-overrides-item"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const PASS = "<span style='color:green; font-weight:bold;'>✔️</span>";
+  const FAIL = "<span style='color:red; font-weight:bold;'>❌</span>";
+
+  function isLikelyABN(v) {
+    return /^\d{11}$/.test(String(v || "").trim());
+  }
+
+  function findAbnForTx(txId) {
+    const row = document.querySelector(`tr[data-transaction-id="${txId}"]`);
+    return (row && row.dataset && row.dataset.abn) ? row.dataset.abn : null;
+  }
+
+  function safeArr(x) {
+    if (!x) return [];
+    return Array.isArray(x) ? x : [x];
+  }
+
+  function decide(settings, report, currentScore, threshold) {
+    // True means "switch is ON and there is data" => FAIL
+    const checks = [
+      { on: settings?.insolvencies_switch,          data: report?.insolvencies },
+      { on: settings?.payment_defaults_current_switch, data: report?.paymentDefaults },
+      { on: settings?.credit_enquiries_switch,      data: report?.mercantileEnquiries },
+      { on: settings?.court_actions_current_switch, data: report?.courtJudgements },
+      { on: settings?.ato_tax_default_switch,       data: report?.atoTaxDefault },
+      { on: settings?.payment_defaults_resolved_switch, data: report?.loans },
+      { on: settings?.credit_score_switch,          data: report?.anzsic }, // (kept from your legacy mapping)
+    ];
+
+    let requiresReview = false;
+    for (const c of checks) {
+      if (c?.on && safeArr(c?.data).length > 0 && c?.data !== "No data available") {
+        requiresReview = true; break;
+      }
+    }
+    if (settings?.credit_score_switch && currentScore != null && threshold != null) {
+      const below = Number(currentScore) < Number(threshold);
+      requiresReview = requiresReview || below;
+    }
+    return requiresReview ? "Review Required" : "Approved";
+  }
+
+  function renderTable(settings, report, overrides, scoreBlock) {
+    const creditScorePassFail = (() => {
+      const on = !!settings?.credit_score_switch;
+      if (!on) return PASS;
+      const cur = scoreBlock?.current_credit_score;
+      const th  = scoreBlock?.credit_score_threshold;
+      if (cur == null || th == null) return PASS; // if no numbers, treat as pass
+      return Number(cur) < Number(th) ? FAIL : PASS;
+    })();
+
+    const rows = [
+      { label: "Insolvencies",       on: settings?.insolvencies_switch,          data: report?.insolvencies,          ov: overrides?.Insolvencies_state },
+      { label: "Payment Defaults",   on: settings?.payment_defaults_current_switch, data: report?.paymentDefaults,    ov: overrides?.Payment_Defaults_state },
+      { label: "Mercantile Enquiries", on: settings?.credit_enquiries_switch,    data: report?.mercantileEnquiries,   ov: overrides?.Mercantile_Enquiries_state },
+      { label: "Court Judgements",   on: settings?.court_actions_current_switch, data: report?.courtJudgements,       ov: overrides?.Court_Judgements_state },
+      { label: "ATO Tax Default",    on: settings?.ato_tax_default_switch,       data: report?.atoTaxDefault,         ov: overrides?.ATO_Tax_Default_state },
+      { label: "Loans",              on: settings?.payment_defaults_resolved_switch, data: report?.loans,             ov: overrides?.Loans_state },
+      { label: "ANZSIC",             on: settings?.credit_score_switch,          data: report?.anzsic,                ov: overrides?.ANZSIC_state },
+      { label: "Credit Score",       on: null,                                   data: null,                          ov: overrides?.Credit_Score_Threshold_state, force: creditScorePassFail },
+    ].map(item => {
+      const passfail = (item.on === null)
+        ? item.force
+        : (item.on && safeArr(item.data).length > 0 && item.data !== "No data available" ? FAIL : PASS);
+      const ov = (String(item.ov || "").toLowerCase().includes("yes")) ? "Override Yes" :
+                 (String(item.ov || "") ? String(item.ov) : "Override No");
+      return `<tr>
+        <td>${item.label}</td>
+        <td>${passfail}</td>
+        <td>${ov}</td>
+      </tr>`;
+    }).join("");
+
+    return `
+      <table border="1" style="width:100%; border-collapse:collapse; text-align:left; margin-top:10px;">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Pass/Fail</th>
+            <th>Override</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+      <div style="margin-top:12px; font-size:0.95rem;">
+        <strong>Current Credit Score:</strong> ${scoreBlock?.current_credit_score ?? "N/A"} &nbsp;&nbsp;
+        <strong>Threshold:</strong> ${scoreBlock?.credit_score_threshold ?? "N/A"} &nbsp;&nbsp;
+        <strong>Switch:</strong> ${scoreBlock?.threshold_toggle === true ? "On" : "Off"}
+      </div>
+    `;
+  }
+
+  async function getJSON(url) {
+    const r = await fetch(url);
+    if (!r.ok) throw { status: r.status, body: await r.text() };
+    return r.json();
+  }
+
+  async function loadDecision(abn, txId, originator) {
+    const base = (window.urlSales ? window.urlSales("") : "/").replace(/\/+$/,""); // sanity
+    const endpoints = {
+      settings: `${base}/fetch_credit_settings/?originator=${encodeURIComponent(originator||"")}`,
+      report:   `${base}/fetch_credit_report/${encodeURIComponent(abn)}/${encodeURIComponent(txId)}`,
+      score:    `${base}/fetch_credit_score_data/${encodeURIComponent(abn)}/?originator=${encodeURIComponent(originator||"")}`,
+      overrides:`${base}/api/credit-decision/fetch_sales_override/${encodeURIComponent(txId)}/?originator=${encodeURIComponent(originator||"")}`,
+    };
+
+    let settings = {}, report = {}, score = {}, overrides = null;
+
+    // Fetch in parallel; tolerate missing overrides/report
+    const tasks = [
+      getJSON(endpoints.settings).then(j => settings = j).catch(() => {}),
+      getJSON(endpoints.score).then(j => score = j).catch(() => {}),
+      getJSON(endpoints.report).then(j => report = j).catch(err => {
+        if (err.status !== 404) throw err;
+      }),
+      getJSON(endpoints.overrides).then(j => overrides = j).catch(err => {
+        // 404 is fine (means no override yet)
+        if (err.status !== 404) console.warn("Overrides fetch:", err);
+      }),
+    ];
+    await Promise.all(tasks);
+
+    // Normalize keys the renderer expects
+    const reportNorm = {
+      insolvencies: report?.insolvencies ?? report?.report?.insolvencies ?? [],
+      paymentDefaults: report?.paymentDefaults ?? report?.report?.payment_defaults ?? [],
+      mercantileEnquiries: report?.mercantileEnquiries ?? report?.report?.mercantile_enquiries ?? [],
+      courtJudgements: report?.courtJudgements ?? report?.report?.court_judgements ?? [],
+      atoTaxDefault: report?.atoTaxDefault ?? report?.report?.ato_tax_default ?? [],
+      loans: report?.loans ?? report?.report?.loans ?? [],
+      anzsic: report?.anzsic ?? report?.report?.anzsic ?? [],
+    };
+
+    const settingsNorm = {
+      credit_score_threshold: settings?.credit_score_threshold ?? null,
+      insolvencies_switch: !!settings?.insolvencies_switch,
+      payment_defaults_current_switch: !!settings?.payment_defaults_current_switch,
+      credit_enquiries_switch: !!settings?.credit_enquiries_switch,
+      court_actions_current_switch: !!settings?.court_actions_current_switch,
+      ato_tax_default_switch: !!settings?.ato_tax_default_switch,
+      payment_defaults_resolved_switch: !!settings?.payment_defaults_resolved_switch,
+      credit_score_switch: !!settings?.credit_score_switch,
+    };
+
+    const scoreBlock = {
+      current_credit_score: score?.current_credit_score ?? null,
+      credit_score_threshold: settingsNorm.credit_score_threshold, // always prefer settings as the source of truth
+      threshold_toggle: !!score?.threshold_toggle,
+    };
+
+    // Headline decision
+    const headline = decide(settingsNorm, reportNorm, scoreBlock.current_credit_score, scoreBlock.credit_score_threshold);
+    document.getElementById("decisionHeadline").textContent = `Decision: ${headline}`;
+
+    // Table
+    const html = renderTable(settingsNorm, reportNorm, overrides, scoreBlock);
+    document.getElementById("modalContent").innerHTML = html;
+
+    // Overrides list (optional simple summary)
+    const ul = document.getElementById("sales-overrides-item");
+    ul.innerHTML = "";
+    if (overrides && !overrides.error) {
+      const items = [
+        ["Insolvencies", overrides.Insolvencies_state],
+        ["Payment Defaults", overrides.Payment_Defaults_state],
+        ["Mercantile Enquiries", overrides.Mercantile_Enquiries_state],
+        ["Court Judgements", overrides.Court_Judgements_state],
+        ["ATO Tax Default", overrides.ATO_Tax_Default_state],
+        ["Loans", overrides.Loans_state],
+        ["ANZSIC", overrides.ANZSIC_state],
+        ["Credit Score", overrides.Credit_Score_Threshold_state],
+      ];
+      items.forEach(([label, state]) => {
+        const li = document.createElement("li");
+        li.textContent = `${label}: ${state || "—"}`;
+        ul.appendChild(li);
+      });
+    } else {
+      ul.innerHTML = "<li>No Sales Overrides found for this Transaction ID</li>";
+    }
+  }
+
+  // PUBLIC: called from the table
+  window.openCreditDecisionModal = function (arg1, transactionId) {
+    const originator = (window.selected_originator || "").trim();
+    document.getElementById("creditDecisionModal").style.display = "block";
+    document.getElementById("modalTransactionID").textContent = transactionId || "—";
+
+    // Derive ABN robustly:
+    let abn = null;
+    if (isLikelyABN(arg1)) {
+      abn = String(arg1).trim();
+    } else {
+      abn = findAbnForTx(transactionId);
+    }
+    document.getElementById("modalABN").textContent = abn || "—";
+
+    // Load decision inputs + render
+    if (abn) {
+      loadDecision(abn, transactionId, originator)
+        .catch(err => {
+          console.error("Credit decision load failed:", err);
+          document.getElementById("modalContent").innerHTML =
+            `<div style="color:#a00;">Failed to load decision inputs.</div>`;
+        });
+    } else {
+      document.getElementById("modalContent").innerHTML =
+        `<div style="color:#a00;">Unable to determine ABN for this transaction.</div>`;
+    }
+  };
+
+  window.closeCreditDecisionModal = function () {
+    document.getElementById("creditDecisionModal").style.display = "none";
+  };
+})();
+</script>

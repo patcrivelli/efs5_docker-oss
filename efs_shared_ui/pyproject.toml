@@ -1,0 +1,12 @@
+[project]
+name = "efs-shared-ui"
+version = "0.1.0"
+description = "Shared sidebar/base templates and static for EFS services"
+requires-python = ">=3.10"
+dependencies = ["Django>=4.2"]
+
+[tool.setuptools.packages.find]
+include = ["efs_shared_ui*"]
+
+[tool.setuptools.package-data]
+"efs_shared_ui" = ["templates/**/*", "static/**/*"]

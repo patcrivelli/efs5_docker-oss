@@ -1,0 +1,1153 @@
+<style>
+    /* ... (The CSS remains unchanged from your previous response, it was correct) ... */
+    .modal-content {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        width: 90%;
+        max-width: 1000px;
+        margin: 5% auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        color: #333;
+    }
+
+    .modal-header .close {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #aaa;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .modal-header .close:hover { color: #555; }
+
+    .modal-body { padding: 20px 0; }
+
+    .info-bar {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 25px;
+        padding: 15px;
+        background-color: #f0f4f8;
+        border-radius: 8px;
+        border-left: 5px solid #2c3e50;
+    }
+
+    .info-bar p { margin: 0; font-size: 1rem; color: #555; }
+    .info-bar strong { color: #2c3e50; }
+
+    .task-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .task-card {
+        background-color: #f9fbfd;
+        border: 1px solid #e0e6ed;
+        border-radius: 8px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+        position: relative; /* for the switch */
+    }
+
+    .task-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .task-card h4 { margin: 0 0 15px; font-size: 1.1rem; color: #333; }
+
+    .agent-assignment { display: flex; flex-direction: column; gap: 10px; }
+    .agent-assignment label { font-weight: 600; color: #555; }
+
+    .agent-assignment select {
+        width: 100%; padding: 10px; border: 1px solid #ccc;
+        border-radius: 5px; font-size: 1rem; transition: border-color 0.2s;
+    }
+
+    .agent-assignment select:focus { border-color: #3498db; outline: none; }
+
+    .button {
+        padding: 10px 20px; border: none; border-radius: 6px;
+        font-weight: bold; cursor: pointer;
+        transition: background-color 0.2s, color 0.2s;
+    }
+
+    .run-button { background-color: #2ecc71; color: #fff; }
+    .run-button:hover { background-color: #27ae60; }
+
+    .report-section { margin-top: 40px; }
+    .report-header {
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+    }
+
+    .report-actions { display: flex; gap: 10px; }
+
+    .report-header label { font-size: 1.2rem; font-weight: 600; color: #333; }
+
+    .report-toggle-btn, .report-download-btn {
+        background: #f0f4f8; border: 1px solid #d0d8e0; border-radius: 4px;
+        padding: 4px 10px; font-size: 0.9rem; cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+
+    .report-toggle-btn:hover, .report-download-btn:hover {
+        background-color: #e0e6ed; border-color: #c0c8d0;
+    }
+
+    .report-download-btn { background-color: #3498db; color: #fff; border: 1px solid #2980b9; }
+    .report-download-btn:hover { background-color: #2980b9; }
+
+    .report-section textarea {
+        width: 100%; min-height: 150px; max-height: 80vh; height: auto;
+        padding: 15px; border: 1px solid #ccc; border-radius: 8px;
+        font-size: 1rem; font-family: inherit; resize: vertical;
+        overflow-y: auto; line-height: 1.5; transition: all 0.3s ease-in-out;
+    }
+
+
+
+
+/* NEW STYLES: GLOBAL SWITCH POSITIONING */
+.modal-header-controls {
+        display: flex;
+        align-items: center;
+        gap: 20px; /* Space between the switch group and the Run button */
+    }
+    
+    .global-linked-entities-toggle {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        /* Ensure the toggle is visually distinct but doesn't break header alignment */
+    }
+
+    .global-linked-entities-toggle .toggle-label {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #555;
+        white-space: nowrap;
+    }
+
+    /* Keep existing toggle-switch, slider styles */
+    /* .toggle-switch { position: relative; display: inline-block; width: 45px; height: 25px; } */
+    
+    /* MODIFIED .modal-header to accommodate the new layout */
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 20px;
+    }
+
+
+
+
+
+  /* Rendered (formatted) report */
+  .report-html {
+    width: 100%;
+    max-height: 80vh;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background: #fff;
+    overflow: auto;
+    line-height: 1.4;
+  }
+
+  .report-html table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.95rem;
+  }
+  .report-html th, .report-html td {
+    border: 1px solid #e0e6ed;
+    padding: 8px 10px;
+    vertical-align: top;
+  }
+  .report-html thead th {
+    background: #f7f9fc;
+    font-weight: 600;
+  }
+  .report-html pre {
+    white-space: pre-wrap;
+    margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.95rem;
+  }
+
+
+
+
+
+    /* Switch styling */
+    .toggle-switch-container {
+        position: absolute; top: 15px; right: 15px; display: flex; align-items: center;
+    }
+
+    .toggle-switch { position: relative; display: inline-block; width: 45px; height: 25px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+        position: absolute; cursor: pointer; inset: 0;
+        background-color: #ccc; transition: .4s; border-radius: 25px;
+    }
+
+    .slider:before {
+        position: absolute; content: ""; height: 19px; width: 19px;
+        left: 3px; bottom: 3px; background-color: #fff; transition: .4s; border-radius: 50%;
+    }
+
+    input:checked + .slider { background-color: #2ecc71; }
+    input:checked + .slider:before { transform: translateX(20px); }
+
+    /* Disabled state styling: keep toggle clickable */
+    .task-card.disabled { opacity: 0.6; }
+    .task-card.disabled .agent-assignment select {
+        background-color: #e9ecef; border-color: #ced4da; cursor: not-allowed;
+    }
+
+
+
+
+
+
+
+
+    .report-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 8px 0 12px;
+      background: #f9fbfd;
+      border: 1px solid #e0e6ed;
+      border-radius: 6px;
+      padding: 6px;
+    }
+
+    .report-toolbar button {
+      border: 1px solid #d0d8e0;
+      background: #fff;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    .report-toolbar button:hover {
+      background: #f0f4f8;
+    }
+
+    .report-toolbar .divider {
+      width: 1px;
+      background: #e0e6ed;
+      margin: 0 4px;
+    }
+
+    .report-html.editing {
+      outline: 2px dashed #3498db;
+    }
+
+</style>
+
+<div class="modal-content">
+  <div class="modal-header">
+      <h2>Analysis for Transaction {{ tx }}</h2>
+      
+      <div class="modal-header-controls">
+          
+          <div class="global-linked-entities-toggle">
+              <label class="toggle-label">Include linked entities</label>
+              <label class="toggle-switch">
+                  <input type="checkbox" id="global-linked-entities-switch">
+                  <span class="slider"></span>
+              </label>
+          </div>
+          
+          <button id="run-agent-button" class="button run-button">Run</button>
+      </div>
+  </div>
+
+  <div class="modal-body">
+      <div class="info-bar"
+      data-abn="{{ abn|default:''|escapejs }}"
+      data-tx="{{ tx|default:''|escapejs }}">
+     <p><strong>ABN:</strong> {{ abn }}</p>
+     <p><strong>Transaction ID:</strong> <span id="tx-span">{{ tx }}</span></p>
+  </div>
+
+  <div class="task-grid">
+
+    <!-- agent-1: data_checklist -->
+    <div class="task-card">
+      <div class="toggle-switch-container">
+        <label class="toggle-switch">
+          <input type="checkbox" data-toggle-for="agent-1">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <h4>Data Checklist</h4>
+      <div class="agent-assignment">
+        <label for="agent-1">Assign Agent:</label>
+        <select id="agent-1" name="assigned_agent">
+          <option value="">-- Select Agent --</option>
+          {% for agent in saved_agents %}
+            <option value="{{ agent.id }}">{{ agent.bot_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  
+    <!-- agent-2: financial -->
+    <div class="task-card">
+      <div class="toggle-switch-container">
+        <label class="toggle-switch">
+          <input type="checkbox" data-toggle-for="agent-2">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <h4>Financial Statements Data</h4>
+      <div class="agent-assignment">
+        <label for="agent-2">Assign Agent:</label>
+        <select id="agent-2" name="assigned_agent">
+          <option value="">-- Select Agent --</option>
+          {% for agent in saved_agents %}
+            <option value="{{ agent.id }}">{{ agent.bot_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  
+    <!-- agent-3: bureau -->
+    <div class="task-card">
+      <div class="toggle-switch-container">
+        <label class="toggle-switch">
+          <input type="checkbox" data-toggle-for="agent-3">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <h4>Credit Bureau Data</h4>
+      <div class="agent-assignment">
+        <label for="agent-3">Assign Agent:</label>
+        <select id="agent-3" name="assigned_agent">
+          <option value="">-- Select Agent --</option>
+          {% for agent in saved_agents %}
+            <option value="{{ agent.id }}">{{ agent.bot_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  
+    <!-- agent-4: ppsr -->
+    <div class="task-card">
+      <div class="toggle-switch-container">
+        <label class="toggle-switch">
+          <input type="checkbox" data-toggle-for="agent-4">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <h4>PPSR Data</h4>
+      <div class="agent-assignment">
+        <label for="agent-4">Assign Agent:</label>
+        <select id="agent-4" name="assigned_agent">
+          <option value="">-- Select Agent --</option>
+          {% for agent in saved_agents %}
+            <option value="{{ agent.id }}">{{ agent.bot_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  
+    <!-- agent-5: bank -->
+    <div class="task-card">
+      <div class="toggle-switch-container">
+        <label class="toggle-switch">
+          <input type="checkbox" data-toggle-for="agent-5">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <h4>Bank Statements Data</h4>
+      <div class="agent-assignment">
+        <label for="agent-5">Assign Agent:</label>
+        <select id="agent-5" name="assigned_agent">
+          <option value="">-- Select Agent --</option>
+          {% for agent in saved_agents %}
+            <option value="{{ agent.id }}">{{ agent.bot_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  
+    <!-- agent-6: compliance -->
+    <div class="task-card">
+      <div class="toggle-switch-container">
+        <label class="toggle-switch">
+          <input type="checkbox" data-toggle-for="agent-6">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <h4>Compliance</h4>
+      <div class="agent-assignment">
+        <label for="agent-6">Assign Agent:</label>
+        <select id="agent-6" name="assigned_agent">
+          <option value="">-- Select Agent --</option>
+          {% for agent in saved_agents %}
+            <option value="{{ agent.id }}">{{ agent.bot_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  
+    <!-- agent-7: net_asset_value -->
+    <div class="task-card">
+      <div class="toggle-switch-container">
+        <label class="toggle-switch">
+          <input type="checkbox" data-toggle-for="agent-7">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <h4>Net Asset Value</h4>
+      <div class="agent-assignment">
+        <label for="agent-7">Assign Agent:</label>
+        <select id="agent-7" name="assigned_agent">
+          <option value="">-- Select Agent --</option>
+          {% for agent in saved_agents %}
+            <option value="{{ agent.id }}">{{ agent.bot_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  
+    <!-- agent-8: deal_workshop -->
+    <div class="task-card">
+      <div class="toggle-switch-container">
+        <label class="toggle-switch">
+          <input type="checkbox" data-toggle-for="agent-8">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <h4>Deal Workshop</h4>
+      <div class="agent-assignment">
+        <label for="agent-8">Assign Agent:</label>
+        <select id="agent-8" name="assigned_agent">
+          <option value="">-- Select Agent --</option>
+          {% for agent in saved_agents %}
+            <option value="{{ agent.id }}">{{ agent.bot_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  
+    <!-- agent-9: initial_offer -->
+    <div class="task-card">
+      <div class="toggle-switch-container">
+        <label class="toggle-switch">
+          <input type="checkbox" data-toggle-for="agent-9">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <h4>Initial Offer</h4>
+      <div class="agent-assignment">
+        <label for="agent-9">Assign Agent:</label>
+        <select id="agent-9" name="assigned_agent">
+          <option value="">-- Select Agent --</option>
+          {% for agent in saved_agents %}
+            <option value="{{ agent.id }}">{{ agent.bot_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  
+  </div>
+  
+
+
+
+
+
+  <div class="report-actions">
+    <button id="toggle-edit" class="report-toggle-btn" type="button" disabled>Enable editing</button>
+    <button id="download-pdf" class="report-download-btn" type="button">Download PDF</button>
+    <button id="toggle-report-view" class="report-toggle-btn" type="button">Formatted view</button>
+    <button id="agents-btn" class="report-toggle-btn" type="button">Agents</button>
+  
+    <!-- NEW -->
+    <button id="save-report" class="report-toggle-btn" type="button">Save</button>
+    <span id="save-status" style="font-size:0.9rem;color:#555;align-self:center;"></span>
+  </div>
+      
+      <div id="report-toolbar" class="report-toolbar" hidden>
+        <button data-cmd="bold" type="button" title="Bold"><b>B</b></button>
+        <button data-cmd="italic" type="button" title="Italic"><i>I</i></button>
+        <button data-cmd="underline" type="button" title="Underline"><u>U</u></button>
+        <span class="divider"></span>
+        <button data-format="h1" type="button" title="Heading 1">H1</button>
+        <button data-format="h2" type="button" title="Heading 2">H2</button>
+        <button data-format="p"  type="button" title="Paragraph">P</button>
+        <span class="divider"></span>
+        <button data-cmd="insertUnorderedList" type="button" title="Bulleted List">• List</button>
+        <button data-cmd="insertOrderedList"  type="button" title="Numbered List">1. List</button>
+        <span class="divider"></span>
+        <button data-cmd="undo"  type="button" title="Undo">↶</button>
+        <button data-cmd="redo"  type="button" title="Redo">↷</button>
+        <span class="divider"></span>
+        <button id="clear-formatting" type="button" title="Clear formatting">Clear</button>
+      </div>
+
+              <div class="report-section" id="report-section">
+        <textarea id="agent-report" name="agent_report"
+                  placeholder="AI agent’s analysis will appear here..."></textarea>
+
+        <div id="agent-report-html" class="report-html" hidden></div>
+      </div>
+      
+  </div>
+</div>
+
+
+<script>
+  const GENERATE_URL = "{% url 'efs_agents:agents_generate_report' %}";
+
+  // ✅ Browser should call efs_sales (BFF), not efs_agents directly
+  const SAVE_MEMORY_URL = "/sales/save-agent-memory/";
+</script>
+
+
+<script>
+  // These should already be defined above this script:
+  // const GENERATE_URL = "{% url 'efs_agents:agents_generate_report' %}";
+  // const SAVE_MEMORY_URL = "/sales/save-agent-memory/";
+
+  function initTasksModal(root) {
+    "use strict";
+    if (!root) return;
+
+    // -----------------------------
+    // Core DOM refs
+    // -----------------------------
+    const runButton      = root.querySelector("#run-agent-button");
+    const reportTextarea = root.querySelector("#agent-report");
+    const reportHtml     = root.querySelector("#agent-report-html");
+    const toggleBtn      = root.querySelector("#toggle-report-view");
+    const taskCards      = root.querySelectorAll(".task-card");
+
+    const editBtn        = root.querySelector("#toggle-edit");
+    const toolbar        = root.querySelector("#report-toolbar");
+    const pdfBtn         = root.querySelector("#download-pdf");
+
+    let isEditing = false;
+
+    // -----------------------------
+    // Helpers
+    // -----------------------------
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(";").shift();
+      return "";
+    }
+
+    function looksLikeUUID(v) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test((v || "").trim());
+    }
+
+    function getParam(name) {
+      const m = new RegExp(`[?&]${name}=([^&]*)`).exec(window.location.search);
+      return m ? decodeURIComponent(m[1]) : "";
+    }
+
+    // -----------------------------
+    // Compute ABN + TX ONCE (fixes "abn is not defined")
+    // -----------------------------
+    const infoBar = root.querySelector(".info-bar");
+
+    const abnDigits = (() => {
+      const raw = (infoBar?.dataset?.abn || "").normalize("NFKC");
+      // keep digits only
+      return raw.replace(/\D+/g, "");
+    })();
+
+    let txId = (() => {
+      // prefer dataset
+      let v = (infoBar?.dataset?.tx || "").normalize("NFKC").trim();
+      if (looksLikeUUID(v)) return v;
+
+      // then span
+      const spanVal = (root.querySelector("#tx-span")?.textContent || "").trim();
+      if (looksLikeUUID(spanVal)) return spanVal;
+
+      // then querystring
+      const q = getParam("tx");
+      if (looksLikeUUID(q)) return q;
+
+      return "";
+    })();
+
+    // ensure tx-span displays something
+    const txSpan = root.querySelector("#tx-span");
+    if (txSpan && !txSpan.textContent.trim()) txSpan.textContent = txId || "—";
+
+    // -----------------------------
+    // Kind mapping
+    // -----------------------------
+    const kindMap = {
+      "agent-1": "data_checklist",
+      "agent-2": "financial",
+      "agent-3": "bureau",
+      "agent-4": "ppsr",
+      "agent-5": "bank",
+      "agent-6": "compliance",
+      "agent-7": "net_asset_value",
+      "agent-8": "deal_workshop",
+      "agent-9": "initial_offer"
+    };
+
+    // -----------------------------
+    // Render text -> HTML and HTML -> text
+    // -----------------------------
+    function renderReportToHtml(text) {
+      const blocks = String(text || "").split(/\n{2,}/);
+      const frag = document.createDocumentFragment();
+
+      const tableish = (lines) => {
+        const withPipes = lines.filter(l => /\|/.test(l));
+        if (withPipes.length < 2) return false;
+        const counts = withPipes.map(l => l.split("|").length);
+        const mode = counts.slice().sort((a,b)=>a-b)[Math.floor(counts.length/2)];
+        const agree = counts.filter(c => c === mode).length / counts.length;
+        return agree >= 0.6;
+      };
+
+      const toRowCells = (line) => line.split("|").map(c => c.trim());
+
+      blocks.forEach(block => {
+        const lines = block.split("\n").map(l => l.replace(/\s+$/,""));
+        if (tableish(lines)) {
+          const headerIdx = lines.findIndex(l => /\|/.test(l) && l.trim());
+          const headerCells = toRowCells(lines[headerIdx]);
+          const tbodyLines = lines.slice(headerIdx + 1).filter(l => l.trim() && /\|/.test(l));
+
+          const table = document.createElement("table");
+          const thead = document.createElement("thead");
+          const trh = document.createElement("tr");
+          headerCells.forEach(h => {
+            const th = document.createElement("th");
+            th.textContent = h;
+            trh.appendChild(th);
+          });
+          thead.appendChild(trh);
+          table.appendChild(thead);
+
+          const tbody = document.createElement("tbody");
+          tbodyLines.forEach(l => {
+            const tr = document.createElement("tr");
+            toRowCells(l).forEach(cell => {
+              const td = document.createElement("td");
+              td.textContent = cell;
+              tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+          });
+          table.appendChild(tbody);
+
+          frag.appendChild(table);
+        } else {
+          const pre = document.createElement("pre");
+          pre.textContent = block;
+          frag.appendChild(pre);
+        }
+      });
+
+      if (reportHtml) {
+        reportHtml.innerHTML = "";
+        reportHtml.appendChild(frag);
+      }
+    }
+
+    function htmlToRawText(el) {
+      if (!el) return "";
+      const clone = el.cloneNode(true);
+
+      clone.querySelectorAll("table").forEach(table => {
+        const rows = [];
+        const headRow = table.querySelectorAll("thead tr th");
+        if (headRow.length) {
+          rows.push(Array.from(headRow).map(th => th.textContent.trim()).join(" | "));
+        }
+        table.querySelectorAll("tbody tr").forEach(tr => {
+          const cells = Array.from(tr.children).map(td => td.textContent.trim());
+          rows.push(cells.join(" | "));
+        });
+        const pre = document.createElement("pre");
+        pre.textContent = rows.join("\n");
+        table.replaceWith(pre);
+      });
+
+      clone.querySelectorAll("br").forEach(br => br.replaceWith("\n"));
+
+      const blockTags = new Set(["P","DIV","H1","H2","H3","H4","H5","H6","LI","PRE"]);
+      function textWalk(node) {
+        let out = "";
+        node.childNodes.forEach(n => {
+          if (n.nodeType === Node.TEXT_NODE) {
+            out += n.nodeValue;
+          } else if (n.nodeType === Node.ELEMENT_NODE) {
+            const before = blockTags.has(n.tagName) ? "\n" : "";
+            const inner = textWalk(n);
+            const after  = blockTags.has(n.tagName) ? "\n" : "";
+            out += before + inner + after;
+          }
+        });
+        return out;
+      }
+      return textWalk(clone).replace(/\n{3,}/g, "\n\n").trim();
+    }
+
+    // -----------------------------
+    // View toggle (raw <-> formatted)
+    // -----------------------------
+    function toggleEditing(enable) {
+      isEditing = !!enable;
+      if (reportHtml) {
+        reportHtml.contentEditable = isEditing ? "true" : "false";
+        reportHtml.classList.toggle("editing", isEditing);
+      }
+      if (toolbar) toolbar.hidden = !isEditing;
+      if (editBtn) editBtn.textContent = isEditing ? "Disable editing" : "Enable editing";
+    }
+
+    function setView(mode) {
+      const showFormatted = mode === "formatted";
+      if (reportHtml) reportHtml.hidden = !showFormatted;
+      if (reportTextarea) reportTextarea.hidden = showFormatted;
+      if (toggleBtn) toggleBtn.textContent = showFormatted ? "Raw text view" : "Formatted view";
+
+      if (editBtn) editBtn.disabled = !showFormatted;
+
+      if (showFormatted) {
+        renderReportToHtml(reportTextarea?.value || "");
+      } else {
+        if (isEditing && reportHtml) {
+          const raw = htmlToRawText(reportHtml);
+          if (raw) reportTextarea.value = raw;
+        }
+        if (isEditing) toggleEditing(false);
+      }
+    }
+
+    toggleBtn?.addEventListener("click", () => {
+      setView(reportHtml?.hidden ? "formatted" : "raw");
+    });
+
+    reportTextarea?.addEventListener("input", () => {
+      if (reportHtml && !reportHtml.hidden) renderReportToHtml(reportTextarea.value);
+    });
+
+    editBtn?.addEventListener("click", () => {
+      if (reportHtml?.hidden) setView("formatted");
+      toggleEditing(!isEditing);
+    });
+
+    toolbar?.addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      const cmd = btn.dataset.cmd;
+      const fmt = btn.dataset.format;
+      if (cmd) { document.execCommand(cmd, false, null); return; }
+      if (fmt) {
+        const block = fmt === "p" ? "P" : fmt.toUpperCase();
+        document.execCommand("formatBlock", false, block);
+      }
+    });
+
+    root.querySelector("#clear-formatting")?.addEventListener("click", () => {
+      const sel = window.getSelection?.();
+      if (!sel || !sel.rangeCount) return;
+      const range = sel.getRangeAt(0);
+      const text = range.toString();
+      range.deleteContents();
+      range.insertNode(document.createTextNode(text));
+    });
+
+    // -----------------------------
+    // PDF Download
+    // -----------------------------
+    pdfBtn?.addEventListener("click", async () => {
+      if (reportHtml?.hidden) setView("formatted");
+      try {
+        if (window.html2pdf) {
+          const opt = {
+            margin: 10,
+            filename: `analysis-${(txSpan?.textContent || "report").trim()}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+          };
+          await window.html2pdf().set(opt).from(reportHtml).save();
+        } else {
+          const w = window.open("", "_blank");
+          if (!w) return;
+          w.document.write(`
+            <html>
+              <head>
+                <title>Report</title>
+                <style>
+                  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; padding: 16px; }
+                  ${document.querySelector("style")?.innerHTML || ""}
+                </style>
+              </head>
+              <body>${reportHtml.outerHTML}</body>
+            </html>
+          `);
+          w.document.close();
+          w.focus();
+          w.print();
+          w.close();
+        }
+      } catch (err) {
+        alert("Could not generate PDF: " + (err?.message || err));
+      }
+    });
+
+    // -----------------------------
+    // Tile toggle enable/disable
+    // -----------------------------
+    taskCards.forEach(card => {
+      const toggleSwitch = card.querySelector('input[type="checkbox"][data-toggle-for]');
+      const agentSelect  = card.querySelector('select[id^="agent-"]');
+
+      if (toggleSwitch && !toggleSwitch.checked) {
+        card.classList.add("disabled");
+        if (agentSelect) agentSelect.disabled = true;
+      }
+
+      toggleSwitch?.addEventListener("change", function () {
+        const isEnabled = this.checked;
+        card.classList.toggle("disabled", !isEnabled);
+        if (agentSelect) {
+          agentSelect.disabled = !isEnabled;
+          if (!isEnabled) agentSelect.value = "";
+        }
+      });
+    });
+
+    // -----------------------------
+    // RUN button (data collection)
+    // -----------------------------
+    if (!runButton || !reportTextarea) return;
+
+    const RUN_AGENT_URL = "/run-agent-analysis/";
+
+    runButton.addEventListener("click", async () => {
+      if (!reportHtml?.hidden && isEditing) {
+        const raw = htmlToRawText(reportHtml);
+        if (raw) reportTextarea.value = raw;
+        toggleEditing(false);
+      }
+
+      reportTextarea.value = "⏳ Running agents...\n";
+
+      const tasksToRun = [];
+      root.querySelectorAll(".task-card").forEach(card => {
+        const dropdown = card.querySelector('select[id^="agent-"]');
+        const toggle   = card.querySelector('input[type="checkbox"][data-toggle-for]');
+        if (!dropdown || !toggle) return;
+        if (!toggle.checked) return;
+        if (!dropdown.value) return;
+
+        const dropdownId = dropdown.id;
+        const label = card.querySelector("h4")?.innerText?.trim() || `Ticket ${dropdownId}`;
+        const kind  = kindMap[dropdownId] || "";
+        if (!kind) return;
+
+        tasksToRun.push({
+          agent_id: dropdown.value,
+          endpoint: RUN_AGENT_URL,
+          ticket_label: label,
+          kind,
+        });
+      });
+
+      if (tasksToRun.length === 0) {
+        alert("Please enable at least one tile and select an agent.");
+        reportTextarea.value = "";
+        return;
+      }
+
+      const needsTx = tasksToRun.some(t => t.kind === "ppsr");
+      const txOK    = looksLikeUUID(txId);
+      const abnOK   = (abnDigits || "").length === 11;
+
+      if (needsTx && !txOK) {
+        alert("❌ PPSR requires a valid Transaction ID.");
+        reportTextarea.value = "❌ Error: PPSR requires a valid TX.";
+        return;
+      }
+      if (!txOK && !abnOK) {
+        alert("❌ Provide a valid ABN or Transaction ID.");
+        reportTextarea.value = "❌ Error: Need ABN or TX.";
+        return;
+      }
+
+      reportTextarea.value = `⏳ Running ${tasksToRun.length} task(s) sequentially...\n\n`;
+
+      const includeLinked = !!root.querySelector("#global-linked-entities-switch")?.checked;
+
+      for (const task of tasksToRun) {
+        try {
+          const resp = await fetch(task.endpoint, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({
+              // NOTE: agent_id is ignored by backend for Run, but ok to send
+              agent_id: task.agent_id,
+              ticket_label: task.ticket_label,
+              kind: task.kind,
+              abn: abnDigits,
+              transaction_id: txId,
+              include_linked_entities: includeLinked,
+              include_bank_statements_data: task.kind === "bank",
+            }),
+          });
+
+          if (!resp.ok) {
+            const text = await resp.text();
+            reportTextarea.value += `❌ ${task.ticket_label} failed: HTTP ${resp.status}: ${text}\n\n`;
+            continue;
+          }
+
+          const data = await resp.json();
+          const block = data.report || ("⚠️ " + (data.error || "Unknown error"));
+          reportTextarea.value += `${block}\n\n`;
+        } catch (e) {
+          reportTextarea.value += `❌ ${task.ticket_label} failed: ${(e && e.message) || e}\n\n`;
+        }
+      }
+
+      if (reportHtml && !reportHtml.hidden) {
+        renderReportToHtml(reportTextarea.value);
+      }
+    });
+
+    // -----------------------------
+    // AGENTS button (LLM report)
+    // -----------------------------
+    const agentsBtn = root.querySelector("#agents-btn");
+    agentsBtn?.addEventListener("click", async () => {
+      if (!reportHtml?.hidden && isEditing) {
+        const raw = htmlToRawText(reportHtml);
+        if (raw) reportTextarea.value = raw;
+        toggleEditing(false);
+      }
+
+      const baseReport = (reportTextarea?.value || "").trim();
+      if (!baseReport) {
+        alert("Run or paste content into the Report area first.");
+        return;
+      }
+
+      const includeLinked = !!root.querySelector("#global-linked-entities-switch")?.checked;
+
+      const txOK  = looksLikeUUID(txId);
+      const abnOK = (abnDigits || "").length === 11;
+      if (!txOK && !abnOK) {
+        alert("❌ Provide a valid ABN or Transaction ID.");
+        return;
+      }
+
+      // OPTIONAL: choose an agent_id to drive persona + memory.
+      // Here we pick the first enabled+selected tile’s agent_id if available; else null.
+      let reportAgentId = null;
+      for (const card of root.querySelectorAll(".task-card")) {
+        const dropdown = card.querySelector('select[id^="agent-"]');
+        const toggle   = card.querySelector('input[type="checkbox"][data-toggle-for]');
+        if (toggle?.checked && dropdown?.value) {
+          reportAgentId = dropdown.value;
+          break;
+        }
+      }
+
+      reportTextarea.value = "⏳ Generating polished credit report...";
+      if (reportHtml && !reportHtml.hidden) renderReportToHtml(reportTextarea.value);
+
+      try {
+        const resp = await fetch(GENERATE_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({
+            abn: abnDigits,
+            transaction_id: txId,
+            report: baseReport,
+            include_linked_entities: includeLinked,
+            agent_id: reportAgentId,          // ✅ will enable persona + memory if you implemented it
+            kind: "credit_report",
+            ticket_label: "Credit Report",
+            // debug_memory: true,            // uncomment if your backend supports debug return
+          }),
+        });
+
+        if (!resp.ok) {
+          const text = await resp.text();
+          reportTextarea.value = `❌ Failed to generate report: HTTP ${resp.status}: ${text}`;
+        } else {
+          const payload = await resp.json();
+          reportTextarea.value = (payload.report || "").trim() || "⚠️ Model returned no content.";
+        }
+      } catch (e) {
+        reportTextarea.value = `❌ Error generating report: ${(e && e.message) || e}`;
+      }
+
+      if (reportHtml && !reportHtml.hidden) renderReportToHtml(reportTextarea.value);
+    });
+
+    // -----------------------------
+    // SAVE button (delegated)
+    // -----------------------------
+    root.addEventListener("click", async (e) => {
+      const saveBtn = e.target.closest("#save-report");
+      if (!saveBtn) return;
+      e.preventDefault();
+
+      const saveStatus = root.querySelector("#save-status");
+      if (saveStatus) saveStatus.textContent = "Saving…";
+
+      const reportText = (() => {
+        if (reportHtml && !reportHtml.hidden) return (htmlToRawText(reportHtml) || "").trim();
+        return (reportTextarea?.value || "").trim();
+      })();
+
+      if (!reportText) {
+        if (saveStatus) saveStatus.textContent = "";
+        alert("Nothing to save — the Report area is empty.");
+        return;
+      }
+
+      // pick a tile (agent/kind/label)
+      const tiles = [];
+      root.querySelectorAll(".task-card").forEach(card => {
+        const dropdown = card.querySelector('select[id^="agent-"]');
+        const toggle   = card.querySelector('input[type="checkbox"][data-toggle-for]');
+        if (!dropdown || !toggle) return;
+        if (!toggle.checked) return;
+        if (!dropdown.value) return;
+
+        const dropdownId = dropdown.id;
+        const label = card.querySelector("h4")?.innerText?.trim() || dropdownId;
+        const k = kindMap[dropdownId] || "general";
+        tiles.push({ ticket_label: label, kind: k, agent_id: dropdown.value });
+      });
+
+      if (tiles.length === 0) {
+        if (saveStatus) saveStatus.textContent = "";
+        alert("To save memory, enable at least one tile and select an agent.");
+        return;
+      }
+
+      let chosen = tiles[0];
+      if (tiles.length > 1) {
+        const opts = tiles.map((t, i) => `${i + 1}) ${t.ticket_label} (${t.kind})`).join("\n");
+        const pick = prompt(
+          `Multiple tasks are enabled.\nWhich one should this Save be recorded under?\n\n${opts}\n\nEnter number:`,
+          "1"
+        );
+        const idx = parseInt(pick || "1", 10) - 1;
+        if (Number.isNaN(idx) || idx < 0 || idx >= tiles.length) {
+          if (saveStatus) saveStatus.textContent = "";
+          alert("Save cancelled (no task selected).");
+          return;
+        }
+        chosen = tiles[idx];
+      }
+
+      const txOK  = looksLikeUUID(txId);
+      const abnOK = (abnDigits || "").length === 11;
+      if (!txOK && !abnOK) {
+        if (saveStatus) saveStatus.textContent = "";
+        alert("❌ Provide a valid ABN or Transaction ID before saving.");
+        return;
+      }
+
+      saveBtn.disabled = true;
+
+      try {
+        const resp = await fetch(SAVE_MEMORY_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({
+            agent_id: chosen.agent_id,
+            kind: chosen.kind,
+            ticket_label: chosen.ticket_label,
+            abn: abnDigits,
+            transaction_id: txId,
+            input_text: "",
+            output_text: reportText,
+            source: "ui_save_button",
+            include_linked_entities: !!root.querySelector("#global-linked-entities-switch")?.checked,
+          }),
+        });
+
+        if (!resp.ok) {
+          const text = await resp.text();
+          throw new Error(`HTTP ${resp.status}: ${text}`);
+        }
+
+        if (saveStatus) saveStatus.textContent = "Saved ✅";
+        setTimeout(() => { if (saveStatus) saveStatus.textContent = ""; }, 2500);
+      } catch (err) {
+        if (saveStatus) saveStatus.textContent = "";
+        alert("Save failed: " + ((err && err.message) || err));
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    // initial edit button state
+    if (editBtn) editBtn.disabled = true;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const modalRoot = document.querySelector(".modal-content");
+    initTasksModal(modalRoot);
+  });
+</script>
+  
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const modalRoot = document.querySelector(".modal-content");
+    initTasksModal(modalRoot);
+  });
+</script>
+
+

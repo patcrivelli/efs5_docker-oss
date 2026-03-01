@@ -1,0 +1,811 @@
+{% load static %}
+
+<!-- Inside your base.html -->
+{% if request.user.is_authenticated %}
+  <div style="position:fixed; top:14px; left:14px; color:#333; font-weight:600;">
+    👤 {{ request.user.username }}
+  </div>
+  <input type="hidden" id="currentUsername" value="{{ request.user.username }}">
+{% endif %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}Client App{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <style>
+    :root{
+      --sidebar-w: 260px;              /* expanded width */
+      --sidebar-w-collapsed: 60px;     /* ~1cm like your snippet */
+      --bg: #333;                      /* sidebar background */
+      --bg-hover: #444;                /* hover background */
+      --bg-hover-strong: #555;         /* stronger hover (buttons) */
+      --fg: #ffffff;                   /* text color */
+      --accent: #9fd0ff;               /* link color in content */
+      --border: #555;                  /* divider */
+      --toggle: #28a745;               /* green toggle */
+      --toggle-hover: #218838;
+    }
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; margin:0; }
+    body{
+      font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      color:#111; background:#fff;
+    }
+
+    .shell{ display:flex; min-height:100vh; }
+
+    /* SIDEBAR */
+    .sidebar{
+      width: var(--sidebar-w);
+      background: var(--bg);
+      color: var(--fg);
+      border-right: 1px solid var(--border);
+      position: sticky; top: 0; height: 100vh;
+      padding: 12px 8px 16px;
+      display:flex; flex-direction:column; gap: 12px;
+      transition: width .3s ease-in-out;
+      overflow: hidden;
+      padding-top: 60px; /* room like your snippet */
+    }
+    .sidebar.collapsed{ width: var(--sidebar-w-collapsed); }
+
+    .brand{ display:flex; align-items:center; gap:10px; padding:8px; border-radius:8px; white-space:nowrap; overflow:hidden; }
+    .brand .logo{ width:24px; height:24px; display:grid; place-items:center; background:#3b82f6; color:#fff; border-radius:6px; font-weight:700; }
+    .brand .label{ font-weight:600; }
+
+    /* toggle button */
+    .toggle{
+      appearance:none; border:none;
+      background: var(--toggle); color:#fff;
+      border-radius:8px; padding:10px; cursor:pointer; width:100%;
+      transition: background .2s ease;
+      text-align:left;
+    }
+    .toggle:hover{ background: var(--toggle-hover); }
+    .sidebar.collapsed .toggle span{ display:none; }
+
+    nav{ display:flex; flex-direction:column; gap:6px; }
+    .nav-link{
+      display:flex; align-items:center; gap:10px;
+      padding:10px 8px; border-radius:8px; text-decoration:none;
+      color: var(--fg);
+      transition: background .2s ease;
+    }
+    .nav-link:hover{ background: var(--bg-hover); }
+    .label{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .sidebar.collapsed .label{ display:none; }
+    .sidebar.collapsed .nav-link{ justify-content:center; }
+
+    /* MAIN */
+    .main{ flex:1; min-width:0; padding:24px; }
+    .main a{ color: var(--accent); }
+
+    /* Professional mono icons */
+.icon svg{
+  width:20px;height:20px;
+  stroke: currentColor;
+  stroke-width:1.8;
+  fill:none;
+}
+.icon svg.fill { fill: currentColor; stroke: none; } /* for filled shapes when needed */
+
+
+
+
+/* upload files Modal base */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.6);
+  padding-top: 60px;
+}
+
+/* Modal card */
+.modal-content {
+  background-color: #fff;
+  margin: auto;
+  padding: 30px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  width: 90%;
+  max-width: 450px;
+  position: relative;
+}
+
+.modal-content h3 {
+  margin: 0 0 25px 0;
+  font-size: 1.8em;
+  font-weight: 600;
+  text-align: center;
+  color: #333;
+}
+
+.modal-content label {
+  display: block;
+  font-size: 0.95em;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+.modal-content select,
+.modal-content input[type="text"],
+.modal-content input[type="file"] {
+  width: calc(100% - 20px);
+  padding: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+
+/* Buttons */
+.submit-upload-button {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  background-color: #007bff;
+  color: white;
+  font-size: 1.1em;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.2s ease;
+}
+.submit-upload-button:hover { background-color: #0056b3; }
+
+/* Close (X) */
+.close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 2em;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+.close:hover { color: #333; }
+
+/* Trigger button */
+.upload-modal-button {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+.upload-modal-button:hover {
+  background-color: #5a6268;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Custom file label */
+.file-upload-label {
+  display: inline-block;
+  background-color: #f0f0f0;
+  color: #333;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  transition: background-color 0.2s ease;
+}
+.file-upload-label:hover { background-color: #e2e2e2; }
+
+#file-name-display {
+  font-style: italic;
+  color: #666;
+}
+
+/* === Top-right Upload button + modal === */
+.upload-fab{
+  position: fixed; top: 14px; right: 14px; z-index: 9999;
+  background: #28a745; color:#fff; border:0; cursor:pointer;
+  padding: 10px 14px; border-radius: 999px; box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  display: inline-flex; gap:8px; align-items:center; font-weight:600;
+}
+.upload-fab:hover{ background:#218838; }
+
+.modal{ position: fixed; inset:0; display:none; z-index: 10000; }
+.modal.open{ display:block; }
+.modal-backdrop{ position:absolute; inset:0; background: rgba(0,0,0,.5); }
+.modal-card{
+  position:relative; width:min(560px, calc(100% - 32px)); max-height: 85vh; overflow:auto;
+  background:#fff; border-radius: 12px; margin: 7vh auto 0; padding: 20px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.25);
+}
+.modal-close{
+  position:absolute; top:8px; right:10px; border:0; background:transparent;
+  font-size:24px; line-height:1; cursor:pointer; color:#333;
+}
+.form-row{ display:flex; gap:12px; margin:12px 0; align-items:center; }
+.form-row label{ min-width:130px; font-weight:600; }
+.form-row select, .form-row input[type="text"], .form-row input[type="file"]{
+  flex:1; padding:10px; border:1px solid #ddd; border-radius:8px;
+}
+.submit-upload-button{
+  display:inline-flex; gap:8px; align-items:center;
+  padding:10px 14px; border:0; border-radius:8px; background:#111; color:#fff; cursor:pointer;
+}
+.submit-upload-button[disabled]{ opacity:.6; cursor: wait; }
+#upload-status{ margin-top:10px; font-size:.95rem; }
+.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+
+/* Sign up stays in the very top-right */
+.signup-btn-fixed {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 10001;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #0ea5e9;
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  transition: background .2s ease;
+}
+.signup-btn-fixed:hover { background: #0284c7; }
+
+/* Upload sits just below it */
+.upload-fab{
+  position: fixed;
+  top: 64px;      /* <-- changed from 14px to 64px */
+  right: 14px;
+  z-index: 9999;
+  background: #28a745; color:#fff; border:0; cursor:pointer;
+  padding: 10px 14px; border-radius: 999px; box-shadow: 0 6px 16px rgba(0,0,0,.25);
+  display: inline-flex; gap:8px; align-items:center; font-weight:600;
+}
+.upload-fab:hover{ background:#218838; }
+
+
+  </style>
+
+
+
+</head>
+<body>
+  <div class="shell">
+    <aside id="sidebar" class="sidebar">
+
+
+      <button id="toggleSidebar" class="toggle" type="button" aria-label="Toggle sidebar">
+        <span>Collapse sidebar</span>
+      </button>
+
+
+      
+
+        <!-- Home (house) -->
+  <a class="nav-link" href="{% url 'home:index' %}" data-app="home" title="Home">
+    <span class="icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M3 10.5L12 3l9 7.5" />
+        <path d="M5 10v9h5v-6h4v6h5v-9" />
+      </svg>
+    </span>
+    <span class="label">Home</span>
+  </a>
+
+      <nav id="appNav" aria-label="Applications">
+        <!-- Invoice Finance (document) -->
+        <a class="nav-link" href="{% url 'invoice_finance:index' %}" data-app="invoice_finance" title="Invoice Finance">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="18" rx="2"/><line x1="8" y1="8" x2="16" y2="8"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/></svg>
+          </span>
+          <span class="label">Invoice Finance</span>
+        </a>
+      
+        <!-- Trade Finance (globe) -->
+        <a class="nav-link" href="{% url 'trade_finance:index' %}" data-app="trade_finance" title="Trade Finance">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="8" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="16" y2="21"/></svg>
+          </span>
+          <span class="label">Trade Finance</span>
+        </a>
+      
+        <!-- Insurance Premium Funding (shield) -->
+        <a class="nav-link" href="{% url 'insurance_premium_funding:index' %}" data-app="insurance_premium_funding" title="Insurance Premium Funding">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 3 19 7v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V7l7-4Z"/></svg>
+          </span>
+          <span class="label">Insurance Premium Funding</span>
+        </a>
+      
+        <!-- SIF (puzzle-ish interlock) -->
+        <a class="nav-link" href="{% url 'sif:index' %}" data-app="sif" title="SIF">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M7 7h4v4H7zM13 13h4v4h-4zM7 13h3v-2h2v-1H9V7H7zM14 7h3v3h-2v2h-1z"/>
+            </svg>
+          </span>
+          <span class="label">SIF</span>
+        </a>
+      
+        <!-- Term Loan (receipt) -->
+        <a class="nav-link" href="{% url 'term_loan:index' %}" data-app="term_loan" title="Term Loan">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="16" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/></svg>
+          </span>
+          <span class="label">Term Loan</span>
+        </a>
+      
+        <!-- Asset Finance (bank building) -->
+        <a class="nav-link" href="{% url 'asset_finance:index' %}" data-app="asset_finance" title="Asset Finance">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <polygon class="fill" points="12,3 20,7 4,7"></polygon>
+              <rect x="5" y="7" width="14" height="2"/>
+              <line x1="7" y1="9" x2="7" y2="19"/><line x1="12" y1="9" x2="12" y2="19"/><line x1="17" y1="9" x2="17" y2="19"/>
+              <rect x="5" y="19" width="14" height="2"/>
+            </svg>
+          </span>
+          <span class="label">Asset Finance</span>
+        </a>
+      
+        <!-- Early Payment Program (fast-forward) -->
+        <a class="nav-link" href="{% url 'early_payment_program:index' %}" data-app="early_payment_program" title="Early Payment Program">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" class="fill">
+              <polygon points="7,8 12,12 7,16"></polygon>
+              <polygon points="12,8 17,12 12,16"></polygon>
+            </svg>
+          </span>
+          <span class="label">Early Payment Program</span>
+        </a>
+      </nav>
+      
+    </aside>
+
+    <main class="main">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Floating Upload button (top-right) -->
+<button id="uploadFab" class="upload-fab" type="button" aria-haspopup="dialog" title="Upload files">
+  <span aria-hidden="true">⬆️</span> <span>Upload</span>
+</button>
+
+<!-- Upload Modal -->
+<div id="uploadModal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="true"></div>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="uploadTitle">
+    <button class="modal-close" type="button" aria-label="Close">&times;</button>
+    <h3 id="uploadTitle" style="margin:4px 0 10px 0;">Upload Data File</h3>
+    <p id="upload-abn-display" class="muted"></p>
+
+    <form id="file-upload-form">
+      <div class="form-row">
+        <label for="data-type">Data Type</label>
+        <select id="data-type" name="data_type" required>
+          <option value="">-- Select --</option>
+          <option value="ar_ledger">AR Ledger</option>
+          <option value="ap_ledger">AP Ledger</option>
+          <option value="profit_loss">P&amp;L</option>
+          <option value="balance_sheet">Balance Sheet</option>
+          <option value="ppsr">PPSR</option>
+          <option value="bank_transactions">Bank Transactions</option>
+          <option value="invoices">invoices</option>   <!-- ✅ NEW -->
+
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="upload-abn-input">ABN (optional)</label>
+        <input id="upload-abn-input" name="abn" type="text" placeholder="e.g. 12 345 678 901" />
+      </div>
+
+      <div class="form-row">
+        <label class="sr-only" for="csv-file">Choose file</label>
+        <input type="file" id="csv-file" name="file" accept=".csv,.pdf" required />
+      </div>
+
+      <button type="submit" class="submit-upload-button">Upload</button>
+      <div id="upload-status"></div>
+    </form>
+  </div>
+</div>
+
+<!-- Fixed Sign Up button -->
+<button id="openSignupModal" class="signup-btn-fixed">Sign up</button>
+<button id="openSigninModal" class="signup-btn-fixed" style="right: 120px;">Sign In</button>
+
+<!-- Signup Modal -->
+<div id="signupModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeSignupModal">&times;</span>
+    <h2>Create Account</h2>
+
+    <form id="signupForm" method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <label for="id_email">Email</label>
+        <input type="email" name="email" id="id_email" required />
+      </div>
+
+      <div class="form-row">
+        <label for="id_username">Username</label>
+        <input type="text" name="username" id="id_username" required />
+      </div>
+
+      <div class="form-row">
+        <label for="id_password1">Password</label>
+        <input type="password" name="password1" id="id_password1" required />
+      </div>
+
+      <div class="form-row">
+        <label for="id_password2">Confirm Password</label>
+        <input type="password" name="password2" id="id_password2" required />
+      </div>
+
+      <button type="submit" class="submit-upload-button">Sign Up</button>
+    </form>
+
+    <div id="signupMessage" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- Sign In Modal -->
+<div id="signinModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeSigninModal">&times;</span>
+    <h2>Sign In</h2>
+
+    <form id="signinForm" method="post">
+      {% csrf_token %}
+      <div class="form-row">
+        <label for="login_username">Username</label>
+        <input type="text" name="username" id="login_username" required />
+      </div>
+
+      <div class="form-row">
+        <label for="login_password">Password</label>
+        <input type="password" name="password" id="login_password" required />
+      </div>
+
+      <button type="submit" class="submit-upload-button">Sign In</button>
+    </form>
+
+    <div id="signinMessage" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+{% if request.user.is_authenticated %}
+  <div style="
+      position:fixed; 
+      top:14px; 
+      left:70%;                 /* start at horizontal center */
+      transform:translateX(-50%); /* shift left by 50% of its width to center it */
+      color:#333; 
+      font-weight:600; 
+      background:#f9f9f9; 
+      padding:6px 12px; 
+      border-radius:8px; 
+      box-shadow:0 2px 6px rgba(0,0,0,.1);
+    ">
+    👤 {{ request.user.username }}
+  </div>
+{% endif %}
+
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = document.getElementById("signupModal");
+    const openBtn = document.getElementById("openSignupModal");
+    const closeBtn = document.getElementById("closeSignupModal");
+    const form = document.getElementById("signupForm");
+    const message = document.getElementById("signupMessage");
+  
+    if (!modal || !openBtn || !closeBtn || !form) {
+      console.warn("Signup modal elements missing, skipping init.");
+      return;
+    }
+  
+    // Open / close modal
+    openBtn.addEventListener("click", () => (modal.style.display = "block"));
+    closeBtn.addEventListener("click", () => (modal.style.display = "none"));
+    window.addEventListener("click", (event) => {
+      if (event.target === modal) modal.style.display = "none";
+    });
+  
+    // CSRF helper
+    function getCSRFCookie() {
+      const m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : "";
+    }
+  
+    // Handle signup via AJAX
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault(); // prevent full-page redirect
+  
+      message.textContent = "⏳ Creating account...";
+  
+      const formData = new FormData(form);
+  
+      try {
+        const resp = await fetch("{% url 'ajax_signup' %}", {
+          method: "POST",
+          headers: { "X-CSRFToken": getCSRFCookie() },
+          body: formData,
+        });
+  
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.success) {
+            message.textContent = "✅ Account created! Redirecting...";
+            setTimeout(() => window.location.reload(), 1200);
+          } else {
+            message.innerHTML = "❌ Error: " + (data.error || "Unknown error");
+          }
+        } else {
+          const text = await resp.text();
+          message.innerHTML = "❌ Error: " + text;
+        }
+      } catch (err) {
+        message.textContent = "❌ Failed: " + err.message;
+      }
+    });
+  });
+</script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const signinModal = document.getElementById("signinModal");
+    const signinBtn   = document.getElementById("openSigninModal");
+    const closeSignin = document.getElementById("closeSigninModal");
+    const signinForm  = document.getElementById("signinForm");
+    const signinMsg   = document.getElementById("signinMessage");
+
+    if (!signinModal || !signinBtn || !closeSignin || !signinForm) return;
+
+    // Open/close modal
+    signinBtn.addEventListener("click", () => signinModal.style.display = "block");
+    closeSignin.addEventListener("click", () => signinModal.style.display = "none");
+    window.addEventListener("click", (event) => {
+      if (event.target === signinModal) signinModal.style.display = "none";
+    });
+
+    // CSRF helper
+    function getCSRFCookie() {
+      const m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+      return m ? decodeURIComponent(m[1]) : "";
+    }
+
+    // Handle login via AJAX
+    signinForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      signinMsg.textContent = "⏳ Signing in...";
+
+      const formData = new FormData(signinForm);
+
+      try {
+        const resp = await fetch("{% url 'ajax_login' %}", {
+          method: "POST",
+          headers: { "X-CSRFToken": getCSRFCookie() },
+          body: formData,
+        });
+
+        const data = await resp.json();
+
+        if (resp.ok && data.success) {
+          signinMsg.textContent = "✅ Welcome " + data.username + "!";
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          signinMsg.textContent = "❌ " + (data.error || "Invalid credentials");
+        }
+      } catch (err) {
+        signinMsg.textContent = "❌ Failed: " + err.message;
+      }
+    });
+  });
+</script>
+
+
+
+  <script>
+    (function(){
+      const sidebar = document.getElementById('sidebar');
+      const toggle  = document.getElementById('toggleSidebar');
+      const links   = document.querySelectorAll('.nav-link');
+
+      // restore last state
+      const saved = localStorage.getItem('sidebar-collapsed');
+      if (saved === '1') sidebar.classList.add('collapsed');
+
+      function updateToggleLabel(){
+        const collapsed = sidebar.classList.contains('collapsed');
+        const span = toggle.querySelector('span');
+        if (span) span.textContent = collapsed ? 'Expand sidebar' : 'Collapse sidebar';
+      }
+      updateToggleLabel();
+
+      toggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+        localStorage.setItem('sidebar-collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
+        updateToggleLabel();
+      });
+
+      // simple click log (kept from your version)
+      links.forEach(a => {
+        a.addEventListener('click', () => {
+          console.log('Nav click:', a.getAttribute('data-app'), '->', a.getAttribute('href'));
+        });
+      });
+    })();
+  </script>
+
+<script>
+  /** ---------- Upload endpoints ---------- */
+  const UPLOAD_ENDPOINTS = {
+    ar_ledger: '/invoice_finance/upload-ledger-csv/',
+    ap_ledger: '/trade_finance/api/upload-ap-ledger/',   // ✅ ADD THIS
+    ppsr: '/efs_profile/upload-ppsr-file/',
+    bank_transactions: '/efs_profile/upload-bank-transactions/',
+    invoices: '/early_payment_program/api/upload/invoices/',
+  };
+  /** -------------------------------------- */
+
+  // CSRF helper (Django)
+  function getCSRFCookie(){
+    const m = document.cookie.match(/(?:^|; )csrftoken=([^;]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+
+  (function(){
+    const modal      = document.getElementById('uploadModal');
+    const fab        = document.getElementById('uploadFab');
+    const closeBtn   = modal.querySelector('.modal-close');
+    const backdrop   = modal.querySelector('.modal-backdrop');
+    const form       = document.getElementById('file-upload-form');
+
+    // ✅ Scoped selector (prevents grabbing the wrong dropdown)
+    const dataTypeEl = form.querySelector('[name="data_type"]');
+
+    const fileInput  = document.getElementById('csv-file');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const abnDisplay = document.getElementById('upload-abn-display');
+    const abnInput   = document.getElementById('upload-abn-input');
+    const statusEl   = document.getElementById('upload-status');
+
+    let currentABN = "";
+
+    /* ---------------- Modal controls ---------------- */
+    function openModal(abn){
+      currentABN = (abn || "").trim();
+      if (abnDisplay) abnDisplay.textContent = currentABN ? ('ABN: ' + currentABN) : '';
+      if (abnInput)   abnInput.value = currentABN;
+      modal.classList.add('open');
+      modal.setAttribute('aria-hidden','false');
+    }
+
+    function closeModal(){
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden','true');
+      statusEl.textContent = '';
+      form.reset();
+      if (fileNameDisplay) fileNameDisplay.textContent = 'No file chosen';
+      if (fileInput) fileInput.setAttribute('accept', '.csv');
+    }
+
+    window.openUploadModal = openModal;
+
+    if (fab) fab.addEventListener('click', () => openModal());
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (backdrop) backdrop.addEventListener('click', e => {
+      if (e.target.dataset.close === 'true') closeModal();
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+    });
+
+    /* -------------- Dynamic file accept -------------- */
+    if (dataTypeEl && fileInput){
+      dataTypeEl.addEventListener('change', function(){
+        const v = this.value;
+        if (v === 'ppsr') fileInput.setAttribute('accept', '.pdf');
+        else if (v === 'bank_transactions') fileInput.setAttribute('accept', '.json');
+        else fileInput.setAttribute('accept', '.csv');
+      });
+    }
+
+    if (fileInput){
+      fileInput.addEventListener('change', function(){
+        if (fileNameDisplay) {
+          fileNameDisplay.textContent = this.files.length ? this.files[0].name : 'No file chosen';
+        }
+      });
+    }
+
+    /* -------------------- Submit -------------------- */
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      statusEl.textContent = 'Uploading...';
+
+      const btn = form.querySelector('.submit-upload-button');
+      if (btn) btn.disabled = true;
+
+      try {
+        const dataType = dataTypeEl ? dataTypeEl.value : '';
+        const file = fileInput?.files?.[0];
+
+        if (!dataType || !file){
+          statusEl.textContent = 'Please select a data type and file.';
+          return;
+        }
+
+        /* ✅ FINAL routing logic */
+        const uploadUrl = UPLOAD_ENDPOINTS[dataType];
+
+        if (!uploadUrl) {
+          console.error("❌ No upload endpoint for dataType:", dataType);
+          statusEl.textContent = "❌ Unsupported upload type.";
+          return;
+        }
+
+        console.log("✅ FINAL upload decision", { dataType, uploadUrl });
+
+        const fd = new FormData(form);
+        fd.set('data_type', dataType);
+        fd.set('abn', (abnInput?.value || currentABN || '').trim());
+        fd.set('file', file);
+
+        // ✅ ADD THIS LINE
+        const usernameEl = document.getElementById('currentUsername');
+        if (usernameEl && usernameEl.value) {
+          fd.set('user_name', usernameEl.value);
+        }
+
+
+        const resp = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': getCSRFCookie() || '' },
+          body: fd
+        });
+
+        const json = await resp.json().catch(() => ({}));
+
+        if (!resp.ok || json?.success === false) {
+          throw new Error(json?.error || json?.message || `Upload failed (${resp.status})`);
+        }
+
+        statusEl.textContent = '✅ Upload successful.';
+        setTimeout(closeModal, 800);
+
+      } catch (err) {
+        statusEl.textContent = '❌ ' + (err.message || 'Upload failed');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+
+  })();
+</script>
+
+
+
+
+</body>
+</html>

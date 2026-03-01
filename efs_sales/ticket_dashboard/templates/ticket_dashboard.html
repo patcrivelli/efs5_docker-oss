@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Ticket Dashboard{% endblock %}
+
+{% block content %}
+<div class="ticket-dashboard-wrapper"> {# New wrapper div to manage content area #}
+    <h2>Deal Overview - {{ abn }}</h2>
+
+    {# Container for side-by-side modals #}
+    <div class="modals-container">
+        {% include "partials/apis.html" %}
+        {% include "partials/abn.html" %}
+        {% include "partials/credit_score.html" %}
+        {% include "partials/bank_statements.html" %}
+        {% include "partials/financials.html" %}
+        {% include "partials/ppsr.html" %}
+        {% include "partials/crosssell.html" %}
+        {% include "partials/terms.html" %}
+        {% include "partials/credit_decision.html" %}
+    </div>
+</div>
+
+<div style="background-color: #fef3c7; padding: 10px; margin-top: 20px; border: 1px solid #fbbf24;">
+    <strong>Debug Info:</strong><br>
+    Transaction ID: {{ transaction_id }}<br>
+    ABN: {{ abn }}<br>
+    Product: {{ product }}<br>
+    Bureau Token: {{ raw_application.bureau_token }}
+    {{ raw_application.accounting_token }}
+    {{ raw_application.ppsr_token }}
+</div>
+{% endblock %}
+
+
+{% block extra_styles %}
+<style>
+    /* Ensure the main content area adjusts for the sidebar */
+    body {
+        display: flex; /* Assuming base.html allows for flex or grid for overall layout */
+    }
+
+    /* This wrapper helps contain the dashboard content, allowing flexbox to work within it */
+    .ticket-dashboard-wrapper {
+        flex-grow: 1; /* Allow it to take up available space next to the sidebar */
+        padding: 20px; /* Add some padding around your dashboard content */
+        box-sizing: border-box; /* Include padding in element's total width */
+        overflow-x: hidden; /* Prevent horizontal scrollbar if modals overflow */
+    }
+
+    /* Styles for the modals container to display them side-by-side */
+    .modals-container {
+        display: flex;
+        flex-wrap: wrap; /* Allows modals to wrap to the next line if space is limited */
+        gap: 20px; /* Space between modals */
+        justify-content: flex-start; /* Align modals to the start of the container */
+        margin-top: 20px;
+        align-items: flex-start; /* Align modals to the top of their row */
+    }
+
+    /* Adjust modal styles so they don't overlay and take up space */
+    .modal-overlay { /* If your modals use an overlay, hide it or make it transparent */
+        display: none !important;
+    }
+
+    .modal { /* This is a generic class, use it if your partials have a common root modal div with this class */
+        position: relative !important; /* Override absolute/fixed positioning */
+        display: block !important; /* Ensure it's always visible */
+        visibility: visible !important; /* Ensure it's always visible */
+        opacity: 1 !important; /* Ensure it's not transparent */
+        top: auto !important; /* Reset positioning from overlay logic */
+        left: auto !important; /* Reset positioning from overlay logic */
+        transform: none !important; /* Reset transforms that might center the modal */
+        margin: 0; /* Remove any centering margins */
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        box-sizing: border-box; /* Include padding and border in the element's total width and height */
+        flex: 1 1 calc(33.33% - 20px); /* Flex grow, flex shrink, and base width. Adjust 33.33% for 3 columns. */
+        min-width: 300px; /* Minimum width for readability on smaller screens */
+        max-width: calc(33.33% - 20px); /* Ensure it doesn't grow beyond 3 columns */
+    }
+
+    /* Specific styles for each included partial's root element */
+    /* IMPORTANT: #abnModal in your CSS likely refers to #detailsModal in abn.html. Adjust for consistency. */
+    #apiModal,
+    #detailsModal, /* Changed from #abnModal to #detailsModal to match abn.html */
+    #creditScoreModal,
+    #bankStatementsModal,
+    #financialsModal,
+    #ppsrModal,
+    #crossSellModal,
+    #termsModal,
+    #creditDecisionModal {
+        position: relative !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        top: auto !important;
+        left: auto !important;
+        transform: none !important;
+        margin: 0;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        box-sizing: border-box;
+        flex: 1 1 calc(33.33% - 20px); /* Aim for 3 columns */
+        min-width: 300px;
+        max-width: calc(33.33% - 20px); /* Prevent expansion beyond 3 columns */
+    }
+
+    /* Media queries for responsiveness */
+    @media (max-width: 1400px) { /* Adjust breakpoint for larger screens if 3 columns is too tight */
+        .modal,
+        #apiModal, #detailsModal, #creditScoreModal, #bankStatementsModal, /* Changed #abnModal to #detailsModal */
+        #financialsModal, #ppsrModal, #crossSellModal, #termsModal, #creditDecisionModal {
+            flex: 1 1 calc(50% - 20px); /* 2 modals per row */
+            max-width: calc(50% - 20px);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .modal,
+        #apiModal, #detailsModal, #creditScoreModal, #bankStatementsModal, /* Changed #abnModal to #detailsModal */
+        #financialsModal, #ppsrModal, #crossSellModal, #termsModal, #creditDecisionModal {
+            flex: 1 1 100%; /* 1 modal per row */
+            max-width: 100%;
+        }
+        .modals-container {
+            flex-direction: column; /* Stack vertically on small screens */
+            gap: 15px; /* Slightly less gap for stacked items */
+        }
+    }
+
+    .modal-close-button {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="text/javascript">
+    // Define global variables as a single object to avoid "already declared" errors
+    // and ensure all essential data from Django context is accessible.
+    window.GLOBAL_CONTEXT = {
+        transactionId: "{{ transaction_id|escapejs }}",
+        abn: "{{ abn|escapejs }}",
+        originatorName: "{{ selected_originator.originator|escapejs }}", // From base_context
+        product: "{{ product|escapejs }}",
+        csrfToken: "{{ csrf_token|escapejs }}" // CSRF token for POST requests
+    };
+
+    console.log("BASE.HTML GLOBALS (Populated by URL in DOMContentLoaded - via GLOBAL_CONTEXT):", window.GLOBAL_CONTEXT);
+</script>
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Access variables from the global context object
+    const transactionId = window.GLOBAL_CONTEXT.transactionId;
+    const abn = window.GLOBAL_CONTEXT.abn;
+    const originatorName = window.GLOBAL_CONTEXT.originatorName;
+    const product = window.GLOBAL_CONTEXT.product;
+
+    console.log("TICKET_DASHBOARD.HTML - Using Global Vars (after fix):");
+    console.log("  Transaction ID:", transactionId);
+    console.log("  ABN:", abn);
+    console.log("  Originator Name:", originatorName);
+    console.log("  Product:", product);
+
+    // Initial check and console warnings
+    if (!transactionId) {
+        console.warn("Transaction ID is missing for ticket dashboard.");
+    }
+    if (!abn) {
+        console.warn("ABN is missing for ticket dashboard.");
+    }
+    if (!originatorName) {
+        console.warn("Originator name is missing for ticket dashboard.");
+    }
+
+    // Call the modal opening functions with parameters
+    // The setTimeout is not needed here; the openModal function will populate the spans
+    // and fetch data based on the parameters it receives.
+    openModal(abn, transactionId, originatorName, product); // For abn.html (detailsModal)
+    openApiModal(abn, transactionId, originatorName, product); // For apis.html
+    openCreditScoreModal(abn, transactionId, originatorName, product);
+    openBankStatementsModal(abn, originatorName, product);
+    openFinancialsModal(abn, originatorName, product);
+    openPPSRModal(transactionId, originatorName, product);
+    openXSellReferModal(transactionId, originatorName, product);
+    openCreditDecisionModal(transactionId, transactionId, originatorName, product);
+});
+</script>
+{% endblock %}
+{% include "components/right_sidebar.html" %}  {% endblock %}

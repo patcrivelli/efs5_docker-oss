@@ -1,0 +1,737 @@
+{% url 'create_originator' as create_originator_url %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- libs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" defer></script>
+
+  <title>{% block title %}My Django App{% endblock %}</title>
+
+  <style>
+    .sidebar {
+      width: 250px;
+      background-color: #e0f2e0;
+      color: #333;
+      padding: 10px;
+      height: 100vh;
+      max-height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+    }
+    .sidebar::-webkit-scrollbar { width: 6px; }
+    .sidebar::-webkit-scrollbar-thumb { background-color: #aaa; border-radius: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+
+    .sidebar.retracted { width: 60px; }
+    .sidebar.retracted .toggle-btn { text-align: center; }
+    .sidebar.retracted .input-group,
+    .sidebar.retracted button:not(.toggle-btn),
+    .sidebar.retracted #dynamic-buttons button { display: none; }
+
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+      transition: margin-left 0.3s;
+    }
+    .content.retracted { margin-left: 60px; }
+
+    .sidebar button {
+      display: block;
+      margin-bottom: 10px;
+      width: 100%;
+      text-align: left;
+      background-color: transparent;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      color: #333;
+    }
+    .sidebar button.active { background-color: #ccc; font-weight: bold; }
+
+    .toggle-btn {
+      color: #333;
+      padding: 5px;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      background-color: transparent;
+      border: none;
+    }
+
+    .error { color: red; margin-top: 20px; }
+
+    .records-section, .applications-section, .loans-section { margin-top: 20px; }
+    .records-section h3, .applications-section h3, .loans-section h3 {
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: #4CAF50;
+    }
+
+    .dynamic-buttons button, .applications-section button, .loans-section button {
+      display: block;
+      margin-bottom: 10px;
+      width: 100%;
+      text-align: left;
+      background-color: #f4f4f4;
+      color: #333;
+      border: 1px solid #ccc;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .child-buttons { display: none; padding-left: 20px; }
+    .child-buttons button { background-color: #ddd; margin-bottom: 5px; }
+
+    .input-group { display: flex; flex-direction: column; margin-bottom: 10px; }
+    .input-group input {
+      margin-bottom: 10px; padding: 8px; border: 1px solid #ccc; border-radius: 4px;
+    }
+    .input-group button {
+      padding: 8px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;
+    }
+    .input-group button:hover { background-color: #45a049; }
+
+    select#originators-dropdown, select#product-dropdown,
+    select.styled-dropdown {
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+      background-color: #ffffff;
+      color: #333;
+      appearance: none; -webkit-appearance: none; -moz-appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg fill='gray' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+      background-repeat: no-repeat; background-position: right 10px center; background-size: 16px 16px;
+    }
+
+    .top-right-actions {
+      position: fixed; top: 10px; right: 20px; display: flex; align-items: center; gap: 15px; z-index: 1001;
+    }
+  </style>
+</head>
+<body>
+
+  <script>
+    // Build an absolute URL map in JS from Django context.
+    // This must exist on EVERY page across ALL services.
+    window.SERVICES = {
+      {% for k, v in EFS_SERVICES.items %}
+        "{{ k }}": "{{ v|escapejs }}",
+      {% endfor %}
+    };
+  </script>
+
+  {# Resolve URLs safely (missing names => empty string) #}
+  {% url 'home' as apps_home_url %}
+  {% url 'create_originator' as create_originator_url %}
+
+
+  
+  {% url 'efs_risk:risk_page' as risk_url %}
+  {% url 'efs_finance:finance_page' as finance_url %}
+
+  {% url 'efs_drawdowns:drawdowns_page' as drawdowns_url %}
+
+  {% url 'efs_lms:create_originator' as create_originator_url %}
+  {% url 'efs_lms:lms_page' as lms_url %}
+  {% url 'efs_lms:scf_page' as lms_scf_url %}
+  {% url 'efs_lms:invoice_finance_page' as lms_if_url %}
+  {% url 'efs_lms:trade_finance_page' as lms_tf_url %}
+  {% url 'efs_lms:term_loan_page' as lms_tl_url %}
+  {% url 'efs_lms:overdraft_page' as lms_od_url %}
+  {% url 'efs_lms:asset_finance_page' as lms_af_url %}
+  
+  {% url 'efs_collections:collections_page' as collections_url %}
+  {% url 'efs_notifications:notifications_page' as notifications_url %}
+  {% url 'efs_liquidity:liquidity_home' as liquidity_url %}
+
+  {% url 'efs_profile:profile_page' as profile_url %}
+  {% url 'efs_pnl:pl_home' as pl_url %}
+  {% url 'efs_settings:settings_page' as settings_url %}
+  {% url 'efs_data:other' as data_other_url %}
+  {% url 'efs_data:bureau' as data_bureau_url %}
+  {% url 'efs_data:bank_statements' as data_bank_url %}
+  {% url 'efs_data:financial' as data_financial_url %}
+  {% url 'efs_applications:approved_applications' as approved_apps_url %}
+  {% url 'efs_applications:rejected_applications' as rejected_apps_url %}
+  {% url 'efs_agents:home' as agents_url %}
+
+  <div class="sidebar" id="sidebar">
+    <div class="toggle-btn" onclick="toggleSidebar()">&#9776;</div>
+
+    <button onclick="showInputField()">Create Originator</button>
+    <form method="POST" id="inputGroup" class="input-group"
+          action="{{ EFS_SERVICES.profile }}/create-originator/" style="display:none;">
+
+        {% csrf_token %}
+        <input type="text" id="username" name="username" placeholder="Enter Username" required />
+        <input type="text" id="originatorName" name="originator_name" placeholder="Enter Originator Name" required />
+        <button type="submit" onclick="hideInputGroup()">Submit</button>
+    </form>
+
+    <form method="GET" action="{{ request.path }}">
+      <select name="originators" id="originators-dropdown" onchange="this.form.submit()">
+        <option value="">Originators</option>
+        {% for originator in originators %}
+          <option value="{{ originator.id }}" {% if selected_originator and selected_originator.id == originator.id %}selected{% endif %}>
+            {{ originator.originator }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+
+
+    {% comment %}
+
+    <form method="GET" action="{{ request.path }}">
+      {% if selected_originator %}
+        <input type="hidden" name="originators" value="{{ selected_originator.id }}" />
+      {% endif %}
+      <select name="product" id="product-dropdown" style="margin-top:10px" onchange="this.form.submit()">
+        <option value="">Select Product</option>
+        <option value="invoice-finance" {% if selected_product == 'invoice-finance' %}selected{% endif %}>Invoice Finance</option>
+        <option value="trade-finance" {% if selected_product == 'trade-finance' %}selected{% endif %}>Trade Finance</option>
+        <option value="insurance-premium-funding" {% if selected_product == 'insurance-premium-funding' %}selected{% endif %}>Insurance Premium Funding</option>
+        <option value="scf" {% if selected_product == 'scf' %}selected{% endif %}>SCF</option>
+        <option value="term-loan" {% if selected_product == 'term-loan' %}selected{% endif %}>Term Loan</option>
+        <option value="asset-finance" {% if selected_product == 'asset-finance' %}selected{% endif %}>Asset Finance</option>
+        <option value="early-payment-program" {% if selected_product == 'early-payment-program' %}selected{% endif %}>Early Payment Program</option>
+      </select>
+    </form>
+
+    <select id="abn-dropdown" name="abn" class="styled-dropdown" style="margin-top:10px;">
+      <option value="">Select ABN</option>
+    </select>
+    {% endcomment %}
+
+    <input type="hidden" id="hidden-originator-id" value="{{ selected_originator.id|default:'' }}" />
+    <input type="hidden" id="hidden-product" value="{{ selected_product|default:'' }}" />
+
+    <div class="applications-section">
+      <h3>
+        <a
+          href="{% if selected_originator %}
+                   {{ EFS_SERVICES.sales }}/sales-home/?originators={{ selected_originator.id }}
+                 {% else %}
+                   {{ EFS_SERVICES.sales }}/sales-home/
+                 {% endif %}"
+          style="text-decoration:none; color:inherit;">
+          Applications
+        </a>
+      </h3>
+      
+
+
+    
+      <form method="GET" action="{{ EFS_SERVICES.sales }}/sales/">
+        {% if selected_originator %}
+          <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+        {% endif %}
+        <button type="submit" id="sales-btn">Sales</button>
+
+      </form>
+      
+      
+    
+      <form method="GET" action="{{ EFS_SERVICES.risk }}/risk/">
+        {% if selected_originator %}
+          <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+        {% endif %}
+        <button type="submit" id="risk-btn" class="{% if active_button == 'risk' %}active{% endif %}">
+          Risk
+        </button>
+      </form>
+      
+
+      <form method="GET" action="{{ EFS_SERVICES.operations }}/operations/">
+        {% if selected_originator %}
+          <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+        {% endif %}
+        <button type="submit" id="operations-btn" class="{% if active_button == 'operations' %}active{% endif %}">
+          Operations
+        </button>
+      </form>
+      
+    
+      <form method="GET" action="{{ EFS_SERVICES.finance }}/finance/">
+        {% if selected_originator %}
+          <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+        {% endif %}
+        <button type="submit" id="finance-btn" class="{% if active_button == 'finance' %}active{% endif %}">
+          Finance
+        </button>
+      </form>
+      
+
+
+    </div>
+    
+    <div class="loans-section">
+      <h3>Loans</h3>
+
+      <form method="GET" action="{{ EFS_SERVICES.drawdowns }}/drawdowns/">
+        {% if selected_originator %}
+          <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+        {% endif %}
+        <button type="submit" id="drawdowns-btn" class="{% if active_button == 'drawdowns' %}active{% endif %}">
+          Drawdowns
+        </button>
+      </form>
+      
+
+<!-- Parent LMS button -->
+<!-- Parent LMS button -->
+<button type="button" id="lms-btn"
+        class="{% if active_button == 'lms' %}active{% endif %}" 
+        onclick="toggleLmsChildButtons(); window.location.href='{{ EFS_SERVICES.lms }}/';">
+  LMS
+</button>
+
+
+<!-- Child buttons (split LMS services) -->
+<div id="lms-child-buttons" class="child-buttons">
+
+  <form method="GET" action="{{ EFS_SERVICES.lms_invoice_finance }}/">
+    {% if selected_originator %}
+      <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+    {% endif %}
+    <button type="submit" id="invoice-finance-btn"
+            class="{% if active_button == 'invoice_finance' %}active{% endif %}">
+      Invoice Finance
+    </button>
+  </form>
+
+  <form method="GET" action="{{ EFS_SERVICES.lms_scf }}/">
+    {% if selected_originator %}
+      <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+    {% endif %}
+    <button type="submit" id="scf-btn"
+            class="{% if active_button == 'scf' %}active{% endif %}">
+      SCF
+    </button>
+  </form>
+
+  <form method="GET" action="{{ EFS_SERVICES.lms_trade_finance }}/">
+    {% if selected_originator %}
+      <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+    {% endif %}
+    <button type="submit" id="trade-finance-btn"
+            class="{% if active_button == 'trade_finance' %}active{% endif %}">
+      Trade Finance
+    </button>
+  </form>
+
+  <form method="GET" action="{{ EFS_SERVICES.lms_term_loan }}/">
+    {% if selected_originator %}
+      <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+    {% endif %}
+    <button type="submit" id="term-loan-btn"
+            class="{% if active_button == 'term_loan' %}active{% endif %}">
+      Term Loan
+    </button>
+  </form>
+
+  <form method="GET" action="{{ EFS_SERVICES.lms_overdraft }}/">
+    {% if selected_originator %}
+      <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+    {% endif %}
+    <button type="submit" id="overdraft-btn"
+            class="{% if active_button == 'overdraft' %}active{% endif %}">
+      Overdraft
+    </button>
+  </form>
+
+  <form method="GET" action="{{ EFS_SERVICES.lms_asset_finance }}/">
+    {% if selected_originator %}
+      <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+    {% endif %}
+    <button type="submit" id="asset-finance-btn"
+            class="{% if active_button == 'asset_finance' %}active{% endif %}">
+      Asset Finance
+    </button>
+  </form>
+
+</div>
+
+
+
+      <form method="GET" action="{{ EFS_SERVICES.collections }}/collections/">
+        {% if selected_originator %}
+          <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+        {% endif %}
+        <button type="submit" id="collections-btn" class="{% if active_button == 'collections' %}active{% endif %}">
+          Collections
+        </button>
+      </form>
+
+      <form method="GET" action="{{ EFS_SERVICES.notifications }}/notifications/">
+        {% if selected_originator %}
+          <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+        {% endif %}
+        <button type="submit" id="notifications-btn" class="{% if active_button == 'notifications' %}active{% endif %}">
+          Notifications
+        </button>
+      </form>
+      
+
+      <form method="GET" action="{{ liquidity_url|default:'#' }}">
+        {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}"/>{% endif %}
+        <button type="submit" id="liquidity-btn" class="{% if active_button == 'liquidity' %}active{% endif %}" {% if not liquidity_url %}disabled{% endif %}>Liquidity</button>
+      </form>
+    </div>
+
+    <div class="records-section">
+      <h3>Records</h3>
+      <div id="dynamic-buttons" class="dynamic-buttons">
+
+
+
+        <form method="GET" action="{{ EFS_SERVICES.profile }}/">
+          {% if selected_originator %}
+            <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+          {% endif %}
+          <button type="submit" id="profile-btn" class="{% if active_button == 'profile' %}active{% endif %}">
+            Client Profiles
+          </button>
+        </form>
+        
+
+        <form method="GET" action="{{ pl_url|default:'#' }}">
+          {% if selected_originator %}<input type="hidden" name="originators" value="{{ selected_originator.id }}"/>{% endif %}
+          <button type="submit" id="p&l-btn" class="{% if active_button == 'p&l' %}active{% endif %}" {% if not pl_url %}disabled{% endif %}>P&amp;L</button>
+        </form>
+
+        <form method="GET" action="{{ EFS_SERVICES.settings }}/settings/">
+          {% if selected_originator %}
+            <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+          {% endif %}
+          <button type="submit" id="compliance-btn" class="{% if active_button == 'compliance' %}active{% endif %}">
+            Compliance
+          </button>
+        </form>
+        
+
+        <!-- Parent Data button -->
+        <button type="button" id="data-btn" 
+                class="{% if active_button == 'data' %}active{% endif %}" 
+                onclick="toggleDataChildButtons();">
+          Data
+        </button>
+
+        <!-- Child buttons (apps inside efs_data) -->
+        <div id="data-child-buttons" class="child-buttons">
+
+          <form method="GET" action="{{ EFS_SERVICES.data }}/aggregate/">
+            {% if selected_originator %}
+              <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+            {% endif %}
+            <button type="submit" id="aggregate-btn" class="{% if active_button == 'aggregate' %}active{% endif %}">
+              Aggregate
+            </button>
+          </form>
+
+          <form method="GET" action="{{ EFS_SERVICES.data }}/bureau/">
+            {% if selected_originator %}
+              <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+            {% endif %}
+            <button type="submit" id="bureau-btn" class="{% if active_button == 'bureau' %}active{% endif %}">
+              Bureau
+            </button>
+          </form>
+
+          <form method="GET" action="{{ EFS_SERVICES.data }}/bank_statements/">
+            {% if selected_originator %}
+              <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+            {% endif %}
+            <button type="submit" id="bank-statements-btn" class="{% if active_button == 'bank-statements' %}active{% endif %}">
+              Bank Statements
+            </button>
+          </form>
+
+          <form method="GET" action="{{ EFS_SERVICES.data }}/financial/">
+            {% if selected_originator %}
+              <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+            {% endif %}
+            <button type="submit" id="financial-btn" class="{% if active_button == 'financial' %}active{% endif %}">
+              Financial
+            </button>
+          </form>
+
+        </div>
+
+
+        <button type="button" id="applications-btn" class="{% if active_button == 'applications' %}active{% endif %}" onclick="toggleChildButtons();">
+          Applications
+        </button>
+
+        <div id="child-buttons" class="child-buttons">
+          <form method="GET" action="{{ approved_apps_url|default:'#' }}"><button type="submit" id="new-applications-btn" {% if not approved_apps_url %}disabled{% endif %}>Approved Applications</button></form>
+          <form method="GET" action="{{ rejected_apps_url|default:'#' }}"><button type="submit" id="redraws-btn" {% if not rejected_apps_url %}disabled{% endif %}>Rejected Applications</button></form>
+        </div>
+
+        <form method="GET" action="{{ EFS_SERVICES.agents }}/agents/">
+          {% if selected_originator %}
+            <input type="hidden" name="originators" value="{{ selected_originator.id }}"/>
+          {% endif %}
+          <button type="submit" id="agents-btn"
+                  class="{% if active_button == 'agents' %}active{% endif %}">
+            Agents
+          </button>
+        </form>
+
+        <!-- Parent RAG button: ONLY toggles submenu; no redirect -->
+ <!-- Parent RAG button: toggles submenu; no redirect -->
+<button type="button" id="rag-btn"
+class="{% if active_button == 'rag' %}active{% endif %}"
+onclick="toggleRagChildButtons();">
+RAG
+</button>
+
+<!-- Child buttons (apps inside RAG project) -->
+<div id="rag-child-buttons" class="child-buttons">
+<button type="button" id="ingestion-btn"
+  class="{% if active_button == 'ingestion' %}active{% endif %}"
+  onclick="nav('ingestion','/ingestion/');">
+Ingestion
+</button>
+
+<button type="button" id="chunking-btn"
+  class="{% if active_button == 'chunking' %}active{% endif %}"
+  onclick="nav('chunking','/chunking/');">
+Chunking
+</button>
+
+<button type="button" id="embeddings-btn"
+  class="{% if active_button == 'embeddings' %}active{% endif %}"
+  onclick="nav('embeddings','/embeddings/');">
+Embeddings
+</button>
+
+<button type="button" id="retrieval-btn"
+  class="{% if active_button == 'retrieval' %}active{% endif %}"
+  onclick="nav('retrieval','/retrieval/');">
+Retrieval
+</button>
+
+<button type="button" id="generation-btn"
+  class="{% if active_button == 'generation' %}active{% endif %}"
+  onclick="nav('generation','/generation/');">
+Generation
+</button>
+
+<button type="button" id="evaluation-btn"
+  class="{% if active_button == 'evaluation' %}active{% endif %}"
+  onclick="nav('evaluation','/evaluation/');">
+Evaluation
+</button>
+</div>
+
+
+
+      </div>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    {% if error %}<div class="error">{{ error }}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </div>
+
+  {% block extra_styles %}{% endblock %}
+
+  <script>
+    // nav('serviceKey', '/optional/path/', { extraQuery: 'value' })
+    window.nav = function(serviceKey, path = "/", extra = {}) {
+      const svcMap = window.SERVICES || {};
+      const base = (svcMap[serviceKey] || "").replace(/\/+$/,"");
+      if (!base) {
+        console.error("Unknown serviceKey:", serviceKey, "SERVICES:", svcMap);
+        alert("Unknown service: " + serviceKey);
+        return;
+      }
+  
+      // Always build an ABSOLUTE URL (prevents sticking to current port)
+      const url = new URL(path || "/", base);
+  
+      // Preserve context
+      const current = new URLSearchParams(window.location.search);
+      const selectedOriginatorId =
+        document.getElementById('hidden-originator-id')?.value || current.get('originators');
+      if (selectedOriginatorId) url.searchParams.set('originators', selectedOriginatorId);
+  
+      ['transaction_id','abn','product'].forEach(k => {
+        const v = current.get(k);
+        if (v) url.searchParams.set(k, v);
+      });
+  
+      // Add explicit extra params
+      for (const [k, v] of Object.entries(extra)) {
+        if (v !== null && v !== undefined && v !== '') url.searchParams.set(k, v);
+      }
+  
+      window.location.href = url.toString();
+    };
+  </script>
+  
+  
+  
+  <script>
+    // GLOBALS
+    let globalTransactionId = null;
+    let globalAbn = null;
+    let globalOriginatorName = null;
+    let globalOriginatorId = null;
+    let globalProduct = null;
+
+    window.toggleSidebar = function() {
+      const sidebar = document.getElementById('sidebar');
+      const content = document.getElementById('content');
+      sidebar.classList.toggle('retracted');
+      content.classList.toggle('retracted');
+      sessionStorage.setItem('sidebarRetracted', sidebar.classList.contains('retracted'));
+    };
+
+    window.showInputField = function() {
+      const g = document.getElementById('inputGroup');
+      if (g) g.style.display = 'flex';
+    };
+
+    window.hideInputGroup = function() {
+      const g = document.getElementById('inputGroup');
+      if (g) g.style.display = 'none';
+    };
+
+    let lmsChildButtons = null;
+    let childButtons = null;
+    let dataChildButtons = null;
+
+    window.toggleLmsChildButtons = function() {
+      if (!lmsChildButtons) return;
+      if (lmsChildButtons.style.display === 'block') {
+        lmsChildButtons.style.display = 'none';
+        sessionStorage.removeItem('lmsChildButtonsVisible');
+      } else {
+        lmsChildButtons.style.display = 'block';
+        sessionStorage.setItem('lmsChildButtonsVisible', 'true');
+      }
+    };
+
+    window.toggleDataChildButtons = function() {
+      if (!dataChildButtons) return;
+      if (dataChildButtons.style.display === 'block') {
+        dataChildButtons.style.display = 'none';
+        sessionStorage.removeItem('dataChildButtonsVisible');
+      } else {
+        dataChildButtons.style.display = 'block';
+        sessionStorage.setItem('dataChildButtonsVisible', 'true');
+      }
+    };
+
+
+
+    let ragChildButtons = null;
+
+    window.toggleRagChildButtons = function() {
+      if (!ragChildButtons) return;
+      if (ragChildButtons.style.display === 'block') {
+        ragChildButtons.style.display = 'none';
+        sessionStorage.removeItem('ragChildButtonsVisible');
+      } else {
+        ragChildButtons.style.display = 'block';
+        sessionStorage.setItem('ragChildButtonsVisible', 'true');
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      ragChildButtons = document.getElementById('rag-child-buttons');
+      if (sessionStorage.getItem('ragChildButtonsVisible'))
+        ragChildButtons.style.display = 'block';
+    });
+
+
+
+
+
+
+    window.fetchProductsForOriginator = function (originatorIdentifier) {
+    if (!originatorIdentifier || originatorIdentifier === 'null' || originatorIdentifier === '') {
+      return;
+    }
+
+    var url = '/efs_sales/fetch-products/?originator=' + encodeURIComponent(originatorIdentifier);
+
+    fetch(url)
+      .then(function (r) {
+        if (r.ok) return r.json();
+        return r.json().then(function (e) {
+          throw new Error((e && e.error) || ('HTTP ' + r.status));
+        });
+      })
+      .then(function (data) {
+        console.log('Global product fetch successful:', data);
+      })
+      .catch(function (error) {
+        console.error('Global product fetch failed:', error);
+      });
+  };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      globalTransactionId = urlParams.get('transaction_id');
+      globalAbn = urlParams.get('abn');
+      globalProduct = urlParams.get('product');
+      globalOriginatorName = urlParams.get('originator');
+      globalOriginatorId = urlParams.get('originators');
+
+      lmsChildButtons = document.getElementById('lms-child-buttons');
+      childButtons = document.getElementById('child-buttons');
+      dataChildButtons = document.getElementById('data-child-buttons');
+
+      // Restore sidebar and dropdown states
+      if (sessionStorage.getItem('sidebarRetracted') === 'true') {
+        document.getElementById('sidebar')?.classList.add('retracted');
+        document.getElementById('content')?.classList.add('retracted');
+      }
+      if (sessionStorage.getItem('lmsChildButtonsVisible')) lmsChildButtons.style.display = 'block';
+      if (sessionStorage.getItem('childButtonsVisible')) childButtons.style.display = 'block';
+      if (sessionStorage.getItem('dataChildButtonsVisible')) dataChildButtons.style.display = 'block';
+
+      window.goToLmsPage = function() {
+        toggleLmsChildButtons();   // show child buttons
+        window.location.href = "{{ lms_url|default:'#' }}";  // go to lms.html
+      };
+
+
+
+
+
+    
+    
+    });
+
+
+
+  </script>
+
+
+  {% block extra_scripts %}{% endblock %}
+
+  {% include "efs_shared_ui/right_sidebar.html" %}
+
+</body>
+</html>

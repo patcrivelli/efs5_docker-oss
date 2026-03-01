@@ -1,0 +1,1134 @@
+<!-- bankstatements.html -->
+
+
+<script>
+  (function injectBankStatementsStyles(){
+    if (window._efsBankStatementsStylesInjected) return;
+    window._efsBankStatementsStylesInjected = true;
+  
+    const css = `
+      /* Scope all styles to the Bank Statements modal */
+      #bankStatementsModal, #bankStatementsModal * {
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333;
+      }
+  
+      /* Modal shell — hidden by default; your JS sets display:flex when opened */
+      #bankStatementsModal.modal {
+        display: none;
+        position: fixed !important;
+        z-index: 2147483646 !important;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6) !important;
+        justify-content: center;   /* takes effect once JS sets display:flex */
+        align-items: center;
+        overflow: auto;
+        padding: 0;                /* parent has padding via content box */
+      }
+  
+      #bankStatementsModal .modal-content {
+        background-color: #ffffff !important;
+        margin: auto;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2) !important;
+        position: relative;
+        width: 90%;
+        max-width: 900px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+  
+      /* Header & Buttons */
+      #bankStatementsModal .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+      }
+      #bankStatementsModal .modal-header h2 {
+        margin: 0;
+        color: #0056b3;
+        font-size: 1.8em;
+      }
+      #bankStatementsModal .action-buttons { display: flex; gap: 10px; }
+      #bankStatementsModal .action-buttons button {
+        padding: 10px 25px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1em;
+        transition: background-color .3s, transform .2s;
+        box-shadow: 0 2px 4px rgba(0,0,0,.1);
+      }
+      #bankStatementsModal .action-buttons button:hover { transform: translateY(-2px); }
+      #bankStatementsModal .close-button { background-color: #dc3545; color: #fff; }
+      #bankStatementsModal .close-button:hover { background-color: #c82333; }
+      #bankStatementsModal .save-button { background-color: #007bff; color: #fff; }
+      #bankStatementsModal .save-button:hover { background-color: #0056b3; }
+  
+      /* Sections */
+      #bankStatementsModal .section {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        margin-bottom: 20px;
+      }
+      #bankStatementsModal .section h3 {
+        color: #0056b3;
+        margin-top: 0;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+        font-size: 1.4em;
+      }
+  
+      /* Table */
+      #bankStatementsModal table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+      }
+      #bankStatementsModal table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e0e0e0;
+        text-align: left;
+        vertical-align: top;
+      }
+      #bankStatementsModal table strong { color: #555; }
+  
+      /* Charts */
+      #bankStatementsModal #chart-container {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        margin-top: 20px;
+      }
+      #bankStatementsModal #chart-container h3 {
+        color: #333;
+        font-size: 1.2em;
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      #bankStatementsModal .chart-wrapper {
+        position: relative;
+        height: 300px;
+        max-width: 100%;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,.1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+      }
+      #bankStatementsModal canvas {
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100%;
+        max-width: 100%;
+      }
+  
+      /* Sales Notes */
+      #bankStatementsModal #sales-notes {
+        width: 100%;
+        padding: 15px;
+        border: 1px solid #ced4da;
+        border-radius: 8px;
+        resize: vertical;
+        min-height: 120px;
+        font-size: 1em;
+        line-height: 1.5;
+        box-sizing: border-box;
+        transition: border-color .3s, box-shadow .3s;
+      }
+      #bankStatementsModal #sales-notes:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 .2rem rgba(0,123,255,.25);
+        outline: none;
+      }
+  
+      #bankStatementsModal h4 { color: #0056b3; margin-bottom: 10px; font-size: 1.2em; }
+      #bankStatementsModal .section-row { display: flex; gap: 20px; flex-wrap: wrap; }
+      #bankStatementsModal .section-row .section { flex: 1 1 48%; min-width: 300px; }
+  
+      /* Summary pills / tables */
+      #bankStatementsModal .ts-metrics {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+      #bankStatementsModal .ts-metric {
+        background:#fff;
+        border:1px solid #e9ecef;
+        border-radius:8px;
+        padding:12px;
+      }
+      #bankStatementsModal .ts-metric .label { color:#666; font-size:.9em; }
+      #bankStatementsModal .ts-metric .value { font-weight:600; margin-top:4px; }
+      #bankStatementsModal .pill {
+        display:inline-block;
+        padding:6px 10px;
+        border-radius:999px;
+        background:#eef5ff;
+        border:1px solid #d6e6ff;
+        margin:4px 6px 0 0;
+        font-size:.9em;
+      }
+
+      /* Header switch */
+#bankStatementsModal .toggle-wrap{
+        display:flex;
+        align-items:center;
+        gap:8px;
+        margin-right: 4px;
+      }
+      #bankStatementsModal .toggle-label{
+        font-size: .95em;
+        color:#333;
+        user-select:none;
+      }
+      #bankStatementsModal .switch{
+        position:relative;
+        display:inline-block;
+        width:46px;
+        height:26px;
+      }
+      #bankStatementsModal .switch input{
+        opacity:0;
+        width:0;
+        height:0;
+      }
+      #bankStatementsModal .slider-toggle{
+        position:absolute;
+        cursor:pointer;
+        inset:0;
+        background:#cfd6dd;
+        transition:.2s;
+        border-radius:999px;
+        border:1px solid #bfc8d2;
+      }
+      #bankStatementsModal .slider-toggle:before{
+        content:"";
+        position:absolute;
+        height:20px;
+        width:20px;
+        left:2px;
+        top:2px;
+        background:white;
+        transition:.2s;
+        border-radius:50%;
+        box-shadow:0 1px 3px rgba(0,0,0,.2);
+      }
+      #bankStatementsModal .switch input:checked + .slider-toggle{
+        background:#007bff;
+        border-color:#007bff;
+      }
+      #bankStatementsModal .switch input:checked + .slider-toggle:before{
+        transform:translateX(20px);
+      }
+
+    `;
+  
+    const style = document.createElement('style');
+    style.id = 'efs-bankstatements-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  })();
+  </script>
+  
+
+
+  <div id="bankStatementsModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Bank Statements Details</h2>
+        <div class="action-buttons">
+
+          <div class="toggle-wrap" title="Include transaction-level recurring supplier payment analysis">
+            <span class="toggle-label">Detailed Analysis</span>
+            <label class="switch">
+              <input type="checkbox" id="detailed-analysis-toggle">
+              <span class="slider-toggle"></span>
+            </label>
+          </div>
+          <button id="run-bank-statements-button" class="run-button">Run</button>
+          <button id="save-notes-button" class="save-notes-button">Save notes</button>
+          <button id="close-bank-statements-button" class="close-button" onclick="closeBankStatementsModal()">Close</button>
+        </div>
+        
+      </div>
+  
+      <div class="section" id="transaction-context">
+        <h3>Transaction Details</h3>
+        <div class="ts-metrics">
+          <div class="ts-metric">
+            <div class="label">ABN</div>
+            <div class="value" id="ctx-abn">—</div>
+          </div>
+          <div class="ts-metric">
+            <div class="label">Transaction ID</div>
+            <div class="value" id="ctx-tx">—</div>
+          </div>
+          <div class="ts-metric">
+            <div class="label">ACN</div>
+            <div class="value" id="ctx-acn">—</div>
+          </div>
+          <div class="ts-metric">
+            <div class="label">Company Name</div>
+            <div class="value" id="ctx-company-name">—</div>
+          </div>
+        </div>
+        
+      </div>
+      
+
+
+      <div class="section-row">
+        <!-- Filters -->
+        <div class="section" id="bank-statement-filters">
+          <h4>Amount Borrowed</h4>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input type="range" id="amount-borrowed-slider" min="0" max="10000000" step="10000" value="0" style="flex:1;">
+            <span id="amount-borrowed-value">$0</span>
+          </div>
+  
+          <h4 style="margin-top:20px;">Interest Rate</h4>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <input type="range" id="interest-rate-slider" min="0" max="30" step="1" value="0" style="flex:1;">
+            <span id="interest-rate-value">0%</span>
+          </div>
+  
+          <h4 style="margin-top:20px;">Select Bank Accounts</h4>
+          <div id="bank-account-checkboxes" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+        </div>
+  
+        <!-- Serviceability -->
+        <div id="serviceability-section" class="section">
+          <h3>Serviceability</h3>
+          <h4 style="margin-top:20px;">Select Timeframe</h4>
+          <div id="timeframe-options" style="display:flex; gap:15px;">
+            <label><input type="radio" name="timeframe" value="3m" checked> 3 months</label>
+            <label><input type="radio" name="timeframe" value="6m"> 6 months</label>
+            <label><input type="radio" name="timeframe" value="1y"> 1 year</label>
+          </div>
+          <table>
+            <tr><td><strong>Gross Interest Coverage</strong></td><td><span id="gross-interest-coverage-value">N/A</span></td></tr>
+            <tr><td><strong>Net Interest Coverage</strong></td><td><span id="net-interest-coverage-value">N/A</span></td></tr>
+          </table>
+        </div>
+      </div>
+  
+      <div id="chart-container" class="section">
+        <h3>Account Balances Over Time</h3>
+      </div>
+  
+      <!-- Transaction Summary -->
+      <div id="transaction-summary" class="section">
+        <h3>Transaction Summary</h3>
+        <div id="ts-loading" style="text-align:center; color:#666;">Select timeframe / accounts to load summary…</div>
+  
+        <div id="ts-overall" style="display:none;">
+          <h4>Overall</h4>
+          <div class="ts-metrics" id="ts-overall-metrics"></div>
+          <div id="ts-monthly" style="margin-top:10px;"></div>
+        </div>
+  
+        <div id="ts-per-account" style="display:none; margin-top:15px;">
+          <h4>Per Account</h4>
+          <div style="overflow-x:auto;">
+            <table id="ts-per-account-table">
+              <thead>
+                <tr>
+                  <td><strong>Account</strong></td>
+                  <td><strong>Start Bal</strong></td>
+                  <td><strong>End Bal</strong></td>
+                  <td><strong>Avg Daily Bal</strong></td>
+                  <td><strong>Inflows</strong></td>
+                  <td><strong>Outflows</strong></td>
+                  <td><strong>Net</strong></td>
+                  <td><strong>Neg Days</strong></td>
+                  <td><strong>Max Drawdown</strong></td>
+                  <td><strong>Volatility</strong></td>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+  
+        <div id="ts-ai" style="display:none; margin-top:15px;">
+          <h4>AI Notes</h4>
+          <p id="ts-ai-summary" style="margin:0 0 8px 0;"></p>
+          <div id="ts-ai-flags"></div>
+        </div>
+      </div>
+  
+      <div class="section">
+        <h4>Sales Notes</h4>
+        <textarea id="sales-notes" rows="6" maxlength="1000" placeholder="Enter sales notes here (max 1000 characters)"></textarea>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    // add these globals near your other state vars if not already present
+
+    let __currentDealTransactionId = null;           // ✅ the deal/application tx id
+    let __currentBankStatementsACN = null;
+  
+    function populateTransactionContext(bankAccounts){
+      const abn = __currentABNForBankStatements || bankAccounts?.[0]?.abn || '—';
+
+      // infer ACN from latest bank transaction (fine)
+      let latestTx = null;
+      for (const acc of (bankAccounts || [])){
+        for (const t of (acc.transactions || [])){
+          if (!t?.date) continue;
+          const ms = new Date(t.date).getTime();
+          if (!latestTx || ms > new Date(latestTx.date).getTime()){
+            latestTx = t;
+          }
+        }
+      }
+
+      const acn = latestTx?.acn || '—';
+
+      const companyName =
+        latestTx?.company_name ||
+        bankAccounts?.[0]?.company_name ||
+        '—';
+
+      // render UI
+      document.getElementById('ctx-abn')?.replaceChildren(document.createTextNode(abn));
+      document.getElementById('ctx-acn')?.replaceChildren(document.createTextNode(acn));
+      document.getElementById('ctx-company-name')?.replaceChildren(document.createTextNode(companyName));
+
+      // ✅ Transaction ID should be the DEAL txId passed in from Sales (like PPSR)
+      document.getElementById('ctx-tx')?.replaceChildren(
+        document.createTextNode(__currentDealTransactionId || '—')
+      );
+
+      // ✅ persist for Save Notes
+      __currentBankStatementsACN = (acn && acn !== '—') ? acn : null;
+    }
+
+  </script>
+  
+
+  <script>
+    /* ---------- Minimal deps & helpers (merged, safe) ---------- */
+  
+    // Fallback for urlSales() if the Sales page didn't define it
+    if (typeof window.urlSales !== "function") {
+      window.urlSales = function(path){ return "/" + String(path || "").replace(/^\/+/, ""); };
+    }
+  
+    // Promise-based script loader
+    function loadScript(src){
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.async = false;                // keep load order deterministic
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+  
+    // Load Chart.js first, then its time adapter
+    async function ensureDeps(){
+      if (!window.Chart) {
+        await loadScript("https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js");
+      }
+      if (!window.Chart?._adapters?.date) {
+        await loadScript("https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3");
+      }
+    }
+  
+    // Keep your waitForChart helper (used by your code)
+    async function waitForChart(maxMs=5000){
+      const t0 = Date.now();
+      while (Date.now() - t0 < maxMs){
+        if (window.Chart && Chart._adapters && Chart._adapters.date) return;
+        await new Promise(r => setTimeout(r, 50));
+      }
+      console.warn("Chart.js time adapter not ready; continuing anyway");
+    }
+  
+    // CSRF helper (harmless for GET)
+    function getCookie(name){
+      const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? m.pop() : '';
+    }
+    const CSRF_TOKEN = getCookie('csrftoken') || "{{ csrf_token }}";
+  
+    // State used by your other functions
+    let chartInstances = {};
+    let isModalOpening = false;
+    let __currentABNForBankStatements = null;
+  </script>
+  
+  <script>
+    function wireBankStatementsButtons(){
+      const runBtn = document.getElementById('run-bank-statements-button');
+      if (runBtn && !runBtn.dataset.bound){
+        runBtn.dataset.bound = "1";
+        runBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          runBankStatementsAI();
+        });
+      }
+    
+      const closeBtn = document.getElementById('close-bank-statements-button');
+      if (closeBtn && !closeBtn.dataset.bound){
+        closeBtn.dataset.bound = "1";
+        closeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          closeBankStatementsModal();
+        });
+      }
+    }
+    </script>
+    
+  
+  <script>
+    /* FIX: resetTransactionSummaryUI moved here to solve "not defined" error */
+    function resetTransactionSummaryUI(isLoading){
+        const tsLoading=document.getElementById('ts-loading');
+        const tsOverall=document.getElementById('ts-overall');
+        const tsPer=document.getElementById('ts-per-account');
+        const tsAI=document.getElementById('ts-ai');
+      
+        if (tsLoading) tsLoading.style.display = isLoading ? 'block' : 'none';
+        if (tsOverall) tsOverall.style.display = 'none';
+        if (tsPer) { tsPer.style.display = 'none'; const tbody=document.querySelector('#ts-per-account-table tbody'); if(tbody) tbody.innerHTML=''; }
+        if (tsAI) { tsAI.style.display = 'none'; const flags=document.getElementById('ts-ai-flags'); const sum=document.getElementById('ts-ai-summary'); if(flags) flags.innerHTML=''; if(sum) sum.textContent=''; }
+        const metrics=document.getElementById('ts-overall-metrics'); if (metrics) metrics.innerHTML='';
+        const monthly=document.getElementById('ts-monthly'); if (monthly) monthly.innerHTML='';
+    }
+  
+
+
+  window.openBankStatementsModal = async function (abn, txId) {
+    if (isModalOpening) return;
+    isModalOpening = true;
+
+    const modal = document.getElementById('bankStatementsModal');
+    const chartContainer = document.getElementById('chart-container');
+
+    try {
+      if (!abn) throw new Error('ABN not available.');
+      __currentABNForBankStatements = abn;
+
+      // ✅ store DEAL transaction id (from Sales row)
+      __currentDealTransactionId = txId || null;
+
+      // show it immediately in UI
+      document.getElementById('ctx-tx')?.replaceChildren(
+        document.createTextNode(__currentDealTransactionId || '—')
+      );
+
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-hidden', 'false');
+      modal.style.display = 'flex';
+
+      wireBankStatementsButtons();
+      document.getElementById('close-bank-statements-button')?.focus();
+
+      if (chartContainer) {
+        chartContainer.innerHTML =
+          '<h3>Account Balances Over Time</h3><p style="text-align:center;">Loading chart data...</p>';
+      }
+
+      resetTransactionSummaryUI(true);
+
+      await ensureDeps();
+      await waitForChart();
+
+      const url = urlSales(`display_bank_account_data/${encodeURIComponent(abn)}/`);
+      const resp = await fetch(url, { method: 'GET', credentials: 'include', headers: { 'Accept':'application/json' }});
+      const ctype = (resp.headers.get('content-type') || '').toLowerCase();
+      if (!ctype.includes('application/json')) throw new Error('Non-JSON response (login redirect?)');
+
+      const payload = await resp.json();
+      if (!payload.success) throw new Error(payload.message || 'Error loading data');
+
+      const raw = payload.data || [];
+      const bankAccounts = raw.map(row => ({
+        ...row.account,
+        bank: row.bank,
+        transactions: row.transactions || [],
+      }));
+
+      populateBankStatementsModal(bankAccounts);
+      populateTransactionContext(bankAccounts);   // this will fill ABN/ACN/company (tx comes from deal)
+      fetchAndRenderTransactionSummary();
+
+    } catch (e) {
+      console.error('openBankStatementsModal error:', e);
+      if (chartContainer) {
+        chartContainer.innerHTML =
+          '<h3>Account Balances Over Time</h3><p style="text-align:center; color:#b00;">' +
+          (e?.message || 'Error loading data') + '</p>';
+      }
+    } finally {
+      isModalOpening = false;
+    }
+  };
+
+
+  window.closeBankStatementsModal = function () {
+  // move focus OUT before hiding
+  document.body.focus();
+
+  const modal = document.getElementById('bankStatementsModal');
+  if (modal) {
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.removeAttribute('aria-modal');
+  }
+
+  for (const id in chartInstances) {
+    try { chartInstances[id].destroy(); } catch(_) {}
+    delete chartInstances[id];
+  }
+  chartInstances = {};
+  __currentABNForBankStatements = null;
+  resetTransactionSummaryUI(false);
+  __currentDealTransactionId = null;
+};
+
+  
+  
+  /* ---------- Init (sliders display text & placeholders) ---------- */
+  document.addEventListener('DOMContentLoaded', function () {
+      const amountSlider = document.getElementById('amount-borrowed-slider');
+      const amountValue  = document.getElementById('amount-borrowed-value');
+      if (amountSlider && amountValue){
+        const v = parseInt(amountSlider.value || '0',10);
+        // Set the initial displayed value for the Amount Borrowed slider
+        amountValue.textContent = `$${v.toLocaleString('en-AU')}`;
+      }
+    
+      const interestSlider = document.getElementById('interest-rate-slider');
+      const interestValue  = document.getElementById('interest-rate-value');
+      if (interestSlider && interestValue){
+        // Set the initial displayed value for the Interest Rate slider
+        interestValue.textContent = `${interestSlider.value}%`;
+      }
+    
+      // Set initial placeholder text for serviceability
+      const g = document.getElementById('gross-interest-coverage-value');
+      const n = document.getElementById('net-interest-coverage-value');
+      if (g && !g.innerText.trim()) g.innerText = 'Awaiting data...';
+      if (n && !n.innerText.trim()) n.innerText = 'Awaiting data...';
+  });
+  </script>
+
+
+<script>
+  /* ---------- Charts + coverage + summary helpers ---------- */
+  
+  function populateBankStatementsModal(bankAccounts) {
+    const chartContainer = document.getElementById('chart-container');
+    const checkboxesContainer = document.getElementById('bank-account-checkboxes');
+    checkboxesContainer.innerHTML = '';
+  
+    // Destroy previous charts
+    for (const id in chartInstances) {
+      try { chartInstances[id].destroy(); } catch(_) {}
+      delete chartInstances[id];
+    }
+    chartInstances = {};
+    chartContainer.innerHTML = '<h3>Account Balances Over Time</h3>';
+  
+    if (!bankAccounts || bankAccounts.length === 0) {
+      const p = document.createElement('p');
+      p.textContent = 'No bank account data available to display charts.';
+      p.style.textAlign = 'center'; p.style.padding = '20px';
+      chartContainer.appendChild(p);
+    } else {
+      bankAccounts.forEach((account) => {
+        // Checkbox
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex'; wrapper.style.flexDirection = 'column';
+        wrapper.style.padding = '5px 10px'; wrapper.style.border = '1px solid #ccc';
+        wrapper.style.borderRadius = '6px'; wrapper.style.backgroundColor = '#fff';
+        wrapper.style.minWidth = '240px';
+  
+        const label = document.createElement('label');
+        label.style.display = 'flex'; label.style.alignItems = 'center'; label.style.gap = '6px';
+  
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox'; checkbox.name = 'bank-account-checkbox'; checkbox.value = account.account_id; checkbox.checked = true;
+  
+        const accountText = document.createElement('div');
+        accountText.innerHTML = `<strong>${account.account_holder || 'Unnamed'}</strong><br>${account.account_type || 'Type N/A'} - ${account.account_number || 'Account # N/A'}`;
+        accountText.style.fontSize = '0.9em';
+  
+        label.appendChild(checkbox); label.appendChild(accountText);
+        wrapper.appendChild(label); checkboxesContainer.appendChild(wrapper);
+  
+        // Chart
+        const accountDiv = document.createElement('div');
+        accountDiv.className = 'account-chart-item'; chartContainer.appendChild(accountDiv);
+  
+        const accountHeader = document.createElement('h4');
+        accountHeader.textContent = `${account.account_holder || ''} - ${account.account_name || ''}`; accountDiv.appendChild(accountHeader);
+  
+        const chartWrapper = document.createElement('div');
+        chartWrapper.className = 'chart-wrapper'; accountDiv.appendChild(chartWrapper);
+  
+        const canvas = document.createElement('canvas');
+        canvas.id = `chart-${account.account_id}`; chartWrapper.appendChild(canvas);
+  
+        const labels = (account.transactions || []).map(t => t.date);
+        const dataPoints = (account.transactions || []).map(t => t.balance);
+  
+        const ctx = canvas.getContext('2d');
+        try {
+          const newChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [{
+                label: 'Balance', data: dataPoints,
+                borderColor: '#007bff', backgroundColor: 'rgba(0,123,255,0.1)', fill: true,
+                borderWidth: 2, pointRadius: 0, pointHitRadius: 5, pointHoverRadius: 4,
+              }],
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false, animation: false,
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  mode: 'index', intersect: false,
+                  callbacks: { label: (ctx) => `Balance: $${ctx.parsed.y.toLocaleString('en-AU')}` }
+                },
+                decimation: { enabled: true, algorithm: 'lttb', samples: 100 },
+              },
+              scales: {
+                x: { type: 'time', time: { unit: 'day' }, title: { display: true, text: 'Date' }, ticks: { maxTicksLimit: 10 } },
+                y: { title: { display: true, text: 'Balance ($)' }, ticks: { callback: (v) => '$' + Number(v).toLocaleString('en-AU') } },
+              },
+            }
+          });
+          chartInstances[account.account_id] = newChart;
+        } catch (e) {
+          console.error(`Error creating chart for account ${account.account_name}:`, e);
+          accountDiv.innerHTML += `<p style="color:red;">Error displaying chart for this account.</p>`;
+        }
+      });
+    }
+  
+    // Sliders midpoint (nice default)
+    const amountSlider = document.getElementById('amount-borrowed-slider');
+    const amountDisplay = document.getElementById('amount-borrowed-value');
+    if (amountSlider && amountDisplay) {
+      const midpointAmount = (parseInt(amountSlider.min) + parseInt(amountSlider.max)) / 2;
+      amountSlider.value = midpointAmount; amountDisplay.textContent = `$${parseInt(midpointAmount).toLocaleString('en-AU')}`;
+    }
+    const interestSlider = document.getElementById('interest-rate-slider');
+    const interestDisplay = document.getElementById('interest-rate-value');
+    if (interestSlider && interestDisplay) {
+      const midpointRate = (parseInt(interestSlider.min) + parseInt(interestSlider.max)) / 2;
+      interestSlider.value = midpointRate; interestDisplay.textContent = `${parseInt(midpointRate)}%`;
+    }
+  
+    // Initial calc + listeners
+    calculateGrossInterestCoverage(bankAccounts);
+    const recalc = () => { calculateGrossInterestCoverage(bankAccounts); calculateNetInterestCoverage(bankAccounts); fetchAndRenderTransactionSummary(); };
+    
+    // *** FIX: Update slider value text display AND recalculate ***
+    const amountSliderEl = document.getElementById('amount-borrowed-slider');
+    const amountValueEl  = document.getElementById('amount-borrowed-value');
+    amountSliderEl?.addEventListener('input', () => {
+      if (amountValueEl) amountValueEl.textContent = `$${parseInt(amountSliderEl.value||'0',10).toLocaleString('en-AU')}`;
+      recalc();
+    });
+
+    const interestSliderEl = document.getElementById('interest-rate-slider');
+    const interestValueEl  = document.getElementById('interest-rate-value');
+    interestSliderEl?.addEventListener('input', () => {
+      if (interestValueEl) interestValueEl.textContent = `${interestSliderEl.value}%`;
+      recalc();
+    });
+    // *** END FIX ***
+    
+    // Attach listeners for other inputs (timeframe and checkboxes)
+    document.querySelectorAll('input[name="timeframe"]').forEach(r => r.addEventListener('change', recalc));
+    document.querySelectorAll('input[name="bank-account-checkbox"]').forEach(cb => cb.addEventListener('change', recalc));
+  }
+  
+  /* ===== Coverage calcs ===== */
+  function currentInterestExpense(months) {
+    const amount = Number(document.getElementById('amount-borrowed-slider')?.value || 0);
+    const ratePct = Number(document.getElementById('interest-rate-slider')?.value || 0);
+    const annualRate = ratePct / 100;
+    return amount * annualRate * (months / 12);
+  }
+  
+  function computeFlows(accounts, months) {
+    // Determine window: [maxDate - months, maxDate]
+    let endMs = 0;
+    for (const a of accounts) {
+      for (const t of (a.transactions || [])) {
+        const ms = new Date(t.date).getTime();
+        if (!isNaN(ms) && ms > endMs) endMs = ms;
+      }
+    }
+    if (!endMs) endMs = Date.now();
+    const end = new Date(endMs);
+    const start = new Date(endMs); start.setMonth(start.getMonth() - months);
+  
+    // date -> sum of deltas across all selected accounts on that date
+    const daySums = new Map();
+    for (const a of accounts) {
+      const tx = (a.transactions || [])
+        .map(t => ({ d: new Date(t.date), b: Number(t.balance) }))
+        .filter(t => !isNaN(t.d) && t.d >= start && t.d <= end)
+        .sort((x, y) => x.d - y.d);
+      for (let i = 1; i < tx.length; i++) {
+        const delta = tx[i].b - tx[i - 1].b;
+        const key = tx[i].d.toISOString().slice(0, 10);
+        daySums.set(key, (daySums.get(key) || 0) + delta);
+      }
+    }
+  
+    let inflows = 0, outflows = 0;
+    for (const sum of daySums.values()) {
+      if (sum > 0) inflows += sum;
+      else if (sum < 0) outflows += -sum;
+    }
+    return { inflows, outflows, net: inflows - outflows };
+  }
+  
+  function calculateGrossInterestCoverage(bankAccounts) {
+    try {
+      const months = getSelectedMonths();
+      const checked = new Set(getCheckedAccountIds());
+      const accts = bankAccounts.filter(a => checked.size === 0 || checked.has(String(a.account_id)));
+      const { inflows } = computeFlows(accts, months);
+      const interestExpense = currentInterestExpense(months);
+      const el = document.getElementById('gross-interest-coverage-value');
+      if (!el) return;
+      if (!interestExpense || !isFinite(interestExpense) || interestExpense <= 0 || inflows <= 0) { el.textContent = 'N/A'; return; }
+      el.textContent = (inflows / interestExpense).toFixed(2) + 'x';
+    } catch (e) {
+      console.error('Gross coverage calc error:', e);
+      const el = document.getElementById('gross-interest-coverage-value'); if (el) el.textContent = 'N/A';
+    }
+  }
+  
+  function calculateNetInterestCoverage(bankAccounts) {
+    try {
+      const months = getSelectedMonths();
+      const checked = new Set(getCheckedAccountIds());
+      const accts = bankAccounts.filter(a => checked.size === 0 || checked.has(String(a.account_id)));
+      const { net } = computeFlows(accts, months);
+      const interestExpense = currentInterestExpense(months);
+      const el = document.getElementById('net-interest-coverage-value');
+      if (!el) return;
+      if (!interestExpense || !isFinite(interestExpense) || interestExpense <= 0) { el.textContent = 'N/A'; return; }
+      const cov = net / interestExpense;
+      el.textContent = isFinite(cov) ? cov.toFixed(2) + 'x' : 'N/A';
+    } catch (e) {
+      console.error('Net coverage calc error:', e);
+      const el = document.getElementById('net-interest-coverage-value'); if (el) el.textContent = 'N/A';
+    }
+  }
+  
+  /* ===== Transaction Summary helpers ===== */
+  function formatCurrency(n){ if (n===null || n===undefined || isNaN(n)) return '$0'; return '$'+Number(n).toLocaleString('en-AU',{maximumFractionDigits:2}); }
+  function getSelectedMonths(){ const v=(document.querySelector('input[name="timeframe"]:checked')?.value||'3m').toLowerCase(); if(v==='6m')return 6; if(v==='1y')return 12; return 3; }
+  function getCheckedAccountIds(){ return Array.from(document.querySelectorAll('input[name="bank-account-checkbox"]:checked')).map(cb => cb.value); }
+
+  // *** NOTE: resetTransactionSummaryUI REMOVED from here (moved to block 2) ***
+  
+  function fetchAndRenderTransactionSummary(){
+    const abn=__currentABNForBankStatements; if(!abn) return;
+    const months=getSelectedMonths(); const accounts=getCheckedAccountIds();
+  
+    const params = new URLSearchParams(); params.set('months', String(months));
+    if (accounts.length>0) params.set('accounts', accounts.join(','));
+  
+    resetTransactionSummaryUI(true);
+  
+    fetch(urlSales(`bankstatements/summary/${encodeURIComponent(abn)}/?` + params.toString()), {
+      method:'GET',
+      credentials:'include',
+      headers:{'Accept':'application/json'}
+    })
+      .then(r => r.json())
+      .then(payload => { renderTransactionSummary(payload); })
+      .catch(err => {
+        console.error('Summary fetch failed:', err);
+        const tsLoading=document.getElementById('ts-loading');
+        if (tsLoading) { tsLoading.innerHTML = '<span style="color:red;">Error loading summary.</span>'; tsLoading.style.display='block'; }
+      });
+  }
+  
+  function renderTransactionSummary(data){
+    const tsLoading=document.getElementById('ts-loading');
+    const tsOverall=document.getElementById('ts-overall');
+    const tsPer=document.getElementById('ts-per-account');
+    const tsAI=document.getElementById('ts-ai');
+    if (tsLoading) tsLoading.style.display='none';
+  
+    // Overall
+    if (data && data.overall && Object.keys(data.overall).length>0){
+      const o=data.overall;
+      const metrics=document.getElementById('ts-overall-metrics');
+      if (metrics){
+        metrics.innerHTML = `
+          <div class="ts-metric"><div class="label">Accounts</div><div class="value">${o.num_accounts ?? 0}</div></div>
+          <div class="ts-metric"><div class="label">Start Balance</div><div class="value">${formatCurrency(o.start_balance)}</div></div>
+          <div class="ts-metric"><div class="label">End Balance</div><div class="value">${formatCurrency(o.end_balance)}</div></div>
+          <div class="ts-metric"><div class="label">Avg Daily Balance</div><div class="value">${formatCurrency(o.avg_daily_balance)}</div></div>
+          <div class="ts-metric"><div class="label">Total Inflows</div><div class="value">${formatCurrency(o.total_inflows)}</div></div>
+          <div class="ts-metric"><div class="label">Total Outflows</div><div class="value">${formatCurrency(o.total_outflows)}</div></div>
+          <div class="ts-metric"><div class="label">Net Cashflow</div><div class="value">${formatCurrency(o.net_cashflow)}</div></div>
+          <div class="ts-metric"><div class="label">Days Negative</div><div class="value">${o.days_negative ?? 0}</div></div>
+          <div class="ts-metric"><div class="label">Max Drawdown</div><div class="value">${formatCurrency(o.max_drawdown)}</div></div>
+        `;
+      }
+      const monthly=document.getElementById('ts-monthly');
+      if (monthly && Array.isArray(o.monthly_flows) && o.monthly_flows.length){
+        const rows = o.monthly_flows.map(m => `
+          <tr><td>${m.month}</td><td>${formatCurrency(m.inflows)}</td><td>${formatCurrency(m.outflows)}</td><td>${formatCurrency(m.net)}</td></tr>
+        `).join('');
+        monthly.innerHTML = `
+          <h4 style="margin-top:12px;">Monthly Flows</h4>
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr><td><strong>Month</strong></td><td><strong>Inflows</strong></td><td><strong>Outflows</strong></td><td><strong>Net</strong></td></tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>`;
+      }
+      if (tsOverall) tsOverall.style.display='block';
+    }
+  
+    // Per Account
+    if (data && Array.isArray(data.per_account) && data.per_account.length){
+      const tbody=document.querySelector('#ts-per-account-table tbody');
+      if (tbody){
+        tbody.innerHTML = data.per_account.map(a => `
+          <tr>
+            <td>${(a.account_holder || 'Unnamed')}<br><span style="color:#666; font-size:.9em;">${a.account_name || ''}</span></td>
+            <td>${formatCurrency(a.start_balance)}</td>
+            <td>${formatCurrency(a.end_balance)}</td>
+            <td>${formatCurrency(a.avg_daily_balance)}</td>
+            <td>${formatCurrency(a.total_inflows)}</td>
+            <td>${formatCurrency(a.total_outflows)}</td>
+            <td>${formatCurrency(a.net_cashflow)}</td>
+            <td>${a.days_negative ?? 0}</td>
+            <td>${formatCurrency(a.max_drawdown)}</td>
+            <td>${formatCurrency(a.volatility)}</td>
+          </tr>
+        `).join('');
+      }
+      if (tsPer) tsPer.style.display='block';
+    }
+  
+    // AI
+    if (data && data.ai && (data.ai.summary || (Array.isArray(data.ai.risk_flags) && data.ai.risk_flags.length))){
+      const sum=document.getElementById('ts-ai-summary');
+      const flags=document.getElementById('ts-ai-flags');
+      if (sum && data.ai.summary) sum.textContent = data.ai.summary;
+      if (flags) flags.innerHTML = (data.ai.risk_flags || []).map(f => `<span class="pill">${f}</span>`).join('');
+      if (tsAI) tsAI.style.display='block';
+    }
+  }
+</script>
+
+
+
+ <!---  ai code  -->
+<!---  ai code  -->
+<script>
+  function formatCoverage(x){
+    if (x === null || x === undefined || !isFinite(x)) return 'N/A';
+    return Number(x).toFixed(2) + 'x';
+  }
+
+  async function runBankStatementsAI(){
+    const abn = __currentABNForBankStatements;
+    if (!abn) return;
+
+    const btn = document.getElementById('run-bank-statements-button');
+    if (btn) { btn.disabled = true; btn.textContent = 'Running…'; }
+
+    try {
+      const months = getSelectedMonths();
+      const accounts = getCheckedAccountIds();
+      const amount_borrowed = Number(document.getElementById('amount-borrowed-slider')?.value || 0);
+      const interest_rate_pct = Number(document.getElementById('interest-rate-slider')?.value || 0);
+
+      // NEW: detailed analysis toggle + ACN
+      const detailed_analysis = !!document.getElementById('detailed-analysis-toggle')?.checked;
+      const acn = __currentBankStatementsACN || null;
+
+      const resp = await fetch(urlSales(`bankstatements/analyse-ai/${encodeURIComponent(abn)}/`), {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type':'application/json',
+          'Accept':'application/json',
+          'X-CSRFToken': CSRF_TOKEN
+        },
+        body: JSON.stringify({
+          months,
+          accounts,
+          amount_borrowed,
+          interest_rate_pct,
+          detailed_analysis,   // NEW
+          acn                  // NEW (helps matching by ABN and/or ACN)
+        })
+      });
+
+      const payload = await resp.json();
+      if (!resp.ok || payload.success === false) {
+        throw new Error(payload.message || `Request failed (${resp.status})`);
+      }
+
+      // update widgets
+      const gross = payload?.serviceability?.gross_interest_coverage;
+      const net   = payload?.serviceability?.net_interest_coverage;
+
+      const grossEl = document.getElementById('gross-interest-coverage-value');
+      const netEl   = document.getElementById('net-interest-coverage-value');
+      if (grossEl) grossEl.textContent = formatCoverage(gross);
+      if (netEl)   netEl.textContent   = formatCoverage(net);
+
+      // ✅ write memo to Sales Notes (and DO NOT overwrite it later)
+      const memo = (payload?.ai?.sales_notes || payload?.ai?.summary || "").trim();
+      const salesNotesEl = document.getElementById('sales-notes');
+      if (salesNotesEl) salesNotesEl.value = memo;
+
+      // hide AI Notes section
+      const tsAI = document.getElementById('ts-ai');
+      if (tsAI) tsAI.style.display = 'none';
+
+      console.log("FULL AI PAYLOAD:", payload);
+      console.log("Memo length:", memo.length);
+
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'Run'; }
+    }
+  }
+</script>
+
+
+<!-- Bind the “Save notes” button and POST to your BFF endpoint -->
+
+<script>
+  function wireBankStatementsButtons(){
+    const runBtn = document.getElementById('run-bank-statements-button');
+    if (runBtn && !runBtn.dataset.bound){
+      runBtn.dataset.bound = "1";
+      runBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        runBankStatementsAI();
+      });
+    }
+
+    const saveBtn = document.getElementById('save-notes-button');
+    if (saveBtn && !saveBtn.dataset.bound){
+      saveBtn.dataset.bound = "1";
+      saveBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        await saveBankStatementsNotes();
+      });
+    }
+
+    const closeBtn = document.getElementById('close-bank-statements-button');
+    if (closeBtn && !closeBtn.dataset.bound){
+      closeBtn.dataset.bound = "1";
+      closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeBankStatementsModal();
+      });
+    }
+  }
+</script>
+
+
+<script>
+  async function saveBankStatementsNotes(){
+    const abn = __currentABNForBankStatements;
+    if (!abn) { alert("ABN not available."); return; }
+
+    const notesEl = document.getElementById('sales-notes');
+    const notes = (notesEl?.value || "").trim();
+    if (!notes) { alert("No notes to save."); return; }
+
+    const btn = document.getElementById('save-notes-button');
+    if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
+    try {
+      // ✅ NEW: read Detailed Analysis toggle
+      const isDetailed = !!document.getElementById('detailed-analysis-toggle')?.checked;
+
+      // ✅ NEW: set financial_data_type based on toggle
+      const financialDataType = isDetailed
+        ? "Bank Statements Detailed"
+        : "Bank Statements";
+
+      const payload = {
+        transaction_id: __currentDealTransactionId,   // may be null
+        abn: String(abn),
+        acn: __currentBankStatementsACN,              // may be null
+        financial_data_type: financialDataType,       // ✅ changed
+        notes: notes,
+      };
+
+      const resp = await fetch(urlSales(`financial/notes/save/`), {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRFToken": CSRF_TOKEN
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await resp.json();
+      if (!resp.ok || data.success === false) {
+        throw new Error(data.message || `Save failed (${resp.status})`);
+      }
+
+      // lightweight UX feedback
+      if (btn) btn.textContent = "Saved ✓";
+      setTimeout(() => { if (btn) btn.textContent = "Save notes"; }, 900);
+
+    } catch (err) {
+      console.error("Save notes error:", err);
+      alert(err?.message || "Error saving notes.");
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+</script>

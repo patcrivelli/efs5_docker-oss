@@ -1,0 +1,378 @@
+{% extends "efs_shared_ui/base.html" %}
+
+{% block title %}Drawdowns{% endblock %}
+
+{% block extra_styles %}
+<style>
+  .dashboard-kanban-board { display:flex; justify-content:space-between; margin-top:20px; gap:12px; }
+  .dashboard-kanban-column { background:#f4f4f4; padding:10px; border-radius:5px; box-shadow:0 2px 5px rgba(0,0,0,.1); width:22%; }
+  .dashboard-kanban-column h3 { text-align:center; margin-bottom:10px; color:#333; }
+  .ticket { background:#fff; border:1px solid #ccc; border-radius:5px; padding:10px; margin-bottom:10px; box-shadow:0 1px 3px rgba(0,0,0,.1); position:relative; }
+  .status-circle { position:absolute; top:10px; right:10px; width:10px; height:10px; background:red; border-radius:50%; }
+  .ticket-link { text-decoration:none; color:inherit; }
+  .empty { color:#666; font-size:.9rem; text-align:center; padding:8px 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center;">
+  <h2 id="originator-heading" style="flex-grow:1;">
+    {% if selected_originator %}
+      {{ selected_originator.originator }} Drawdowns
+    {% else %}
+      Drawdowns for All Originators
+    {% endif %}
+  </h2>
+</div>
+
+<div class="dashboard-kanban-board">
+    <!-- Sales -->
+    <div class="dashboard-kanban-column">
+      <h3>Sales</h3>
+      {% for t in columns.sales %}
+        <a href="#" class="ticket-link">
+          <div class="ticket" draggable="true"
+               data-abn="{{ t.abn|default:'' }}"
+               data-transid="{{ t.transaction_id|default:'' }}"
+               data-originator="{{ t.originator|default:'' }}"
+               onclick="openRightPanelDecision(this)">
+            <span class="status-circle"></span>
+            <strong>ABN: {{ t.abn|default:"—" }}</strong><br>
+            <span>Amount requested: {% if t.amount_requested %}${{ t.amount_requested|floatformat:2 }}{% else %}—{% endif %}</span><br>
+            <span>Originator: {{ t.originator|default:"—" }}</span><br>
+            <span>Product: {{ t.product|default:"—" }}</span><br>
+          </div>
+        </a>
+      {% empty %}
+        <div class="empty">No drawdowns in Sales.</div>
+      {% endfor %}
+    </div>
+  
+    <!-- Operations -->
+    <div class="dashboard-kanban-column">
+      <h3>Operations</h3>
+      {% for t in columns.operations %}
+        <a href="#" class="ticket-link">
+          <div class="ticket" draggable="true"
+               data-abn="{{ t.abn|default:'' }}"
+               data-transid="{{ t.transaction_id|default:'' }}"
+               data-originator="{{ t.originator|default:'' }}"
+               onclick="openRightPanelDecision(this)">
+            <span class="status-circle"></span>
+            <strong>ABN: {{ t.abn|default:"—" }}</strong><br>
+            <span>Amount requested: {% if t.amount_requested %}${{ t.amount_requested|floatformat:2 }}{% else %}—{% endif %}</span><br>
+            <span>Originator: {{ t.originator|default:"—" }}</span><br>
+            <span>Product: {{ t.product|default:"—" }}</span><br>
+          </div>
+        </a>
+      {% empty %}
+        <div class="empty">No drawdowns in Operations.</div>
+      {% endfor %}
+    </div>
+  
+    <!-- Risk -->
+    <div class="dashboard-kanban-column">
+      <h3>Risk</h3>
+      {% for t in columns.risk %}
+        <a href="#" class="ticket-link">
+          <div class="ticket" draggable="true"
+               data-abn="{{ t.abn|default:'' }}"
+               data-transid="{{ t.transaction_id|default:'' }}"
+               data-originator="{{ t.originator|default:'' }}"
+               onclick="openRightPanelDecision(this)">
+            <span class="status-circle"></span>
+            <strong>ABN: {{ t.abn|default:"—" }}</strong><br>
+            <span>Amount requested: {% if t.amount_requested %}${{ t.amount_requested|floatformat:2 }}{% else %}—{% endif %}</span><br>
+            <span>Originator: {{ t.originator|default:"—" }}</span><br>
+            <span>Product: {{ t.product|default:"—" }}</span><br>
+          </div>
+        </a>
+      {% empty %}
+        <div class="empty">No drawdowns in Risk.</div>
+      {% endfor %}
+    </div>
+  
+    <!-- Finance -->
+    <div class="dashboard-kanban-column">
+      <h3>Finance</h3>
+      {% for t in columns.finance %}
+        <a href="#" class="ticket-link">
+          <div class="ticket" draggable="true"
+               data-abn="{{ t.abn|default:'' }}"
+               data-transid="{{ t.transaction_id|default:'' }}"
+               data-originator="{{ t.originator|default:'' }}"
+               onclick="openRightPanelDecision(this)">
+            <span class="status-circle"></span>
+            <strong>ABN: {{ t.abn|default:"—" }}</strong><br>
+            <span>Amount requested: {% if t.amount_requested %}${{ t.amount_requested|floatformat:2 }}{% else %}—{% endif %}</span><br>
+            <span>Originator: {{ t.originator|default:"—" }}</span><br>
+            <span>Product: {{ t.product|default:"—" }}</span><br>
+          </div>
+        </a>
+      {% empty %}
+        <div class="empty">No drawdowns in Finance.</div>
+      {% endfor %}
+    </div>
+  </div>
+  
+
+
+
+
+<script>
+    /* ---------- URL helper to our proxy endpoints ---------- */
+    function urlDD(path = "") { return `/drawdown-decision/${String(path).replace(/^\/+/, "")}`; }
+    
+    /* ---------- Utils copied from credit_decision ---------- */
+    const PASS = "<span style='color:green; font-weight:bold;'>✔️</span>";
+    const FAIL = "<span style='color:red; font-weight:bold;'>❌</span>";
+    
+    function safeArr(x){ return x ? (Array.isArray(x) ? x : [x]) : []; }
+    
+    function decide(settings, report, currentScore, threshold) {
+      const checks = [
+        { on: settings?.insolvencies_switch,             data: report?.insolvencies },
+        { on: settings?.payment_defaults_current_switch, data: report?.paymentDefaults },
+        { on: settings?.credit_enquiries_switch,         data: report?.mercantileEnquiries },
+        { on: settings?.court_actions_current_switch,    data: report?.courtJudgements },
+        { on: settings?.ato_tax_default_switch,          data: report?.atoTaxDefault },
+        { on: settings?.payment_defaults_resolved_switch,data: report?.loans },
+        { on: settings?.credit_score_switch,             data: report?.anzsic }, // legacy mapping
+      ];
+      let requiresReview = checks.some(c =>
+        c?.on && safeArr(c?.data).length > 0 && c?.data !== "No data available"
+      );
+      if (settings?.credit_score_switch && currentScore != null && threshold != null) {
+        requiresReview ||= Number(currentScore) < Number(threshold);
+      }
+      return requiresReview ? "Review Required" : "Approved";
+    }
+    
+    /* Normalize Yes/No for overrides */
+    function normalizeYesNoFromStates({exists, state, fallback=false}) {
+      const s = String(state || "").toLowerCase();
+      if (s.includes("override")) return s.includes("yes") ? "Override Yes" : "Override No";
+      if (s === "closed" && !!exists) return "Override Yes";
+      return fallback ? "—" : "Override No";
+    }
+    
+    /* Render table exactly like your modal */
+    function renderDecisionTable(settings, report, overrides, scoreBlock) {
+      const creditScorePassFail = (() => {
+        if (!settings?.credit_score_switch) return PASS;
+        const cur = scoreBlock?.current_credit_score;
+        const th  = scoreBlock?.credit_score_threshold;
+        if (cur == null || th == null) return PASS;
+        return Number(cur) < Number(th) ? FAIL : PASS;
+      })();
+    
+      const exists = {
+        Insolvencies:         Array.isArray(report?.insolvencies)        && report.insolvencies.length        > 0,
+        Payment_Defaults:     Array.isArray(report?.paymentDefaults)     && report.paymentDefaults.length     > 0,
+        Mercantile_Enquiries: Array.isArray(report?.mercantileEnquiries) && report.mercantileEnquiries.length > 0,
+        Court_Judgements:     Array.isArray(report?.courtJudgements)     && report.courtJudgements.length     > 0,
+        ATO_Tax_Default:      !!report?.atoTaxDefault,
+        Loans:                Array.isArray(report?.loans)               && report.loans.length               > 0,
+        ANZSIC:               !!report?.anzsic,
+      };
+    
+      const spec = [
+        { label:"Insolvencies",         on: settings?.insolvencies_switch,             data: report?.insolvencies,        ovState: overrides?.Insolvencies_state,         exist: exists.Insolvencies },
+        { label:"Payment Defaults",     on: settings?.payment_defaults_current_switch, data: report?.paymentDefaults,     ovState: overrides?.Payment_Defaults_state,     exist: exists.Payment_Defaults },
+        { label:"Mercantile Enquiries", on: settings?.credit_enquiries_switch,         data: report?.mercantileEnquiries, ovState: overrides?.Mercantile_Enquiries_state, exist: exists.Mercantile_Enquiries },
+        { label:"Court Judgements",     on: settings?.court_actions_current_switch,    data: report?.courtJudgements,     ovState: overrides?.Court_Judgements_state,     exist: exists.Court_Judgements },
+        { label:"ATO Tax Default",      on: settings?.ato_tax_default_switch,          data: report?.atoTaxDefault,       ovState: overrides?.ATO_Tax_Default_state,      exist: exists.ATO_Tax_Default },
+        { label:"Loans",                on: settings?.payment_defaults_resolved_switch,data: report?.loans,               ovState: overrides?.Loans_state,                exist: exists.Loans },
+        { label:"ANZSIC",               on: settings?.credit_score_switch,             data: report?.anzsic,              ovState: overrides?.ANZSIC_state,               exist: exists.ANZSIC },
+      ];
+    
+      const rows = spec.map(item => {
+        const fails = (item.on && (Array.isArray(item.data) ? item.data.length > 0 : !!item.data) && item.data !== "No data available");
+        const passfail = fails ? FAIL : PASS;
+        const ov = normalizeYesNoFromStates({ exists: item.exist, state: item.ovState });
+        return `<tr><td>${item.label}</td><td>${passfail}</td><td>${ov}</td></tr>`;
+      });
+    
+      // Credit score override row
+      const raw = String(overrides?.Credit_Score_Threshold_state || "").toLowerCase();
+      const csOv = raw.includes("override")
+        ? (raw.includes("yes") ? "Override Yes" : "Override No")
+        : (raw === "below" ? "Override Yes" : "Override No");
+    
+      rows.push(`<tr><td>Credit Score</td><td>${creditScorePassFail}</td><td>${csOv}</td></tr>`);
+    
+      return `
+        <table border="1" style="width:100%; border-collapse:collapse; text-align:left; margin-top:10px;">
+          <thead><tr><th>Item</th><th>Pass/Fail</th><th>Override</th></tr></thead>
+          <tbody>${rows.join("")}</tbody>
+        </table>
+        <div style="margin-top:12px; font-size:0.95rem;">
+          <strong>Current Credit Score:</strong> ${scoreBlock?.current_credit_score ?? "N/A"} &nbsp;&nbsp;
+          <strong>Threshold:</strong> ${scoreBlock?.credit_score_threshold ?? "N/A"} &nbsp;&nbsp;
+          <strong>Switch:</strong> ${scoreBlock?.threshold_toggle === true ? "On" : "Off"}
+        </div>
+      `;
+    }
+    
+    async function getJSON(url) {
+      const r = await fetch(url);
+      if (!r.ok) throw { status:r.status, body: await r.text() };
+      return r.json();
+    }
+    
+    /* ---------- Main: called when user clicks a ticket ---------- */
+    async function openRightPanelDecision(el) {
+      const sidebar = document.getElementById("rightSidebar");
+      const toggleBtn = document.getElementById("toggleRightSidebarBtn");
+      const defaultSidebarWidth = 400;
+    
+      // Open the sidebar if it’s closed
+      if (sidebar.classList.contains("retracted")) {
+        toggleRightSidebar(); // you already defined this
+      } else {
+        // ensure the toggle button sits at the right place
+        toggleBtn.innerHTML = "⮜";
+        toggleBtn.style.right = `${sidebar.offsetWidth || defaultSidebarWidth}px`;
+      }
+    
+      // Extract identifiers
+      const abnRaw = (el.getAttribute("data-abn") || "").trim();
+      const transactionId = (el.getAttribute("data-transid") || "").trim();
+      const originator = (window.selected_originator || el.getAttribute("data-originator") || "").trim();
+    
+      // Target the chat messages box to render into
+      const chatBox = document.getElementById("gemini-chat-messages");
+      chatBox.innerHTML = `
+        <div class="ai-message">
+          <p><strong>Credit Decision</strong></p>
+          <p><strong>Transaction ID:</strong> ${transactionId || "—"}<br>
+             <strong>ABN:</strong> ${abnRaw || "—"}</p>
+          <p>Loading decision inputs…</p>
+        </div>
+      `;
+    
+      // Fetch inputs in parallel (from our proxy endpoints)
+      try {
+        const qs = originator ? `?originator=${encodeURIComponent(originator)}` : "";
+        const [settings, score, report, overrides] = await Promise.all([
+          getJSON(urlDD(`fetch_credit_settings/${qs}`)),
+          getJSON(urlDD(`fetch_credit_score_data/${encodeURIComponent(abnRaw.replace(/\D/g,''))}/${qs}`)),
+          getJSON(urlDD(`fetch_credit_report/${encodeURIComponent(abnRaw.replace(/\D/g,''))}/${encodeURIComponent(transactionId)}`)),
+          getJSON(urlDD(`fetch_sales_override/${encodeURIComponent(transactionId)}/${qs}`)).catch(() => ({})), // overrides may 404 and that's fine
+        ]);
+    
+        // Normalize (same as your modal script)
+        const reportNorm = {
+          insolvencies:        report?.insolvencies         ?? report?.report?.insolvencies         ?? [],
+          paymentDefaults:     report?.paymentDefaults      ?? report?.report?.payment_defaults      ?? [],
+          mercantileEnquiries: report?.mercantileEnquiries  ?? report?.report?.mercantile_enquiries  ?? [],
+          courtJudgements:     report?.courtJudgements      ?? report?.report?.court_judgements      ?? [],
+          atoTaxDefault:       report?.atoTaxDefault        ?? report?.report?.ato_tax_default       ?? [],
+          loans:               report?.loans                ?? report?.report?.loans                 ?? [],
+          anzsic:              report?.anzsic               ?? report?.report?.anzsic                ?? [],
+        };
+    
+        const settingsNorm = {
+          credit_score_threshold:           settings?.credit_score_threshold ?? null,
+          insolvencies_switch:              !!settings?.insolvencies_switch,
+          payment_defaults_current_switch:  !!settings?.payment_defaults_current_switch,
+          credit_enquiries_switch:          !!settings?.credit_enquiries_switch,
+          court_actions_current_switch:     !!settings?.court_actions_current_switch,
+          ato_tax_default_switch:           !!settings?.ato_tax_default_switch,
+          payment_defaults_resolved_switch: !!settings?.payment_defaults_resolved_switch,
+          credit_score_switch:              !!settings?.credit_score_switch,
+        };
+    
+        const scoreBlock = {
+          current_credit_score:  score?.current_credit_score ?? null,
+          credit_score_threshold: settingsNorm.credit_score_threshold,
+          threshold_toggle:       !!score?.threshold_toggle,
+        };
+    
+        const headline = decide(settingsNorm, reportNorm, scoreBlock.current_credit_score, scoreBlock.credit_score_threshold);
+        const tableHTML = renderDecisionTable(settingsNorm, reportNorm, overrides, scoreBlock);
+    
+        chatBox.innerHTML = `
+        <div class="ai-message">
+            <p style="margin:0 0 6px 0;"><strong>Credit Decision</strong></p>
+            <p style="margin:0 0 10px 0;">
+            <strong>Transaction ID:</strong> ${transactionId || "—"} &nbsp;&nbsp;
+            <strong>ABN:</strong> ${abnRaw || "—"}
+            </p>
+            <h3 style="margin:0 0 6px 0;">Decision: ${headline}</h3>
+            ${tableHTML}
+            <div style="margin-top:10px; display:flex; gap:8px; justify-content:flex-end;">
+            <button type="button"
+                    style="padding:8px 14px; border:1px solid #28a745; border-radius:6px; background:#28a745; color:#fff; cursor:pointer;"
+                    onclick="approveDrawdown('${transactionId.replace(/'/g, "\\'")}')">
+                Approve
+            </button>
+            <button type="button"
+                    style="padding:8px 14px; border:1px solid #dc3545; border-radius:6px; background:#dc3545; color:#fff; cursor:pointer;"
+                    onclick="rejectDrawdown('${transactionId.replace(/'/g, "\\'")}')">
+                Reject
+            </button>
+            </div>
+        </div>
+        `;
+
+      } catch (err) {
+        console.error("Decision load failed:", err);
+        chatBox.innerHTML = `
+          <div class="ai-message">
+            <p style="color:#a00;">Failed to load decision inputs.</p>
+          </div>
+        `;
+      }
+    }
+    </script>
+    
+
+    <script>
+        window.selected_originator = "{{ selected_originator.originator|default:'' }}";
+      </script>
+
+
+<script>
+  async function approveDrawdown(transactionId) {
+    try {
+      const res = await fetch("/drawdown-decision/approve/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({ transaction_id: transactionId })
+      });
+
+      const raw = await res.text();
+      let data;
+      try { data = JSON.parse(raw); } catch { data = { non_json_body: raw }; }
+
+      if (!res.ok) {
+        console.error("Approve failed:", data);
+        alert(`Approve failed (${res.status}). Check server logs.`);
+        return;
+      }
+
+      // Success: remove the card from the board (state changed server-side)
+      const el = document.querySelector(`[data-transid="${transactionId}"]`);
+      if (el) el.closest(".ticket-link")?.remove();
+
+      // Optionally show a toast/message
+      console.log("Approved:", data);
+    } catch (e) {
+      console.error("Approve error:", e);
+      alert("Approve failed – see console for details.");
+    }
+  }
+  function rejectDrawdown(transactionId) {
+      console.log("Reject clicked:", transactionId);
+      // TODO: POST to your API
+    }
+
+
+</script>
+
+  
+{% endblock %}

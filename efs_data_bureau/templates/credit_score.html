@@ -1,0 +1,292 @@
+<script>
+  (function injectCreditScoreStyles(){
+    if (window._efsCSStylesInjected) return;
+    window._efsCSStylesInjected = true;
+  
+    const css = `
+      /* Scope ALL styles to #creditScoreModal so page CSS can't override them */
+      #creditScoreModal, #creditScoreModal * {
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+  
+      #creditScoreModal.modal {
+        /* Let your JS set display to "flex" when opening */
+        display: none;
+        position: fixed !important;
+        z-index: 2147483646 !important;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,.6) !important;
+        justify-content: center;     /* works once JS toggles display to flex */
+        align-items: center;
+        padding: 24px;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+  
+      #creditScoreModal .modal-content {
+        background: #fff !important;
+        border-radius: 10px;
+        width: 92%;
+        max-width: 860px;
+        padding: 24px;
+        box-shadow: 0 8px 16px rgba(0,0,0,.2) !important;
+        position: relative;
+        color: #333;
+      }
+  
+      #creditScoreModal h2 { margin: 0 0 10px; color: #0056b3; }
+      #creditScoreModal .row { margin: 8px 0; }
+      #creditScoreModal .big { font-size: 38px; font-weight: 800; line-height: 1.1; }
+  
+      #creditScoreModal .pill {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 12px;
+      }
+      #creditScoreModal .pill.pass { background: #e8f7ee; color: #1b7a3a; }
+      #creditScoreModal .pill.fail { background: #fdecea; color: #a02020; }
+      #creditScoreModal .pill.info { background: #eef2ff; color: #283b8f; }
+  
+      #creditScoreModal .close {
+        position: absolute; top: 14px; right: 16px;
+        background: #dc3545; color: #fff;
+        border: none; border-radius: 6px;
+        padding: 6px 10px; cursor: pointer;
+      }
+  
+      /* layout: top summary + right compliance box */
+      #creditScoreModal #cs-top {
+        display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap;
+      }
+      #creditScoreModal #cs-summary { min-width: 280px; flex: 1; }
+      #creditScoreModal #cs-compliance {
+        min-width: 240px; max-width: 300px;
+        border: 1px solid #eee; border-radius: 10px;
+        padding: 12px 14px; background: #fafafa;
+      }
+      #creditScoreModal #cs-compliance h4 { margin: 0 0 8px; font-size: 15px; color: #333; }
+      #creditScoreModal #cs-chart-wrap { height: 320px; margin-top: 14px; }
+    `;
+  
+    const style = document.createElement('style');
+    style.id = 'efs-cs-style';
+    style.textContent = css;
+    document.head.appendChild(style);
+  })();
+  </script>
+  
+
+<div id="creditScoreModal" class="modal" aria-modal="true" role="dialog">
+  <div class="modal-content">
+    <button class="close" id="creditScoreClose">Close</button>
+
+    <h2>Credit Score</h2>
+    <div class="row"><strong>ABN:</strong> <span id="cs-abn">{{ abn }}</span></div>
+    <div class="row"><strong>Transaction ID:</strong> <span id="cs-tx">{{ tx }}</span></div>
+
+    <hr style="margin:14px 0">
+
+    <div id="cs-top">
+      <!-- Left: current score + pass/fail -->
+      <div id="cs-summary">
+        <div class="row"><span class="big" id="cs-score">…</span></div>
+        <div class="row">
+          <strong>Result:&nbsp;</strong>
+          <span id="cs-result" class="pill info">Evaluating…</span>
+        </div>
+
+        <!-- Chart -->
+        <div id="cs-chart-wrap">
+          <canvas id="creditScoreChart"></canvas>
+        </div>
+        <div id="history-empty" style="display:none;margin-top:8px;color:#b00">No score history for this ABN.</div>
+      </div>
+
+      <!-- Right: compliance widget -->
+      <div id="cs-compliance">
+        <h4>Compliance Settings</h4>
+        <div class="row">
+          <strong>Threshold:&nbsp;</strong><span id="cs-threshold">—</span>
+          <span id="cs-switch" class="pill info" style="margin-left:8px">Threshold: —</span>
+        </div>
+        <div class="row" style="font-size:12px; color:#555">
+          When the threshold switch is ON, the application <em>passes</em> if <code>score ≥ threshold</code>.
+        </div>
+      </div>
+    </div>
+
+    <div id="cs-error" style="margin-top:10px;color:#b00;display:none"></div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+(function(){
+  // avoid double init
+  if (window._efsCreditScoreLoaded) return; window._efsCreditScoreLoaded = true;
+
+  const originator = window.selected_originator || "";
+
+  // Build URLs whether we’re inside Sales (proxy) or directly on 8018
+  function bureauBase(){
+    const b = (window.EFS && window.EFS.DATA_BUREAU_BASE) || "";
+    return b.replace(/\/+$/, "");
+  }
+  function urlBureau(rel){
+    const base = bureauBase();
+    if (base) return `${base}/${String(rel).replace(/^\/+/, "")}`;
+    return `/${String(rel).replace(/^\/+/, "")}`;
+  }
+
+  function show(el, on){ el.style.display = on ? "" : "none" }
+  function setPill(el, text, cls){ el.textContent = text; el.className = "pill " + (cls||"info"); }
+
+  // --- hydrate function: score + settings + history chart ---
+  function hydrate(abn, tx){
+    document.getElementById("cs-abn").textContent = abn || "";
+    document.getElementById("cs-tx").textContent  = tx  || "";
+
+    const errorEl     = document.getElementById("cs-error");
+    const scoreEl     = document.getElementById("cs-score");
+    const resultEl    = document.getElementById("cs-result");
+    const thrEl       = document.getElementById("cs-threshold");
+    const switchEl    = document.getElementById("cs-switch");
+
+    show(errorEl, false);
+    scoreEl.textContent = "…";
+    setPill(resultEl, "Evaluating…", "info");
+    thrEl.textContent = "—";
+    setPill(switchEl, "Threshold: —", "info");
+
+    // 1) latest score (+ optional threshold/switch if backend includes them)
+    const pScore = fetch(urlBureau(`api/credit-score/${encodeURIComponent(abn)}/?originator=${encodeURIComponent(originator)}`))
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`score ${r.status}`)));
+
+    // 2) settings fallback (if credit_score response didn’t include threshold/switch)
+    const pSettings = fetch(urlBureau(`api/fetch_credit_settings/?originator=${encodeURIComponent(originator)}`))
+      .then(r => r.ok ? r.json() : {})
+      .catch(() => ({}));
+
+    Promise.all([pScore, pSettings]).then(([scoreData, settings]) => {
+      const score = (scoreData && scoreData.current_credit_score != null)
+        ? Number(scoreData.current_credit_score) : null;
+
+      // prefer values from scoreData, else fall back to settings endpoint
+      const threshold = (scoreData && scoreData.threshold != null)
+        ? Number(scoreData.threshold)
+        : (settings && settings.credit_score_threshold != null
+            ? Number(settings.credit_score_threshold) : null);
+
+      const switchOn = (typeof scoreData?.threshold_switch === "boolean")
+        ? !!scoreData.threshold_switch
+        : !!settings?.credit_score_switch;
+
+      // UI for score/threshold/switch
+      scoreEl.textContent = (score != null ? String(score) : "N/A");
+      thrEl.textContent = (threshold != null ? String(threshold) : "—");
+      setPill(switchEl, `Threshold: ${switchOn ? "ON" : "OFF"}`, switchOn ? "pass" : "fail");
+
+      // PASS/FAIL computation only if switch & numbers are present
+      let pass = null;
+      if (switchOn && score != null && threshold != null) {
+        pass = (score >= threshold);
+      }
+      if (pass === true) setPill(resultEl, "PASS", "pass");
+      else if (pass === false) setPill(resultEl, "FAIL", "fail");
+      else setPill(resultEl, "N/A", "info");
+
+      // 3) history + chart
+      return drawHistoryChart(abn, threshold, switchOn);
+    }).catch(err => {
+      console.error("credit score modal:", err);
+      errorEl.textContent = "Failed to load credit score."; show(errorEl, true);
+      // still attempt chart
+      drawHistoryChart(abn, null, false);
+    });
+  }
+
+  // draws chart and threshold line (if provided & ON)
+  function drawHistoryChart(abn, threshold, switchOn){
+    const empty = document.getElementById('history-empty');
+    show(empty, false);
+
+    return fetch(urlBureau(`api/credit-score-history/${encodeURIComponent(abn)}/`))
+      .then(r => r.ok ? r.json() : Promise.reject(r))
+      .then(payload => {
+        const points = (payload && payload.history) || [];
+        if (!points.length) { show(empty, true); return; }
+
+        const labels = points.map(p => p.date);
+        const data   = points.map(p => p.score);
+
+        const datasets = [{
+          label: 'Credit Score',
+          data,
+          fill: false,
+          tension: 0.25
+        }];
+
+        if (threshold != null && switchOn) {
+          datasets.push({
+            label: `Threshold (${threshold})`,
+            data: Array(data.length).fill(threshold),
+            borderDash: [6,6],
+            pointRadius: 0
+          });
+        }
+
+        const ctx = document.getElementById('creditScoreChart').getContext('2d');
+        // dispose previous chart instance if re-opened
+        if (window._csChart) { window._csChart.destroy(); }
+        window._csChart = new Chart(ctx, {
+          type: 'line',
+          data: { labels, datasets },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { title: { display: true, text: 'Date' } },
+              y: { title: { display: true, text: 'Score' } }
+            },
+            plugins: { legend: { display: true } }
+          }
+        });
+      })
+      .catch(() => { show(empty, true); });
+  }
+
+  function openCreditScoreModalInternal(abn, tx){
+    // If loaded in Sales “remote shell”, hoist modal to <body> and close shell
+    const modal = document.getElementById("creditScoreModal");
+    const remoteContent = document.getElementById("remote-content");
+    if (remoteContent && remoteContent.contains(modal)) {
+      document.body.appendChild(modal);
+      if (typeof window.closeRemoteModal === "function") window.closeRemoteModal();
+      else document.getElementById("remote-modal")?.remove();
+    }
+
+    hydrate(abn, tx);
+    modal.style.display = "flex";
+  }
+
+  // close button
+  document.getElementById("creditScoreClose").addEventListener("click", function(){
+    document.getElementById("creditScoreModal").style.display = "none";
+  });
+
+  // Expose initializer for Sales page
+  window.openCreditScoreModalInternal = openCreditScoreModalInternal;
+
+  // Auto-open using template params (lets your /modal/credit-score work standalone too)
+  const initABN = "{{ abn|default:''|escapejs }}";
+  const initTX  = "{{ tx|default:''|escapejs }}";
+  if (initABN) openCreditScoreModalInternal(initABN, initTX);
+})();
+</script>

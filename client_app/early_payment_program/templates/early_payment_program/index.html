@@ -1,0 +1,580 @@
+
+{% extends 'base.html' %}
+
+
+Early Payments Programs
+
+{% block content %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Portfolio Risk{% endblock %}</title>
+    <style>
+        /* Main container */
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Section Headers */
+        .section-header {
+            background: #333;
+            color: white;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        /* Description text */
+        .section-description {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        /* Button */
+        .btn {
+            background: #888;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: #007bff;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        /* Table Styling */
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .invoice-table th, .invoice-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .invoice-table th {
+            background: #444;
+            color: white;
+        }
+
+        .invoice-table tr:hover {
+            background: #f1f1f1;
+        }
+
+        /* Pay Me Early Button */
+        .pay-me-early {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .pay-me-early img {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Status Indicator */
+        .status-approved {
+            color: #28a745;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-approved::before {
+            content: "✔";
+            color: #28a745;
+            font-weight: bold;
+        }
+                /* Offers Modal Styling */
+        .offers-modal {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 400px;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 999;
+            border-radius: 8px;
+            overflow: hidden;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .offers-modal-content {
+            padding: 20px;
+            position: relative;
+        }
+
+        .close-offers {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        #selectedInvoicesList {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+
+        .btn-submit-offers {
+            margin-top: 15px;
+            float: right;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .btn-submit-offers:hover {
+            background-color: #0056b3;
+        }
+
+    </style>
+
+
+
+</head>
+
+            <!-- My Offers Modal -->
+            <div id="offersModal" class="offers-modal">
+                <div class="offers-modal-content">
+                    <span class="close-offers" id="closeOffersModal">&times;</span>
+                    <h2>Selected Invoices</h2>
+                    <ul id="selectedInvoicesList"></ul>
+                    <div id="totalSelectedAmount" style="margin-top: 10px; font-weight: bold;"></div>
+
+                    <button id="submitOffersBtn" class="btn-submit-offers">Submit</button>
+                </div>
+            </div>
+
+<body>
+
+
+    <div class="container">
+        <div class="section-header">Early Payments Available - Request All</div>
+        <div class="section-description">
+            <p>There are <strong id="invoiceCount">0</strong> invoice(s) available for early payment.</p>
+            <p>You can accept all available invoices by clicking "Pay Me Early ALL" or request early payments on individual invoices.</p>
+            <p><strong id="totalInvoiceAmount">$0.00 total invoice amount</strong></p>
+            <button class="btn btn-primary" id="payAllBtn">Pay Me Early ALL</button>
+            <button class="btn btn-primary" id="postButton" style="font-size: 12px; padding: 6px 10px; border-radius: 4px;">
+                Post
+            </button>
+        </div>
+    
+        <div class="section-header">Early Payment Offers Available</div>
+        <div class="section-description">
+            <p>The following invoices are available for early payment. Click the "My Offers" button to review details.</p>
+        </div>
+
+        <!-- Invoice Table -->
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Inv. Date</th>
+                    <th>Due Date</th>
+                    <th>Amount Due</th>
+                    <th>Status</th>
+                    <th>Pay Me Early</th>
+                </tr>
+            </thead>
+            <tbody id="invoiceTableBody">
+                <!-- Filled by JS -->
+            </tbody>
+        </table>
+
+    </div>
+
+
+    <script>
+        function fetchInvoicesByName(name) {
+            fetch(`/early_payment_program/api/invoices/by-name/?name=${encodeURIComponent(name)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById("invoiceTableBody");
+                    const totalInvoiceAmount = document.getElementById("totalInvoiceAmount");
+                    const invoiceCount = document.getElementById("invoiceCount");
+    
+                    tbody.innerHTML = "";
+                    let totalAmount = 0;
+    
+                    data.invoices.forEach(inv => {
+                        totalAmount += inv.amount_due;
+    
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${inv.invoice_number}</td>
+                            <td>${inv.created_at}</td>
+                            <td>${inv.repayment_date}</td>
+                            <td>$${inv.amount_due.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                            <td class="status-approved">${inv.status}</td>
+                            <td>
+                                <button class="pay-me-early"
+                                    onclick="addToOffers(
+                                        '${inv.invoice_number}',
+                                        '${inv.amount_due}',
+                                        '${inv.repayment_date}'
+                                    )">
+                                    💰 My Offers
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+    
+                    totalInvoiceAmount.textContent =
+                        `$${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} total invoice amount`;
+    
+                    invoiceCount.textContent = data.invoices.length;
+                })
+                .catch(err => {
+                    console.error("❌ Failed to fetch SCF invoices:", err);
+                });
+        }
+    
+        // Load on page ready
+        document.addEventListener("DOMContentLoaded", function () {
+            const name = "{{ request.user.username|default:'Unknown' }}";
+            fetchInvoicesByName(name);
+        });
+    </script>
+    
+
+    <script>
+        document.getElementById("payAllBtn").addEventListener("click", function () {
+            const rows = document.querySelectorAll("#invoiceTableBody tr");
+            rows.forEach(row => {
+                const cells = row.querySelectorAll("td");
+                if (cells.length >= 4) {
+                    const invoice_number = cells[0].textContent.trim();
+                    const created_at = cells[1].textContent.trim();
+                    const repayment_date = cells[2].textContent.trim();
+                    const amount_due_text = cells[3].textContent.replace(/[^0-9.]/g, "");
+                    const amount_due = parseFloat(amount_due_text);
+    
+                    // Avoid duplicates
+                    const alreadySelected = selectedInvoices.find(inv => inv.invoice_number === invoice_number);
+                    if (!alreadySelected) {
+                    const formattedDate = new Date(repayment_date).toISOString().split("T")[0];
+
+                    selectedInvoices.push({
+                        invoice_number,
+                        amount_due,
+                        repayment_date: formattedDate
+                    });
+                    }
+                }
+            });
+    
+            updateOffersList();
+            document.getElementById("offersModal").style.display = "block";
+        });
+    </script>
+    
+
+
+    <script>
+        const selectedInvoices = [];
+    
+        function addToOffers(invoiceNumber, amountDue, dueDate) {
+            // Avoid duplicates
+            const exists = selectedInvoices.find(inv => inv.invoice_number === invoiceNumber);
+            if (!exists) {
+                const formattedDate = new Date(dueDate).toISOString().split("T")[0];
+                selectedInvoices.push({ invoice_number: invoiceNumber, amount_due: amountDue, repayment_date: formattedDate });
+                updateOffersList();
+            }
+    
+            // Show the modal
+            document.getElementById("offersModal").style.display = "block";
+        }
+    
+        function updateOffersList() {
+            const list = document.getElementById("selectedInvoicesList");
+            const totalDisplay = document.getElementById("totalSelectedAmount");
+            list.innerHTML = "";
+
+            let totalAmount = 0;
+
+            selectedInvoices.forEach(inv => {
+                const li = document.createElement("li");
+                li.textContent = `#${inv.invoice_number} – $${Number(inv.amount_due).toLocaleString()} – Due: ${inv.repayment_date}`;
+                list.appendChild(li);
+                totalAmount += Number(inv.amount_due);
+            });
+
+            totalDisplay.textContent = `Total Selected: $${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        }
+
+    
+
+        // ✅ Utility function to convert ABN to ACN
+        function convertAbnToAcn(abn) {
+            if (abn.length >= 9) {
+                return abn.substring(2);  // Removes the first two characters
+            }
+            return "";  // Return empty if invalid ABN length
+        }
+
+    </script>
+
+
+<script>
+    document.getElementById("submitOffersBtn").addEventListener("click", async function () {
+        if (selectedInvoices.length === 0) {
+            alert("Please select at least one invoice.");
+            return;
+        }
+    
+        const abn = document.getElementById("abnDropdown")?.value || "";
+        const acn = abn.length >= 9 ? abn.substring(2) : "";
+        const name = "{{ request.user.username|default:'Unknown' }}";
+    
+        const payload = {
+            abn: abn,
+            acn: acn,
+            name: name,
+            originator: "Shift",
+            invoices: selectedInvoices.map(inv => ({
+                invoice_number: inv.invoice_number,
+                amount_due: inv.amount_due,
+                repayment_date: inv.repayment_date,
+                debtor: "Woolworths"   // can be dynamic later
+            }))
+        };
+    
+        try {
+            const resp = await fetch(
+                "/early_payment_program/api/apply/",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                    body: JSON.stringify(payload)
+                }
+            );
+    
+            const data = await resp.json();
+    
+            if (!data.success) {
+                throw new Error(data.error || "Submission failed");
+            }
+    
+            alert("✅ Early Payment application submitted successfully!");
+            selectedInvoices.length = 0;
+            document.getElementById("offersModal").style.display = "none";
+    
+        } catch (err) {
+            console.error("❌ Submit failed:", err);
+            alert("❌ " + err.message);
+        }
+    });
+    </script>
+    
+
+
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const abnDropdown = document.getElementById("abnDropdown");
+    
+            if (abnDropdown) {
+                // Call fetchInvoices when the dropdown value changes
+                abnDropdown.addEventListener("change", function () {
+                    const selectedAbn = abnDropdown.value;
+                    console.log("ABN changed to:", selectedAbn);
+                    fetchInvoices(selectedAbn);
+                });
+    
+                // Also fetch on initial page load
+                fetchInvoices(abnDropdown.value);
+            } else {
+                console.warn("⚠️ abnDropdown not found in DOM");
+            }
+        });
+    </script>
+    
+
+    <script>
+        function fetchInvoices(abn) {
+            fetch(`/fetch-ledger-invoices/?abn=${abn}`)
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById("invoiceTableBody");
+                    const totalInvoiceAmount = document.getElementById("totalInvoiceAmount");
+                    const invoiceCount = document.getElementById("invoiceCount");
+    
+                    tbody.innerHTML = "";
+                    let totalAmount = 0;
+    
+                    data.invoices.forEach(inv => {
+                        totalAmount += inv.amount_due;
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${inv.invoice_number}</td>
+                            <td>${inv.created_at}</td>
+                            <td>${inv.repayment_date}</td>
+                            <td>$${inv.amount_due.toLocaleString()}</td>
+                            <td class="status-approved">${inv.status}</td>
+                            <td>
+                                <button class="pay-me-early" onclick="addToOffers('${inv.invoice_number}', '${inv.amount_due}', '${inv.repayment_date}')">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/929/929564.png" alt="Money"> My Offers
+                                </button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+    
+                    totalInvoiceAmount.textContent = `$${totalAmount.toLocaleString()} total invoice amount`;
+                    invoiceCount.textContent = data.invoices.length;
+                });
+        }
+    
+        // Default ABN fallback, can be dynamically set
+        document.addEventListener("DOMContentLoaded", function () {
+            const selectedABN = "{{ selected_abn|default:'39631141341' }}";
+            fetchInvoices(selectedABN);
+        });
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+                const cookies = document.cookie.split(";");
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === name + "=") {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+
+    </script>
+    
+
+<!-- Script to Post SCF Application and Invoices -->
+<!-- Script to Post SCF Application and Invoices -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const postButton = document.getElementById("postButton");
+      if (!postButton) return;
+  
+      postButton.addEventListener("click", async function () {
+        try {
+          // 1) Post latest SCF application (no ABN required)
+          const appResp = await fetch("/early_payment_program/api/send/application/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({}) // empty
+          });
+  
+          const appText = await appResp.text();
+          let appData;
+          try { appData = JSON.parse(appText); } catch { appData = null; }
+  
+          if (!appResp.ok || !appData?.success) {
+            throw new Error(appData?.error || `App post failed (${appResp.status})`);
+          }
+  
+          const tx = appData.transaction_id;
+          if (!tx) throw new Error("Missing transaction_id from application response");
+  
+          // 2) Post invoices for that transaction_id
+          const invResp = await fetch("/early_payment_program/api/send/invoices/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken"),
+            },
+            body: JSON.stringify({ transaction_id: tx })
+          });
+  
+          const invText = await invResp.text();
+          let invData;
+          try { invData = JSON.parse(invText); } catch { invData = null; }
+  
+          if (!invResp.ok || !invData?.success) {
+            throw new Error(invData?.error || `Invoice post failed (${invResp.status})`);
+          }
+  
+          alert("✅ Latest SCF application + invoices posted successfully!");
+  
+        } catch (err) {
+          console.error("❌ Post failed:", err);
+          alert("❌ " + err.message);
+        }
+      });
+  
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + "=")) {
+              cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+    });
+  </script>
+  
+
+</body>
+</html>
+
+{% endblock %}

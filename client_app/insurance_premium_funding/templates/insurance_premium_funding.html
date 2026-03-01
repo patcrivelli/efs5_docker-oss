@@ -1,0 +1,612 @@
+{% extends 'base.html' %}
+
+{% block title %}Insurance Premiums{% endblock %}
+
+{% block content %}
+<h1>Insurance Premiums</h1>
+
+<!-- Submit Button Top Right -->
+<div class="submit-container">
+  <button id="submitBtn">Submit Application</button>
+  <button id="postBtn">Post to EFS2</button>
+
+</div>
+
+<!-- Insurance Tiles -->
+<div class="insurance-container">
+  <!-- Equipment -->
+  <div class="insurance-tile" id="equipmentTile">
+    <div class="tile-header">
+      <h3>Equipment Insurance</h3>
+      <input type="checkbox" id="equipmentCheckbox" />
+    </div>
+    <p>Annual Premium: <strong>$24,500</strong></p>
+    <label for="equipmentSlider">Loan Term:</label>
+    <input type="range" id="equipmentSlider" min="4" max="12" step="1" value="6" oninput="updateChart('equipment', 24500)">
+    <p>Selected Term: <span id="equipmentValue">6 months</span></p>
+    <p>Monthly Repayment: <span id="equipmentMonthly">$4,083.33</span></p>
+    <canvas id="equipmentChart" style="display: none; max-height: 200px;"></canvas>
+  </div>
+
+  <!-- PI -->
+  <div class="insurance-tile" id="piTile">
+    <div class="tile-header">
+      <h3>Professional Indemnity</h3>
+      <input type="checkbox" id="piCheckbox" />
+    </div>
+    <p>Annual Premium: <strong>$32,800</strong></p>
+    <label for="piSlider">Loan Term:</label>
+    <input type="range" id="piSlider" min="4" max="12" step="1" value="6" oninput="updateChart('pi', 32800)">
+    <p>Selected Term: <span id="piValue">6 months</span></p>
+    <p>Monthly Repayment: <span id="piMonthly">$5,466.67</span></p>
+    <canvas id="piChart" style="display: none; max-height: 200px;"></canvas>
+  </div>
+
+  <!-- Public Liability -->
+  <div class="insurance-tile" id="publicTile">
+    <div class="tile-header">
+      <h3>Public Liability</h3>
+      <input type="checkbox" id="publicCheckbox" />
+    </div>
+    <p>Annual Premium: <strong>$41,700</strong></p>
+    <label for="publicSlider">Loan Term:</label>
+    <input type="range" id="publicSlider" min="4" max="12" step="1" value="6" oninput="updateChart('public', 41700)">
+    <p>Selected Term: <span id="publicValue">6 months</span></p>
+    <p>Monthly Repayment: <span id="publicMonthly">$6,950.00</span></p>
+    <canvas id="publicChart" style="display: none; max-height: 200px;"></canvas>
+  </div>
+</div>
+
+<!-- Application Modal -->
+<div id="applicationModal" class="modal">
+  <div class="modal-content">
+    <span class="close" id="closeApplicationModal">&times;</span>
+
+    <!-- Page 1 -->
+    <div class="form-page active" id="applicationFormPage1">
+      <h2>Enter Your Details</h2>
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" class="form-input" placeholder="Enter your name">
+      </div>
+      <div class="form-group">
+        <label for="formABN">ABN:</label>
+        <input type="text" id="formABN" class="form-input" readonly>
+      </div>
+      <div class="form-group">
+        <label for="formTotalPremium">Total Premium:</label>
+        <input type="text" id="formTotalPremium" class="form-input" readonly>
+      </div>
+      <button type="button" class="btn-next" id="nextPageBtn">Next</button>
+    </div>
+
+    <!-- Page 2 -->
+    <div class="form-page" id="applicationFormPage2" style="display: none;">
+      <h2>Upload Documents</h2>
+      <div class="form-group">
+        <label for="insuranceFiles">Upload Insurance Documents:</label>
+        <div id="dropArea" class="drop-area">
+          <p>Drag & drop files here or click to upload</p>
+          <input type="file" id="insuranceFiles" class="form-input" multiple style="display: none;">
+        </div>
+      </div>
+      <div class="form-group">
+        <input type="checkbox" id="contractsCheckbox">
+        <label for="contractsCheckbox">Insurance Premium contracts</label>
+      </div>
+      <button type="submit" class="btn-next" id="submitApplicationBtn">Submit</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+const charts = {};
+
+function updateChart(type, premium) {
+  const slider = document.getElementById(`${type}Slider`);
+  const months = parseInt(slider.value);
+  document.getElementById(`${type}Value`).textContent = `${months} months`;
+
+  const monthlyAmount = Math.round((premium / months) * 100) / 100;
+  document.getElementById(`${type}Monthly`).textContent = `$${monthlyAmount.toLocaleString("en-US", {minimumFractionDigits: 2})}`;
+
+  const labels = Array.from({ length: months }, (_, i) => `Month ${i + 1}`);
+  const data = Array(months).fill(monthlyAmount);
+
+  if (charts[type]) {
+    charts[type].data.labels = labels;
+    charts[type].data.datasets[0].data = data;
+    charts[type].update();
+  } else {
+    const ctx = document.getElementById(`${type}Chart`).getContext("2d");
+    charts[type] = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Monthly Premium Breakdown",
+          data,
+          backgroundColor: "#007bff"
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: value => `$${value.toLocaleString()}`
+            }
+          }
+        }
+      }
+    });
+  }
+}
+
+</script>
+
+
+<script>
+   document.addEventListener("DOMContentLoaded", function () {
+     const abnDropdown = document.getElementById("abnDropdown");
+     const formABNInput = document.getElementById("formABN");
+     const modal = document.getElementById("applicationModal");
+     const closeModal = document.getElementById("closeApplicationModal");
+     const submitBtn = document.getElementById("submitBtn");
+     const formTotalPremiumInput = document.getElementById("formTotalPremium");
+     const usernameInput = document.getElementById("username");
+     const nextPageBtn = document.getElementById("nextPageBtn");
+     const page1 = document.getElementById("applicationFormPage1");
+     const page2 = document.getElementById("applicationFormPage2");
+     const dropArea = document.getElementById("dropArea");
+     const fileInput = document.getElementById("insuranceFiles");
+   
+     const premiums = {
+       equipment: 24500,
+       pi: 32800,
+       public: 41700
+     };
+   
+     // --- Populate ABN ---
+     function populateABNFromDropdown() {
+       const selectedAbn = abnDropdown?.value || "";
+       formABNInput.value = selectedAbn;
+     }
+   
+     // --- Init Charts + Checkbox Toggle ---
+     ["equipment", "pi", "public"].forEach(type => {
+       const checkbox = document.getElementById(`${type}Checkbox`);
+       const chartCanvas = document.getElementById(`${type}Chart`);
+   
+       checkbox.addEventListener("change", () => {
+         if (checkbox.checked) {
+           chartCanvas.style.display = "block";
+           updateChart(type, premiums[type]);
+         } else {
+           chartCanvas.style.display = "none";
+         }
+       });
+   
+       updateChart(type, premiums[type]); // initialize chart
+     });
+   
+     // --- Open Modal ---
+     submitBtn.addEventListener("click", () => {
+       let total = 0;
+   
+       ["equipment", "pi", "public"].forEach(type => {
+         if (document.getElementById(`${type}Checkbox`).checked) {
+           total += premiums[type];
+         }
+       });
+   
+       populateABNFromDropdown();
+       formTotalPremiumInput.value = `$${total.toLocaleString("en-US", { minimumFractionDigits: 2 })}`;
+       modal.style.display = "block";
+     });
+   
+     // --- Close Modal ---
+     closeModal.addEventListener("click", () => {
+       modal.style.display = "none";
+     });
+   
+     window.addEventListener("click", event => {
+       if (event.target === modal) modal.style.display = "none";
+     });
+   
+     // --- ABN Dropdown change ---
+     populateABNFromDropdown();
+     if (abnDropdown) {
+       abnDropdown.addEventListener("change", populateABNFromDropdown);
+     }
+   
+     // --- Next Page Button (with validation) ---
+     nextPageBtn.addEventListener("click", function () {
+       const username = usernameInput.value.trim();
+       const abn = formABNInput.value.trim();
+       const premium = formTotalPremiumInput.value.trim();
+       if (!username || !abn || !premium) {
+         alert("Please fill in all required fields.");
+         return;
+       }
+   
+       page1.style.display = "none";
+       page2.style.display = "block";
+     });
+   
+     // --- Drag and Drop File Upload ---
+     if (dropArea && fileInput) {
+       dropArea.addEventListener("click", () => fileInput.click());
+   
+       dropArea.addEventListener("dragover", e => {
+         e.preventDefault();
+         dropArea.classList.add("dragover");
+       });
+   
+       dropArea.addEventListener("dragleave", () => {
+         dropArea.classList.remove("dragover");
+       });
+   
+       dropArea.addEventListener("drop", e => {
+         e.preventDefault();
+         dropArea.classList.remove("dragover");
+         fileInput.files = e.dataTransfer.files;
+       });
+     }
+   });
+   </script>
+   
+
+   <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const submitAppBtn = document.getElementById("submitApplicationBtn");
+        submitAppBtn.addEventListener("click", async function () {
+          const username = document.getElementById("username").value.trim();
+          const abn = document.getElementById("formABN").value.trim();
+          const totalPremiumStr = document.getElementById("formTotalPremium").value.replace(/[^0-9.]/g, "");
+          const totalPremium = parseFloat(totalPremiumStr);
+      
+          if (!username || !abn || isNaN(totalPremium)) {
+            alert("Please complete all required fields.");
+            return;
+          }
+      
+          const selectedProducts = ["equipment", "pi", "public"].filter(type => {
+            return document.getElementById(`${type}Checkbox`).checked;
+          });
+      
+          const premiums = selectedProducts.map(type => {
+            const title = document.querySelector(`#${type}Tile h3`).textContent;
+            const premiumText = document.querySelector(`#${type}Tile p strong`).textContent.replace(/[^0-9.]/g, "");
+            const premiumAmount = parseFloat(premiumText);
+            const term = document.getElementById(`${type}Slider`).value;
+            const monthlyRepayment = document.getElementById(`${type}Monthly`).textContent.replace(/[^0-9.]/g, "");
+            return {
+              product: title,
+              annual_premium: parseFloat(premiumAmount),
+              loan_term_months: parseInt(term),
+              monthly_repayment: parseFloat(monthlyRepayment)
+            };
+          });
+      
+          const payload = {
+            contact_name: username,
+            abn: abn,
+            amount_requested: totalPremium,
+            product: "Insurance Premium Funding",
+            insurance_premiums: premiums,
+            bureau_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkNyZWRpdG9yd2F0Y2giLCJpYXQiOjE1MTYyMzkwMjIsInRoYW5rcyI6IlRoYW5rcyBmb3IgdHJ5aW5nIG91dCB0aGUgQ1cgQVBJLCB3ZSdkIGxvdmUgdG8gaGF2ZSB5b3UgYXMgYSBjdXN0b21lciA6KSJ9.q5hTaEcKnCKF9MV1jYu9UJrHANexixRApb3IpG9AyHc",
+            accounting_token: "ACCOUNTING_TOKEN_PLACEHOLDER",
+            bankstatements_token: "BANKSTATEMENTS_TOKEN_PLACEHOLDER",
+            ppsr_token: "PPSR_TOKEN_PLACEHOLDER",
+            originator: "Shift",  // ✅ Add this line
+
+          };
+      
+          try {
+            const response = await fetch("/api/ipf-application-store/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+              },
+              body: JSON.stringify(payload)
+            });
+      
+            const result = await response.json();
+            if (result.success) {
+              alert("Application submitted successfully.");
+              document.getElementById("applicationModal").style.display = "none";
+            } else {
+              throw new Error(result.error || "Submission failed.");
+            }
+          } catch (err) {
+            console.error("Error:", err);
+            alert("Failed to submit application: " + err.message);
+          }
+        });
+      
+        function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== "") {
+            const cookies = document.cookie.split(";");
+            for (let cookie of cookies) {
+              cookie = cookie.trim();
+              if (cookie.startsWith(name + "=")) {
+                cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                break;
+              }
+            }
+          }
+          return cookieValue;
+        }
+      });
+      </script>
+
+
+
+<!-- Script to Post IPF Application to Local and Cloud -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const postBtn = document.getElementById("postBtn");
+  
+      postBtn.addEventListener("click", async function () {
+          try {
+              const response = await fetch("/api/send-ipf-application-data/", {
+                  method: "POST",
+                  headers: {
+                      "Content-Type": "application/json",
+                      "X-CSRFToken": getCookie("csrftoken")
+                  }
+              });
+  
+              const result = await response.json();
+  
+              if (response.ok && result.success === true) {
+                  alert("✅ IPF application successfully sent to both local and cloud!");
+              } else {
+                  console.error("❌ Post error:", result);
+                  alert("❌ Failed to post IPF application: " + (result.error || "Unknown error"));
+              }
+  
+          } catch (error) {
+              console.error("🔥 JS Exception:", error);
+              alert("🔥 Error posting IPF application: " + error.message);
+          }
+      });
+  
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== "") {
+              const cookies = document.cookie.split(";");
+              for (let cookie of cookies) {
+                  cookie = cookie.trim();
+                  if (cookie.startsWith(name + "=")) {
+                      cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+  });
+  </script>
+  
+
+
+<style>
+.insurance-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 20px 40px;
+  gap: 30px;
+  max-width: 600px;
+}
+
+.insurance-tile {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.tile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.insurance-tile h3 {
+  margin-bottom: 10px;
+  font-size: 18px;
+}
+
+.insurance-tile p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+input[type="range"] {
+  width: 100%;
+  margin: 5px 0;
+  accent-color: #007bff;
+}
+
+label {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+span {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.submit-container {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 0 40px 10px 0;
+}
+
+#submitBtn {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 20px;
+  font-size: 14px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#submitBtn:hover {
+  background-color: #0056b3;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 999;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background: white;
+  margin: 8% auto;
+  padding: 20px;
+  border-radius: 8px;
+  width: 50%;
+  position: relative;
+}
+
+.close {
+  float: right;
+  font-size: 28px;
+  cursor: pointer;
+}
+
+.btn-next {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  background: #0078D4;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 5% auto;
+  padding: 30px 40px;
+  border-radius: 12px;
+  width: 500px;
+  position: relative;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h2 {
+  margin-bottom: 25px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.close {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #007bff;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+}
+
+.btn-next {
+  position: absolute;
+  right: 30px;
+  bottom: 30px;
+  background-color: #007bff;
+  color: white;
+  padding: 10px 18px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-next:hover {
+  background-color: #0056b3;
+}
+
+.drop-area {
+  border: 2px dashed #007bff;
+  border-radius: 6px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  color: #666;
+  margin-top: 10px;
+  transition: background 0.2s ease;
+}
+
+.drop-area.dragover {
+  background-color: #e9f5ff;
+  border-color: #0056b3;
+}
+</style>
+{% endblock %}

@@ -1,1 +1,5670 @@
-
+{
+  "dataVersion": 20251114,
+  "reference": "Bank Statements 12 months.pdf",
+  "submissionTime": "2025-11-14T12:51:59",
+  "banks": [
+    {
+      "bankName": "NAB",
+      "bankSlug": "nab",
+      "errors": [],
+      "bankAccounts": [
+        {
+          "id": 0,
+          "accountType": "transaction",
+          "accountHolder": "Not Specified",
+          "accountHolderType": "Not Specified",
+          "accountName": "Transaction Account",
+          "bsb": "085-005",
+          "accountNumber": "94-868-1402",
+          "currentBalance": "487008.45",
+          "availableBalance": "487008.45",
+          "transactions": [
+            {
+              "date": "2024-11-04",
+              "description": "ONLINE V2633152811 TO SAVIN SEEING GREEN",
+              "amount": -100000.00,
+              "balance": "30556.00",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-04",
+              "description": "STEPHEN JOHN BAKERMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "130556.00",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-04",
+              "description": "MERRIGAL LOAN MERRIGAL 1ST ENERGY REBAT",
+              "amount": 25000.00,
+              "balance": "105556.00",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-04",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "80556.00",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-05",
+              "description": "V5796 03/11 PURE PETROLEUM PTY LTD BONNIE, DOO 74940524308",
+              "amount": -151.16,
+              "balance": "130404.84",
+              "type": "",
+              "tags": [
+                {"category": "Vehicles and Transport"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-05",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "80556.00",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-05",
+              "description": "STEPHEN JOHN BAKERLOAN FROM MERRIGAL",
+              "amount": 25000.00,
+              "balance": "105556.00",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-05",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "130556.00",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "ONLINE Q2381023871 FROM SAVINGS SEEING GREEN",
+              "amount": 60000.00,
+              "balance": "190404.84",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "KEVIN JAMES C4881704917 EXP REIMB 570899",
+              "amount": -95.70,
+              "balance": "190309.14",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "10 STAR RATINGS H1991522411 RC INV 10S6112024",
+              "amount": -154.00,
+              "balance": "190155.14",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "GREEN MOVES AUST PTYT2518102811 VEEC DK6112024",
+              "amount": -308.00,
+              "balance": "189847.14",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "INTERLANDI REFRIGERAG1095797411 RC INV IRAC6112024",
+              "amount": -880.00,
+              "balance": "188967.14",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "IGCORP Y0636093616 RC INV 1517",
+              "amount": -1078.00,
+              "balance": "187889.14",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "PENINSULA HEATING COV0179532616 RC INV 1520",
+              "amount": -1237.50,
+              "balance": "186651.64",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "MR SAMARTH RAGHUVI H8191532811 ISES RC INV 1529",
+              "amount": -1309.00,
+              "balance": "185342.64",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "RALDEX PLUMBING G0292572713 RC INV 1527",
+              "amount": -1404.43,
+              "balance": "183938.21",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "INNOVATIVE ELECTRI R9092396435 IEC RC INV 1524",
+              "amount": -1463.00,
+              "balance": "182475.21",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "GOODBYE GAS PTY LTD G8595300816 RC INV 1518",
+              "amount": -1558.43,
+              "balance": "180916.78",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "GETCOOL D0933122754 RC INV 1522",
+              "amount": -2156.00,
+              "balance": "178760.78",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "WHAT RUMOUR PTY LTD E0679676441 BALANCE 15843",
+              "amount": -2444.75,
+              "balance": "176316.03",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "KING COOLING PTY LTDA3795562458 KC RC INV 1506",
+              "amount": -3135.00,
+              "balance": "173181.03",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "EC SAMI TRUST L1018696454 RC INV 1521",
+              "amount": -3300.00,
+              "balance": "169881.03",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "THERMOCHILL PLUMBING273504876 RC INV 1505",
+              "amount": -3608.00,
+              "balance": "166273.03",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -4009.93,
+              "balance": "162263.10",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "TONY GORMLEY M9533300413 RC INV 1531",
+              "amount": -4158.00,
+              "balance": "158105.10",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "ADVANCE HEATING AND G4133532948 RC INV 1515",
+              "amount": -4158.00,
+              "balance": "153947.10",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "WALTER PLUMBING T1136532435 RC INV 1526",
+              "amount": -4312.00,
+              "balance": "149635.10",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "LDB HEATING AND COOL273515180 RC INV 1513",
+              "amount": -4840.00,
+              "balance": "144795.10",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "JEZTEK PLUMBING 273510996 RC INV 1534",
+              "amount": -5219.78,
+              "balance": "139575.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "ECHUCA HEAT COOL 273516157 RC INV 1523",
+              "amount": -5313.00,
+              "balance": "134262.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "ASPEN CLIMATE SOLUTI273510302 RC INVASPA",
+              "amount": -5346.00,
+              "balance": "128916.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "MCKINNON HEATING AND273507326 RC INV 1508",
+              "amount": -5346.00,
+              "balance": "123570.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "ALDER HEATING AND AI273508089 RC INV 1525",
+              "amount": -5544.00,
+              "balance": "118026.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "THE AIRFLOW CO 273509936 RC INV 1511",
+              "amount": -6930.00,
+              "balance": "111096.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "GJ BRADDING 273508878 RC INV 1509",
+              "amount": -8448.00,
+              "balance": "102648.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "MARVEL AIR 273516411 RC INV 1519",
+              "amount": -8778.00,
+              "balance": "93870.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "POINT NEPEAN AIR CON273508508 RC INV 1530",
+              "amount": -8910.00,
+              "balance": "84960.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "WPG SERVICES GROUP 273515059 RC INV 1532",
+              "amount": -9471.00,
+              "balance": "75489.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "TOO HOT TO HANDLE 273512005 RC INV 1512",
+              "amount": -11552.48,
+              "balance": "63936.84",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "APPLIED AIR SOLUTION273515388 RC INV AAS6112024",
+              "amount": -12320.00,
+              "balance": "51616.84",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "STREDDERS GROUP 273506509 RC INV SPR 6/11/24",
+              "amount": -22627.00,
+              "balance": "28989.84",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-06",
+              "description": "SPECIALISED HEATING 273509622 RC INV SCH 6/11/24",
+              "amount": -24552.00,
+              "balance": "4437.84",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-07",
+              "description": "055980 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 20108.00,
+              "balance": "24545.84",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-07",
+              "description": "BGC PARTNERS AUSTRALY1833053891 INV BGC OCT24 4887",
+              "amount": 825.00,
+              "balance": "25370.84",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-07",
+              "description": "INTERNET BPAY MOMENTUM ENERGY 17176537",
+              "amount": -17.86,
+              "balance": "25352.98",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-07",
+              "description": "ES AND KA GLAZNER H3392714692 REIMBURSE EXP",
+              "amount": -71.04,
+              "balance": "25281.94",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-07",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -761.91,
+              "balance": "24520.03",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-07",
+              "description": "BGC PARTNERS AUSTRALY1833053891 INV BGC OCT24 4887",
+              "amount": -825.00,
+              "balance": "23695.03",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-07",
+              "description": "ALITSY PTY LTD V2018356091 150014",
+              "amount": -2549.03,
+              "balance": "21146.00",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-08",
+              "description": "ONLINE A2378552022 FROM SAVING SEEING GREEN",
+              "amount": 86260.94,
+              "balance": "107406.94",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-08",
+              "description": "OLIVIA BAKER D3991734322 PAY OLIVIA",
+              "amount": -51.29,
+              "balance": "107355.65",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-08",
+              "description": "BELINDA BAKER 273715570 INTEREST",
+              "amount": -123.29,
+              "balance": "107232.36",
+              "type": "",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-08",
+              "description": "INTERNET BPAY PRECISION CH 187714611680500159",
+              "amount": -1566.56,
+              "balance": "105665.80",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-08",
+              "description": "NIKKI BLACK M2778386022 NIKKI BLACK PAY",
+              "amount": -2262.00,
+              "balance": "103403.80",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-08",
+              "description": "ES AND KA GLAZNER M2333472022 PAY KERRIE",
+              "amount": -2377.03,
+              "balance": "101026.77",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-08",
+              "description": "MATTHEW DOWDE F8795083122 MATT PAY",
+              "amount": -3282.58,
+              "balance": "97744.19",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-08",
+              "description": "KEVIN JAMES X9791134122 KEVIN PAY",
+              "amount": -4260.61,
+              "balance": "93483.58",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-08",
+              "description": "BELINDA BAKER 273715156 REPAY PART LOAN",
+              "amount": -90000.00,
+              "balance": "3483.58",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-11",
+              "description": "2000120460 ORIGIN ENERGY EL SEEING GREEN BAL",
+              "amount": 353229.53,
+              "balance": "356713.11",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-11",
+              "description": "BLUFIRE PTY LTD C3920412668 0284",
+              "amount": -1375.00,
+              "balance": "355338.11",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-11",
+              "description": "BELINDA BAKER 273865270 REPAY LOAN",
+              "amount": -110000.00,
+              "balance": "245338.11",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-12",
+              "description": "056104 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 8096.00,
+              "balance": "253434.11",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-12",
+              "description": "BELINDA BAKER W3392422651 INTEREST",
+              "amount": -30.14,
+              "balance": "253403.97",
+              "type": "",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-12",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -3632.47,
+              "balance": "249771.50",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 20000.00,
+              "balance": "269771.50",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "ADVANCE HEATING AND W9078300545 BAL RC INV 1562",
+              "amount": -53.00,
+              "balance": "269718.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "MJ AND JM MCKELVIE 274078172 RC BBMM13112024",
+              "amount": -154.00,
+              "balance": "269564.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "BAKER AND WOOD PLU E7836366910 RC INV 1547",
+              "amount": -264.00,
+              "balance": "269300.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "STONEMANS REFR F7991093830 RC INV 1555",
+              "amount": -462.00,
+              "balance": "268838.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "IGCORP K9020043124 RC INV 1566",
+              "amount": -539.00,
+              "balance": "268299.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "BENDIGO TEMP TECH 274076317 RC INV 1561",
+              "amount": -539.00,
+              "balance": "267760.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "JRC ELECTRICS S3218727624 RC INV JRCE131124",
+              "amount": -539.00,
+              "balance": "267221.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "SAMMYS REFRIGERATIONB9592063263 RC INV 1571",
+              "amount": -539.00,
+              "balance": "266682.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "KING COOLING PTY LTDK7033300878 RC INV 1567",
+              "amount": -561.00,
+              "balance": "266121.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "POINT NEPEAN AIR C G3292606678 RC INV 1540",
+              "amount": -594.00,
+              "balance": "265527.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "INVINCIBLE ENERGY R8992192110 RC INV 1549",
+              "amount": -616.00,
+              "balance": "264911.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "HOMESAFE GV 274077043 RC INV HSGV131124",
+              "amount": -847.00,
+              "balance": "264064.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "ALL SEASONS EAC Q7081502932 RC INV 1545",
+              "amount": -924.00,
+              "balance": "263140.50",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "THERMOCHILL PLUMBING274059420 RC INV 1536",
+              "amount": -942.43,
+              "balance": "262198.07",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "ALL CLIMATE SOLUTION274076126 RC INV 1543",
+              "amount": -942.43,
+              "balance": "261255.64",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "EC SAMI TRUST G8036306163 RC INV 1570",
+              "amount": -1237.50,
+              "balance": "260018.14",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "EVERYDAY ELECTRIC L1081300810 EES INV 1551",
+              "amount": -1386.00,
+              "balance": "258632.14",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "JEZTEK PLUMBING R7978396874 RC INV 1554",
+              "amount": -1843.88,
+              "balance": "256788.26",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "MATTHEW WILLIAMS K3033402330 RC INV WHC131124",
+              "amount": -1848.00,
+              "balance": "254940.26",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "VR IMPROVEMENTS N7278522851 RC INV 1552",
+              "amount": -1925.00,
+              "balance": "253015.26",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "INCREDIBLE SOLAR 274078316 RC INV 1573",
+              "amount": -1966.80,
+              "balance": "251048.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "IVYNDI TRUST B9281104147 RC INV 1569",
+              "amount": -2079.00,
+              "balance": "248969.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "AIRWRIGHT SERVICES 274076730 RC INV 1564",
+              "amount": -2618.00,
+              "balance": "246351.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "JEZTEK PLUMBING V9295300101 RC INV JEZ131124",
+              "amount": -2722.50,
+              "balance": "243628.96",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "INTERLANDI REFRIGERAA9120174247 RC INV IRAC131124",
+              "amount": -2904.00,
+              "balance": "240724.96",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "TRENT TESORIERO T9281104263 RC INV 1572",
+              "amount": -3003.00,
+              "balance": "237721.96",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "SUNBURY HEATING AND 274074921 RC INV SBHC131124",
+              "amount": -3311.00,
+              "balance": "234410.96",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "NAIKEN FAMILY TRUST 274070659 RC INV 1558",
+              "amount": -3382.50,
+              "balance": "231028.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "DP HEATING AND COOLI274068008 RC INV DP13112024",
+              "amount": -3850.00,
+              "balance": "227178.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "OASIS HEATING AND CO274069383 RC INV 1557",
+              "amount": -4576.00,
+              "balance": "222602.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "CHRIS MISSO 274072700 RC INV 1568",
+              "amount": -4620.00,
+              "balance": "217982.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "MR. GASMAN 274073055 RC INV 1560",
+              "amount": -4928.00,
+              "balance": "213054.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "WALTER PLUMBING 274074634 RCINV WPAIR 13112",
+              "amount": -5082.00,
+              "balance": "207972.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "SOUTHSIDE 274061567 RC INV 1541",
+              "amount": -6237.00,
+              "balance": "201735.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "LOWE AIR 274069118 RC INV 1556",
+              "amount": -6545.00,
+              "balance": "195190.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "SPECIALISED HEATING 274064924 RC INV SCH13112024",
+              "amount": -7029.00,
+              "balance": "188161.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "HYDE HEATING AND COO274076501 RC INV HYD131124",
+              "amount": -7128.00,
+              "balance": "181033.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "TOO HOT TO HANDLE 274074105 RC INV 2H2H131124",
+              "amount": -7128.00,
+              "balance": "173905.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "STREDDERS GROUP 274060281 RC INV 1538",
+              "amount": -8415.00,
+              "balance": "165490.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "ASPEN CLIMATE SOLUTI274066485 RCINV 131124",
+              "amount": -9306.00,
+              "balance": "156184.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "THERMOCHILL PLUMBING274059802 RC INV TPE13/11/24",
+              "amount": -9328.00,
+              "balance": "146856.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "PENINSULA HEATING CO274071094 PNHCE131124",
+              "amount": -9735.00,
+              "balance": "137121.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "ADVANCE HEATING AND 274073667 RC INV 1562",
+              "amount": -11530.00,
+              "balance": "125591.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "THE AIRFLOW CO 274065665 RC INV 1546",
+              "amount": -13365.00,
+              "balance": "112226.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "APPLIED AIR SOLUTION274073871 RC INV AAS131124",
+              "amount": -13728.00,
+              "balance": "98498.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "MCKINNON HEATING AND274061182 RC INV MCK131124",
+              "amount": -19701.00,
+              "balance": "78797.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "ALL CLIMATE SOLUTION274075887 RC INV ACSOL131124",
+              "amount": -27027.00,
+              "balance": "51770.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-13",
+              "description": "GJ BRADDING 274063846 GJ13112024",
+              "amount": -32560.00,
+              "balance": "19210.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-14",
+              "description": "2000120560 ORIGIN ENERGY EL SEEING GREEN BAL",
+              "amount": 367005.38,
+              "balance": "386215.84",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-14",
+              "description": "BGC PARTNERS AUSTRALF8236757288 INV OCT24 4887",
+              "amount": -825.00,
+              "balance": "385390.84",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-14",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -2903.18,
+              "balance": "382487.66",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-15",
+              "description": "INTERNET BPAY ANZ CARDS 4564807014313629",
+              "amount": -11209.25,
+              "balance": "371278.41",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Credit Card Repayments"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-15",
+              "description": "SAND B BAKER W5936370726 REPAY LOAN",
+              "amount": -20000.00,
+              "balance": "351278.41",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-18",
+              "description": "INTERNET BPAY MOMENTUM ENERGY 17329706",
+              "amount": -165.45,
+              "balance": "351112.96",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-19",
+              "description": "056263 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 4004.00,
+              "balance": "355116.96",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-19",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -5265.80,
+              "balance": "349851.16",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "INTERNET BPAY ANZ CARDS 4564807014313629",
+              "amount": -18.23,
+              "balance": "349832.93",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Credit Card Repayments"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "HOMESAFEGV H7995734016 BAL HSGV131124",
+              "amount": -121.00,
+              "balance": "349711.93",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "MJ AND JM MCKELVIE S8736784548 VEEC BBMM201124",
+              "amount": -154.00,
+              "balance": "349557.93",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "ECOMAD W3781330260 VEEC EM201124",
+              "amount": -154.00,
+              "balance": "349403.93",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "NAIKEN FAMILY TRUS D1391777973 RC INV 1587",
+              "amount": -247.50,
+              "balance": "349156.43",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "GREEN MOVES AUST PTYH1736737948 VEEC GM201124",
+              "amount": -462.00,
+              "balance": "348694.43",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "ECOMAD V0981402160 VEEC EM201124",
+              "amount": -539.00,
+              "balance": "348155.43",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "CASEY AIR 274635301 RC INV 770",
+              "amount": -770.00,
+              "balance": "347385.43",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "RALDEX PLUMBING A1778013060 RC INV RP201124",
+              "amount": -847.00,
+              "balance": "346538.43",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "ECOMAD L2778083760 STC EM201124",
+              "amount": -901.45,
+              "balance": "345636.98",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "HCP SERVICES E2791636759 RC INV HCPS201124",
+              "amount": -924.00,
+              "balance": "344712.98",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "GJ BRADDING 274640187 RC INV GJ201124",
+              "amount": -942.43,
+              "balance": "343770.55",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "RALDEX PLUMBING E7379152060 RC INV STCRP201124",
+              "amount": -942.43,
+              "balance": "342828.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "J RUSSELL AIR R1778714559 RC INV JRA201124",
+              "amount": -1155.00,
+              "balance": "341673.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "AIRFIT 274638668 RC INV 1599",
+              "amount": -1155.00,
+              "balance": "340518.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "STONEMANS REFR S1395452939 RC INV SRAC201124",
+              "amount": -1232.00,
+              "balance": "339286.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "HOMESAFEGV Z0979402137 RC INV HSGV 201124",
+              "amount": -1232.00,
+              "balance": "338054.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "JOEL THORNTON S8733714548 RC INV 1585",
+              "amount": -1309.00,
+              "balance": "336745.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "JEZTEK PLUMBING 274641836 RC INV JEZ201124",
+              "amount": -1980.00,
+              "balance": "334765.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "ABA HEATING AND CO L1920734573 RC INV ABAHC201124",
+              "amount": -2156.00,
+              "balance": "332609.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "EC SAMI TRUST G5791686139 RC INV 1595",
+              "amount": -2310.00,
+              "balance": "330299.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "ABSOLUTE TRADE SOLUTZ3978757209 RC INV",
+              "amount": -2387.00,
+              "balance": "327912.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "TRENT TESORIERO E8781636587 RC INV 1596",
+              "amount": -2387.00,
+              "balance": "325525.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "APPLIED AIR SOLUTIONE4281154573 RC INV AAS241124",
+              "amount": -2464.00,
+              "balance": "323061.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "PRIME POINT ELECTRICE5381154109 RC INV1597",
+              "amount": -2541.00,
+              "balance": "320520.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "PIER TO PIER HEATI G1778033973 RCTI PTP201124",
+              "amount": -2673.00,
+              "balance": "317847.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "BOUTIQUE HEATING A H1078767973 RC INV 1590",
+              "amount": -2805.00,
+              "balance": "315042.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "THERMOCHILL PLUMBING274633861 RC INV 1577",
+              "amount": -3168.00,
+              "balance": "311874.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "INTERLANDI REFRIGERAD1720033537 RC INV IRAC201124",
+              "amount": -3608.00,
+              "balance": "308266.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "IGCORP W1279356537 RC INV SSE 201124",
+              "amount": -3762.00,
+              "balance": "304504.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "JEZTEK PLUMBING 274642061 RC INV JEZ201124",
+              "amount": -3769.70,
+              "balance": "300734.42",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "GV TRADE GROUP 274643312 RC INV 1586",
+              "amount": -4081.00,
+              "balance": "296653.42",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "STREDDERS GROUP 274636062 RC INV SPR201124",
+              "amount": -4394.50,
+              "balance": "292258.92",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "MARVEL AIR 274644797 RC INV MVAIR201124",
+              "amount": -4543.00,
+              "balance": "287715.92",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "FLASH HEATING AND CO274647039 RC INVFLSHHC201124",
+              "amount": -5313.00,
+              "balance": "282402.92",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "HOT N CHILLY 274644317 RC INV HNCHAC20112",
+              "amount": -5390.00,
+              "balance": "277012.92",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "TOO HOT TO HANDLE 274642903 RC INV 2H2H2011202",
+              "amount": -5572.60,
+              "balance": "271440.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "ADVANCE HEATING AND 274645288 ADVHC201124",
+              "amount": -5940.00,
+              "balance": "265500.32",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "GOODBYE GAS 274646544 RC INV 1600",
+              "amount": -6356.63,
+              "balance": "259143.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "WALTER PLUMBING 274646051 RC INV WPAIR201124",
+              "amount": -6699.00,
+              "balance": "252444.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "ALDER HEATING AND AI274636460 RC INV 1579",
+              "amount": -7029.00,
+              "balance": "245415.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "SUNBURY HEATING AND 274645728 RC INV 1592",
+              "amount": -7931.00,
+              "balance": "237484.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "METROCOOL 274644033 RC INV MTRC 201124",
+              "amount": -8008.00,
+              "balance": "229476.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "SOUTHSIDE 274637229 RC INVSS201124",
+              "amount": -8613.00,
+              "balance": "220863.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "DP HEATING AND COOLI274642325 RC INV DP201124",
+              "amount": -9317.00,
+              "balance": "211546.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "ALL CLIMATE SOLUTION274637950 RC INV 1581",
+              "amount": -11484.00,
+              "balance": "200062.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "INTERNET TRANSFER PYMT-ID 274641319 RC INV ASPA20124",
+              "amount": -13563.00,
+              "balance": "186499.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "MCKINNON HEATING AND274636820 RC INV MCK201124",
+              "amount": -14454.00,
+              "balance": "172045.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "THE AIRFLOW CO 274640887 RC INV 1583",
+              "amount": -15147.00,
+              "balance": "156898.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "PENINSULA HEATING CO274643760 RC INV PNHCE201124",
+              "amount": -19387.50,
+              "balance": "137511.19",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "KING COOLING PTY. LT274634576 RC INV KCH201124",
+              "amount": -20383.00,
+              "balance": "117128.19",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "TOO HOT TO HANDLE 274642702 RC INV 2H2H201124",
+              "amount": -27423.00,
+              "balance": "89705.19",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "SPECIALISED HEATING 274640618 RC INV SCH201124",
+              "amount": -36828.00,
+              "balance": "52877.19",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-20",
+              "description": "GJ BRADDING 274639905 RC INV GJ201124",
+              "amount": -38709.00,
+              "balance": "14168.19",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-21",
+              "description": "INTERNET TRANSFER ENER8126 DEC RENT",
+              "amount": -1750.00,
+              "balance": "12418.19",
+              "type": "",
+              "tags": [
+                {"category": "Rent"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-21",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -2970.75,
+              "balance": "9447.44",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-22",
+              "description": "2000121572 ORIGIN ENERGY EL SEEING GREEN BAL",
+              "amount": 239800.00,
+              "balance": "249247.44",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-22",
+              "description": "INTERNET TRANSFER FIRE AND WIRE",
+              "amount": -254.10,
+              "balance": "248993.34",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-22",
+              "description": "INTERNET BPAY PRECISION CH 997714611680500161",
+              "amount": -1610.79,
+              "balance": "247382.55",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-22",
+              "description": "ES AND KA GLAZNER E1991112084 PAY KERRIE",
+              "amount": -2215.50,
+              "balance": "245167.05",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-22",
+              "description": "NIKKI BLACK V7520717084 NIKKI BLACK PAY",
+              "amount": -2262.00,
+              "balance": "242905.05",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-22",
+              "description": "MATTHEW DOWDE H1595717984 MATT PAY",
+              "amount": -3358.71,
+              "balance": "239546.34",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-22",
+              "description": "KEVIN JAMES C3220734284 KEVIN PAY",
+              "amount": -4260.61,
+              "balance": "235285.73",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-22",
+              "description": "ONLINE R1592747088 LINKED ACC TRNS SEEING GREEN",
+              "amount": -200000.00,
+              "balance": "35285.73",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-25",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "85285.73",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-25",
+              "description": "EFTPOS 25/11 05:02HOTEL AT BOOKING.COM",
+              "amount": -190.00,
+              "balance": "85095.73",
+              "type": "",
+              "tags": [
+                {"category": "Travel"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-25",
+              "description": "STREDDERS GROUP L3833666217 SPR BAL SPR201124",
+              "amount": -285.50,
+              "balance": "84810.23",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-25",
+              "description": "MONTANIA CAFE BAR REN7795063005 BELINDA 1ST ENERGY",
+              "amount": -400.00,
+              "balance": "84410.23",
+              "type": "",
+              "tags": [
+                {"category": "Dining Out"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-25",
+              "description": "ONLINE B7679194067 LINKED ACC TRNS SEEING GREEN",
+              "amount": -80000.00,
+              "balance": "4410.23",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-26",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "54410.23",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-26",
+              "description": "STEPHEN JOHN BAKERMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "79410.23",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-26",
+              "description": "LOAN FROM MERRIGAL MERRIGAL 1ST ENERGY REBAT",
+              "amount": 25000.00,
+              "balance": "104410.23",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-26",
+              "description": "ONLINE C0036152381 LINKED ACC TRNS SEEING GREEN",
+              "amount": 10000.00,
+              "balance": "114410.23",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-26",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -7181.06,
+              "balance": "107229.17",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-26",
+              "description": "ONLINE J7891350728 TO SAVING SEEING GREEN",
+              "amount": -50000.00,
+              "balance": "57229.17",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-26",
+              "description": "ONLINE X4118013767 TO SAVIN SEEING GREEN",
+              "amount": -50000.00,
+              "balance": "7229.17",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ONLINE B7479616746 FROM SAV SEEING GREEN",
+              "amount": 370000.00,
+              "balance": "377229.17",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ANGELA RYANLOAN TO 1ST ENERGY R",
+              "amount": 70000.00,
+              "balance": "447229.17",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "497229.17",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MERRIGAL LOAN MERRIGAL 1ST ENERGY REBAT",
+              "amount": 25000.00,
+              "balance": "522229.17",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "STEPHEN JOHN BAKERMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "547229.17",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "AVALLON BUILDING DY6492083321 RC INV ABD271124",
+              "amount": -154.00,
+              "balance": "547075.17",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "APPLIED AIR SOLUTIONV4495104701 RC INV AAS271124",
+              "amount": -352.00,
+              "balance": "546723.17",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MORNINGTON PENINS A4881380119 RC INV MPS271124",
+              "amount": -412.50,
+              "balance": "546310.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "CASEY AIR PTY LTD H7481102749 RC INV CA27112024",
+              "amount": -462.00,
+              "balance": "545848.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MICHAEL JOHN HAFNER C2736306421 VEEC BBMH271124",
+              "amount": -462.00,
+              "balance": "545386.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ABSOLUTE TRADE SOLUTG6920142610 RC INV ATS271124",
+              "amount": -539.00,
+              "balance": "544847.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "INNOVATIVE ELECTRI X3495104036 IEC27112024",
+              "amount": -539.00,
+              "balance": "544308.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "BENDIGO TEMP TECH A6418532356 RC INV BTTAC271124",
+              "amount": -539.00,
+              "balance": "543769.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "GREEN EDGE TECHNOLOGR7481402763 RC INV GETV271124",
+              "amount": -616.00,
+              "balance": "543153.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "RALDEX PLUMBING V2779707466 RC INV RP271124",
+              "amount": -616.00,
+              "balance": "542537.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MACEDON RANGES ELECTK4436592185 RC INVSTCMRE271124",
+              "amount": -616.00,
+              "balance": "541921.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "TNT AIR CONDITI F2495787433 TNT27112024",
+              "amount": -704.00,
+              "balance": "541217.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "JONG TRADE PTY LTD 275203113 RC INV STCJT271124",
+              "amount": -819.50,
+              "balance": "540398.17",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "SHANEL RIENIETS 275202251 STCTP241127",
+              "amount": -860.48,
+              "balance": "539537.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ENEAIR INSTALL K3633102051 RC INV ENAIR241127",
+              "amount": -924.00,
+              "balance": "538613.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "STONEMANS REFR Z6478482610 RC INV SRAC271124",
+              "amount": -924.00,
+              "balance": "537689.69",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "RALDEX PLUMBING R2681402166 RC INV STCRP271124",
+              "amount": -942.43,
+              "balance": "536747.26",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "GREEN EDGE TECHNOLOGS6436182370 RC STCGETV271124",
+              "amount": -942.43,
+              "balance": "535804.83",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MACEDON RANGES ELECTD6820482385 RC INV MRE271124",
+              "amount": -942.43,
+              "balance": "534862.40",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "JEZTEK PLUMBING 275207542 RC INV JEZ271124",
+              "amount": -1155.00,
+              "balance": "533707.40",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "PIER TO PIER HEATI T0418784356 RCTI 1618",
+              "amount": -1287.00,
+              "balance": "532420.40",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ATEMP SERVICES W4433402178 RC INV 1615",
+              "amount": -1320.00,
+              "balance": "531100.40",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "IGCORP Z7492112719 RC INV SSE271124",
+              "amount": -1386.00,
+              "balance": "529714.40",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "OASIS HEATING AND N2892522536 RC INV 1612",
+              "amount": -1496.00,
+              "balance": "528218.40",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "FRAZER FAMILY PTY LTW6781707645 RC INV FA271124",
+              "amount": -1881.00,
+              "balance": "526337.40",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "NAIKEN FAMILY TRUS H2418013433 RC INV 1614",
+              "amount": -2062.50,
+              "balance": "524274.90",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ADD AIR CONDITIONINGF3933144019 RC INV ADDAC271124",
+              "amount": -2310.00,
+              "balance": "521964.90",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "CURRENT FORCE ELECTRT6791104615 RC INV CFE271124",
+              "amount": -2387.00,
+              "balance": "519577.90",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "PETER HOOK Q4792300755 RC INV PEAC271124",
+              "amount": -2464.00,
+              "balance": "517113.90",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ADVANCE HEATING AND L2478502124 RC INV ADVHC271124",
+              "amount": -2574.00,
+              "balance": "514539.90",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "SS ELECTRICAL MELB B6491734336 RC INV SSEM271124",
+              "amount": -2618.00,
+              "balance": "511921.90",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "HOMESAFEGV N4833023719 RC INV HSGV271124",
+              "amount": -2640.00,
+              "balance": "509281.90",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "JEZTEK PLUMBING 275207403 RC INV STCJEZ27112",
+              "amount": -2786.30,
+              "balance": "506495.60",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MATTHEW WILLIAMS 275199233 RC INV WHC271124",
+              "amount": -3080.00,
+              "balance": "503415.60",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "JONG TRADE PTY LTD 275203297 RC INV JT271124",
+              "amount": -3157.00,
+              "balance": "500258.60",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "AIRFIT W7418592779 RC INV 1606",
+              "amount": -3619.00,
+              "balance": "496639.60",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "THERMOCHILL 275172346 RC INV 1605",
+              "amount": -4576.00,
+              "balance": "492063.60",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "SUNBURY HEATING AND 275198828 RC INV SBHC271124",
+              "amount": -4620.00,
+              "balance": "487443.60",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "GOODBYE GAS PTY LTD 275206669 RC INV 1622",
+              "amount": -4834.23,
+              "balance": "482609.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "THE AIRFLOW CO 275174883 RC INV 1609",
+              "amount": -5049.00,
+              "balance": "477560.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "SHC BENDIGO 275201075 RC INV SHCB271124",
+              "amount": -5082.00,
+              "balance": "472478.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "JOEL THORNTON 275179933 RC INV 1613",
+              "amount": -5082.00,
+              "balance": "467396.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "PENINSULA HEATING CO275181747 RC INV PNHCE271124",
+              "amount": -5115.00,
+              "balance": "462281.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "J RUSSELL AIR PTY LT275195527 RC INV JRA271124",
+              "amount": -5313.00,
+              "balance": "456968.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "IVYNDI TRUST 275198615 RC INV IVE271124",
+              "amount": -5313.00,
+              "balance": "451655.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "DP HEATING AND COOLI275179117 RC INV DP27112024",
+              "amount": -5852.00,
+              "balance": "445803.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "BAKER AND WOOD 275205443 RC INV BWPAC271124",
+              "amount": -5984.00,
+              "balance": "439819.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "CR HEATING AND COOLI275205217 RC INV CRCH271124",
+              "amount": -6006.00,
+              "balance": "433813.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "INTERLANDI REFRIGERA275196910 RC INV IRAC271124",
+              "amount": -6072.00,
+              "balance": "427741.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "FLASH HEATING AND CO275199714 RC INVFLSHHC271124",
+              "amount": -6776.00,
+              "balance": "420965.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "SOUTHSIDE PLUMBING H275171752 RC INV SS27112024",
+              "amount": -7029.00,
+              "balance": "413936.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "AK MACLEAN 275181510 RC INV APA27112024",
+              "amount": -7931.00,
+              "balance": "406005.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ASPEN CLIMATE SOLUTI275175263 RC INV ASPA271124",
+              "amount": -9603.00,
+              "balance": "396402.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "BMD HEATING AND COOL275179324 RC INV BMD27112024",
+              "amount": -10164.00,
+              "balance": "386238.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "POINT NEPEAN AIR CON275171045 RC INV PNA27112024",
+              "amount": -10494.00,
+              "balance": "375744.37",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "TOO HOT TO HANDLE 275208490 RCI STC2H2H271124",
+              "amount": -10899.35,
+              "balance": "364845.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MZ AIR HEATING AND C275174661 RC INV MZA27112024",
+              "amount": -11715.00,
+              "balance": "353130.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "SIMPLY AIR 275173962 RC INV SA27112024",
+              "amount": -13563.00,
+              "balance": "339567.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MARVEL AIR 275195148 RC INV MVAIR271124",
+              "amount": -14322.00,
+              "balance": "325245.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "SHANEL RIENIETS 275202389 RC INV TP241127",
+              "amount": -16632.00,
+              "balance": "308613.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "LDB HEATING AND COOL275180156 RC INV LDB27112024",
+              "amount": -17072.00,
+              "balance": "291541.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "KING COOLING PTY LTD275169834 RC INV KCH271124",
+              "amount": -20383.00,
+              "balance": "271158.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "GJ BRADING GEELONG 275174183 RC INV GJ27112024",
+              "amount": -20889.00,
+              "balance": "250269.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "MC KINNON HEATING AN275172006 RC INV MCK27112024",
+              "amount": -22869.00,
+              "balance": "227400.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ALDER HEATING AND CO275170760 RC INV AA27112024",
+              "amount": -26136.00,
+              "balance": "201264.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "STREDDERS GROUP 275170499 RC INV SPR27112024",
+              "amount": -26928.00,
+              "balance": "174336.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "SPECIALISED HEATING 275174436 RC INV SHC27112024",
+              "amount": -35244.00,
+              "balance": "139092.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "ALL CLIMATE SOLUTION275171545 RC INV",
+              "amount": -42471.00,
+              "balance": "96621.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-27",
+              "description": "TOO HOT TO HANDLE 275208246 RC INV 2H2H271124",
+              "amount": -58905.00,
+              "balance": "37716.02",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-28",
+              "description": "2000121943 ORIGIN ENERGY EL SEEING GREEN BAL",
+              "amount": 541147.20,
+              "balance": "578863.22",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-28",
+              "description": "DC00137496 PANASONIC AUST P 1ST ENERGY REBAT",
+              "amount": 4699.00,
+              "balance": "583562.22",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-28",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -5522.10,
+              "balance": "578040.12",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-29",
+              "description": "ES AND KA GLAZNER G3618360068 REIMB PETTY CASH",
+              "amount": -200.00,
+              "balance": "577840.12",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-29",
+              "description": "WATTS CLEVER AUST 275477680 INV 191172",
+              "amount": -11000.00,
+              "balance": "566840.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-29",
+              "description": "ATO DIRECT CREDIT AC275476546 771461168058760",
+              "amount": 80114.00,
+              "balance": "486726.12",
+              "type": "Reversed Transactions",
+              "tags": [
+                {"category": "Tax"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-11-29",
+              "description": "FLYING GREEN BALLOON275476751 1018",
+              "amount": -110000.00,
+              "balance": "376726.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-11-29",
+              "description": "BAKER AND BAKER 275477509 BB240932",
+              "amount": -121000.00,
+              "balance": "255726.12",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-02",
+              "description": "NAB CONNECT FEE OCTOBER 2024",
+              "amount": -4.00,
+              "balance": "255722.12",
+              "type": "Maintenance Fees",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-02",
+              "description": "MATTHEW DOWDE A8379174344 REIMBURSE OWORKS",
+              "amount": -58.20,
+              "balance": "255663.92",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-02",
+              "description": "ONLINE W4192774179 TO SAVING SEEING GREEN",
+              "amount": -250000.00,
+              "balance": "5663.92",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-03",
+              "description": "056651 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 19756.00,
+              "balance": "25419.92",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-03",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -5517.44,
+              "balance": "19902.48",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-04",
+              "description": "ONLINE R2791356619 LINKED ACC TRNS SEEING GREEN",
+              "amount": 250059.86,
+              "balance": "269962.34",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-04",
+              "description": "1STER RC INV PMT 000275803376 SEEING GREEN",
+              "amount": -14800.78,
+              "balance": "255161.56",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-04",
+              "description": "/ PMT 000275816386 SEEING GREEN",
+              "amount": -215931.11,
+              "balance": "39230.45",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-05",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "89230.45",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-05",
+              "description": "STEPHEN JOHN BAKERMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "114230.45",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-05",
+              "description": "MERRIGAL LOAN MERRIGAL 1ST ENERGY REBAT",
+              "amount": 25000.00,
+              "balance": "139230.45",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-05",
+              "description": "ES AND KA GLAZNER A2120542686 PRESENT REIM",
+              "amount": -511.60,
+              "balance": "138718.85",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-05",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -3215.40,
+              "balance": "135503.45",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-05",
+              "description": "ONLINE H9379764890 TO SAVINGS SEEING GREEN",
+              "amount": -110000.00,
+              "balance": "25503.45",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "75503.45",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "STEPHEN JOHN BAKERMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "100503.45",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "125503.45",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "MRS BELINDA JANE BAKMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "150503.45",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "ONLINE K7181572655 FROM SAVING SEEING GREEN",
+              "amount": 2500.00,
+              "balance": "153003.45",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "BELINDA BAKER W7091707655 EXP REIMB",
+              "amount": -115.55,
+              "balance": "152887.90",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "ANGELA RYAN D8779764667 EXP REIM XMAS PRES",
+              "amount": -996.70,
+              "balance": "151891.20",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "MONTANIA CAFE BAR REG8136472698 BELINDA BAKER",
+              "amount": -1196.00,
+              "balance": "150695.20",
+              "type": "",
+              "tags": [
+                {"category": "Dining Out"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "INTERNET BPAY PRECISION CH 997714611680500174",
+              "amount": -1610.79,
+              "balance": "149084.41",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "ES AND KA GLAZNER V6136636196 PAY KERRIE",
+              "amount": -2215.50,
+              "balance": "146868.91",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "NIKKI BLACK K8991124696 NIKKI BLACK PAY",
+              "amount": -2262.00,
+              "balance": "144606.91",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "MATTHEW DOWDE V2591104696 MATT PAY",
+              "amount": -2968.00,
+              "balance": "141638.91",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "KEVIN JAMES E2778462396 KEVIN PAY",
+              "amount": -4260.61,
+              "balance": "137378.30",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "ONLINE P7091346655 TO SAVINGS SEEING GREEN",
+              "amount": -36000.00,
+              "balance": "101378.30",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-06",
+              "description": "SOFTWARE CO PTY LTD 276026524 PART INV 02102401",
+              "amount": -100000.00,
+              "balance": "1378.30",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "GREEN SOLUTIONS AUST1STENERGYINV11801STENERGYINV1180",
+              "amount": 565125.00,
+              "balance": "566503.30",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "616503.30",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "666503.30",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "741503.30",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "716503.30",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "BELINDA BAKER A9581073016 EXP REIMBURSE",
+              "amount": -115.44,
+              "balance": "791387.86",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "791503.30",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "766503.30",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "SAND B BAKER H7479112286 INTEREST",
+              "amount": -960.54,
+              "balance": "790427.32",
+              "type": "",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "ONLINE S4533174316 TO SAVINGS SEEING GREEN",
+              "amount": -75000.00,
+              "balance": "715427.32",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "ONLINE R0436330525 TO SAVING SEEING GREEN",
+              "amount": -280000.00,
+              "balance": "435427.32",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-09",
+              "description": "BELINDA BAKER 276160051 PART REPAY LOAN",
+              "amount": -434000.00,
+              "balance": "1427.32",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-10",
+              "description": "056847 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 31108.00,
+              "balance": "32535.32",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-10",
+              "description": "ONLINE N7491172262 FROM SAVING SEEING GREEN",
+              "amount": 6000.00,
+              "balance": "38535.32",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-10",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -1000.00,
+              "balance": "37535.32",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-10",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -6370.22,
+              "balance": "31165.10",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-11",
+              "description": "ONLINE L2781346989 FROM SAVING SEEING GREEN",
+              "amount": 349000.00,
+              "balance": "380165.10",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-11",
+              "description": "/PMT 000276417409 SEEING GREEN",
+              "amount": -374070.96,
+              "balance": "6094.14",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-12",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "56094.14",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-12",
+              "description": "MRS BELINDA JANE BAKMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "81094.14",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-12",
+              "description": "056951 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 3036.00,
+              "balance": "84130.14",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-12",
+              "description": "INTERNET TRANSFER ENER8126",
+              "amount": -1750.00,
+              "balance": "82380.14",
+              "type": "",
+              "tags": [
+                {"category": "Rent"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-12",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -3056.96,
+              "balance": "79323.18",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-13",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "129323.18",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-13",
+              "description": "SOFTWARE CO PTY LTD 276681437 BAL INV 02102401",
+              "amount": -88984.40,
+              "balance": "40338.78",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-16",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "190338.78",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-16",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "140338.78",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-16",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "90338.78",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-16",
+              "description": "INTERNET BPAY XCHANGING DXC 138925481",
+              "amount": -1126.62,
+              "balance": "189212.16",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Other"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-16",
+              "description": "INTERNET BPAY ANZ CARDS 4564807014313629",
+              "amount": -8580.39,
+              "balance": "180631.77",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Credit Card Repayments"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-16",
+              "description": "ONLINE K3578592824 TO SAVING SEEING GREEN",
+              "amount": -140000.00,
+              "balance": "40631.77",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-17",
+              "description": "057044 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 6116.00,
+              "balance": "46747.77",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-17",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -13511.67,
+              "balance": "33236.10",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-18",
+              "description": "2000123900 ORIGIN ENERGY EL SEEING GREEN BAL",
+              "amount": 577078.70,
+              "balance": "610314.80",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-18",
+              "description": "ONLINE S7279370163 FROM SAV SEEING GREEN",
+              "amount": 100000.00,
+              "balance": "710314.80",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-18",
+              "description": "ONLINE P9492767763 FROM SAV SEEING GREEN",
+              "amount": 100000.00,
+              "balance": "810314.80",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-18",
+              "description": "ES AND KA GLAZNER G6692492856 REIMBURSE KEVIN PR",
+              "amount": -94.30,
+              "balance": "810220.50",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-18",
+              "description": "MC KINNON HEATING AN277087421 RC INV 876 875 874",
+              "amount": -28126.45,
+              "balance": "782094.05",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-18",
+              "description": "/PMT 000277086688 SEEING GREEN",
+              "amount": -315931.56,
+              "balance": "466162.49",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-18",
+              "description": "/PMT 000277086336 SEEING GREEN",
+              "amount": -414001.27,
+              "balance": "52161.22",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-19",
+              "description": "2000123935 ORIGIN ENERGY EL SEEING GREEN BAL",
+              "amount": 478897.38,
+              "balance": "531058.60",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "NABCONNECT 277392515",
+              "amount": 83500.00,
+              "balance": "614558.60",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "INTERNET TRANSFER RENT WATER",
+              "amount": -162.32,
+              "balance": "614396.28",
+              "type": "",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "INTERNET BPAY MOMENTUM ENERGY 17329706",
+              "amount": -190.72,
+              "balance": "614205.56",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "FLYING GREEN BALLOON277394401 INTEREST",
+              "amount": -441.10,
+              "balance": "613764.46",
+              "type": "",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "BELINDA BAKER 277394009 INTEREST",
+              "amount": -851.51,
+              "balance": "612912.95",
+              "type": "",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "ALITSY PTY LTD F5862787486 150015",
+              "amount": -1210.00,
+              "balance": "611702.95",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "INTERNET BPAY PRECISION CH 027714611680500196",
+              "amount": -1239.25,
+              "balance": "610463.70",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "INTERNET BPAY PRECISION CH 997714611680500187",
+              "amount": -1610.79,
+              "balance": "608852.91",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "KEVIN JAMES E1756704377 KEVIN PAY",
+              "amount": -2019.85,
+              "balance": "606833.06",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "ES AND KA GLAZNER R1474102124 KERRIE PAY",
+              "amount": -2215.50,
+              "balance": "604617.56",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "NIKKI BLACK V4455696824 NIKKI BLACK PAY",
+              "amount": -2262.00,
+              "balance": "602355.56",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "TYNAN HYWOOD 277343843 RC INV M889",
+              "amount": -2618.00,
+              "balance": "599737.56",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "MATTHEW DOWDE M7442396524 MATT PAY",
+              "amount": -2968.00,
+              "balance": "596769.56",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "KEVIN JAMES G5642502424 KEVIN PAY",
+              "amount": -4260.61,
+              "balance": "592508.95",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -5042.12,
+              "balance": "587466.83",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "ABA HEATING AND COOL277343366 RC INV M888",
+              "amount": -6930.00,
+              "balance": "580536.83",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "FLYING GREEN BALLOON277394295 REPAY LOAN",
+              "amount": -70000.00,
+              "balance": "510536.83",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "FLYING GREEN BALLOON277392267 FGB DEC24",
+              "amount": -110000.00,
+              "balance": "400536.83",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "BAKER AND BAKER 277392149 BB240934",
+              "amount": -132000.00,
+              "balance": "268536.83",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-20",
+              "description": "BELINDA BAKER 277393831 REPAY PART LOAN",
+              "amount": -230000.00,
+              "balance": "38536.83",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-23",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "88536.83",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-23",
+              "description": "MRS BELINDA JANE BAKMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "113536.83",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2024-12-23",
+              "description": "INTERNET TRANSFER APPLEBY RENT SEW",
+              "amount": -117.86,
+              "balance": "113418.97",
+              "type": "",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-23",
+              "description": "SOFTWARE CO PTY LTD 277417690 INV 02102402",
+              "amount": -104178.25,
+              "balance": "9240.72",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2024-12-23",
+              "description": "NAB CONNECT FEE ACCESS AND USAGE",
+              "amount": -17.50,
+              "balance": "9223.22",
+              "type": "Maintenance Fees",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-02",
+              "description": "V5796 31/12 BUNNINGS GROUP LIMITED HAWTHORN E 74940524366",
+              "amount": -1200.00,
+              "balance": "8023.22",
+              "type": "",
+              "tags": [
+                {"category": "Home Improvement"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-03",
+              "description": "ONLINE K0456390425 FROM SAVING SEEING GREEN",
+              "amount": 109.74,
+              "balance": "8132.96",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-03",
+              "description": "INTERNET TRANSFER NIKKI BLACK PAY",
+              "amount": -2262.00,
+              "balance": "5870.96",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-03",
+              "description": "INTERNET TRANSFER KERRIE PAY",
+              "amount": -2408.38,
+              "balance": "3462.58",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-03",
+              "description": "INTERNET TRANSFER MATT PAY",
+              "amount": -2968.00,
+              "balance": "494.58",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-07",
+              "description": "2240234603508 AE CEA TRADINGPL 1ST ENERGY REBAT",
+              "amount": 702808.43,
+              "balance": "703303.01",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-07",
+              "description": "057180 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 2024.00,
+              "balance": "705327.01",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-10",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -4625.05,
+              "balance": "700701.96",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-10",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -7181.06,
+              "balance": "693520.90",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-14",
+              "description": "MERRIGALLOAN MERRIGAL",
+              "amount": 50000.00,
+              "balance": "743520.90",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-14",
+              "description": "MRS BELINDA JANE BAKMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "768520.90",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-14",
+              "description": "MERRIGAL LOAN MERRIGAL 1ST ENERGY REBAT",
+              "amount": 25000.00,
+              "balance": "793520.90",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-14",
+              "description": "0 AHIC(AUSTRALIA) 1ST ENERGY REBAT",
+              "amount": 6050.00,
+              "balance": "799570.90",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-14",
+              "description": "ALITSY PTY LTD Q3057696601 150016",
+              "amount": -1210.00,
+              "balance": "798360.90",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-14",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -4995.52,
+              "balance": "793365.38",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-15",
+              "description": "MERRIGALLOAN MERRIGAL",
+              "amount": 50000.00,
+              "balance": "843365.38",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-15",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "868365.38",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-15",
+              "description": "KING COOLING PTY LTDH5682646738 M8168",
+              "amount": -11968.00,
+              "balance": "856397.38",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-15",
+              "description": "/PMT 000278805789 SEEING GREEN",
+              "amount": -354561.39,
+              "balance": "501835.99",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-15",
+              "description": "/PMT 000278804879 SEEING GREEN",
+              "amount": -476110.32,
+              "balance": "25725.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-16",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -2000.00,
+              "balance": "23725.67",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-16",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -3500.00,
+              "balance": "20225.67",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-16",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -3648.78,
+              "balance": "16576.89",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-17",
+              "description": "INTERNET BPAY MOMENTUM ENERGY 17329706",
+              "amount": -148.28,
+              "balance": "16428.61",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-17",
+              "description": "INTERNET BPAY PRECISION CH 457714611680500203",
+              "amount": -1124.25,
+              "balance": "15304.36",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-17",
+              "description": "INTERNET TRANSFER ENER8126",
+              "amount": -1216.05,
+              "balance": "14088.31",
+              "type": "",
+              "tags": [
+                {"category": "Rent"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-17",
+              "description": "NIKKI BLACK B6955182220 NIKKI BLACK PAY",
+              "amount": -2262.00,
+              "balance": "11826.31",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-17",
+              "description": "ES AND KA GLAZNER J8255747920 KERRIE PAY",
+              "amount": -2345.68,
+              "balance": "9480.63",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-17",
+              "description": "MATTHEW DOWDE R4482370220 MATT PAY",
+              "amount": -2396.92,
+              "balance": "7083.71",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-17",
+              "description": "KEVIN JAMES A5542053520 KEVIN PAY",
+              "amount": -2692.92,
+              "balance": "4390.79",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-20",
+              "description": "LOAN FROM DARREN ANZ V2 PLUS MICHAEL H HEATH",
+              "amount": 500000.00,
+              "balance": "504390.79",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-21",
+              "description": "057366 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 1012.00,
+              "balance": "505402.79",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-21",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -8721.19,
+              "balance": "496681.60",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-22",
+              "description": "BGC PARTNERS AUSTRALE1289552078 INV 99690",
+              "amount": 867.30,
+              "balance": "497548.90",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-22",
+              "description": "INVINCIBLE ENERGY Y1362676903 RC INV M8106",
+              "amount": -693.00,
+              "balance": "496855.90",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-22",
+              "description": "BGC PARTNERS AUSTRALE1289552078 INV 99690",
+              "amount": -867.30,
+              "balance": "495988.60",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-22",
+              "description": "/PMT 000279303544 SEEING GREEN",
+              "amount": -73571.05,
+              "balance": "422417.55",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-22",
+              "description": "/PMT 000279303250 SEEING GREEN",
+              "amount": -362442.59,
+              "balance": "59974.96",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-23",
+              "description": "2000127054 ORIGIN ENERGY EL SEEING GREEN BAL",
+              "amount": 413251.30,
+              "balance": "473226.26",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-23",
+              "description": "ALL WINDOWS REPLACEML0844172172 RC INV LT23012025",
+              "amount": -385.00,
+              "balance": "472841.26",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-23",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -4447.97,
+              "balance": "468393.29",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-24",
+              "description": "MERRIGALLOAN MERRIGAL",
+              "amount": 50000.00,
+              "balance": "518393.29",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-24",
+              "description": "INTERNET BPAY ANZ CARDS 4564807014313629",
+              "amount": -6524.46,
+              "balance": "511868.83",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Credit Card Repayments"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-24",
+              "description": "FLYING GREEN BALLOON279487914 INV 1020",
+              "amount": -110000.00,
+              "balance": "401868.83",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-24",
+              "description": "BAKER AND BAKER 279486951 INV BB240936",
+              "amount": -132000.00,
+              "balance": "269868.83",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-28",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "419868.83",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-28",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "369868.83",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-28",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "319868.83",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-28",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "469868.83",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-28",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -8043.16,
+              "balance": "461825.67",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "74477 BUY 5,000 VE ENERGYAUSTRALIA SEEING GREEN BAL",
+              "amount": 594000.00,
+              "balance": "1055825.67",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "ANGELA RYANLOAN TO 1ST ENERGY R",
+              "amount": 99000.00,
+              "balance": "1154825.67",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "MRS BELINDA JANE BAKLOAN MERRIGAL",
+              "amount": 11000.00,
+              "balance": "1165825.67",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "/PMT 000279780451 SEEING GREEN",
+              "amount": -2079.00,
+              "balance": "1163746.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "ALL WINDOWS REPLACEMT6474316651 RC INV LT29012025",
+              "amount": -2310.00,
+              "balance": "1161436.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "/PMT 000279783912 SEEING GREEN",
+              "amount": -4312.00,
+              "balance": "1157124.67",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "BELINDA BAKER 279793324 REPAY LOAN",
+              "amount": -11000.00,
+              "balance": "1146124.67",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "FLYING GREEN BALLOON279793047 REPAY LOAN",
+              "amount": -99000.00,
+              "balance": "1047124.67",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "/PMT 000279764079 SEEING GREEN",
+              "amount": -102721.36,
+              "balance": "944403.31",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-29",
+              "description": "/PMT 000279777426 SEEING GREEN",
+              "amount": -456217.60,
+              "balance": "488185.71",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-30",
+              "description": "IGODIRECT GROUP PTY A6955184679 INV 140932",
+              "amount": -143.92,
+              "balance": "488041.79",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-30",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -3683.73,
+              "balance": "484358.06",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-31",
+              "description": "NAB CONNECT FEE ACCESS AND USAGE",
+              "amount": -0.50,
+              "balance": "484357.56",
+              "type": "Maintenance Fees",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-31",
+              "description": "BGC PARTNERS AUSTRALG3789442005 INV 99690",
+              "amount": -867.30,
+              "balance": "483490.26",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-31",
+              "description": "INTERNET BPAY PRECISION CH 997714611680500213",
+              "amount": -1610.79,
+              "balance": "481879.47",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-31",
+              "description": "ES AND KA GLAZNER A0555626353 KERRIE PAY",
+              "amount": -2215.50,
+              "balance": "479663.97",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-31",
+              "description": "NIKKI BLACK R4389164704 NIKKI BLACK PAY",
+              "amount": -2262.00,
+              "balance": "477401.97",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-31",
+              "description": "MATTHEW DOWDE E2762142404 MATT PAY",
+              "amount": -2968.00,
+              "balance": "474433.97",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-31",
+              "description": "KEVIN JAMES E6155122604 KEVIN PAY",
+              "amount": -4260.61,
+              "balance": "470173.36",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-31",
+              "description": "BELINDA BAKER 279969226 INTEREST",
+              "amount": -5791.51,
+              "balance": "464381.85",
+              "type": "",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-01-31",
+              "description": "BELINDA BAKER 279969352 PART REPAY LOAN",
+              "amount": -441000.00,
+              "balance": "23381.85",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-04",
+              "description": "INVOICE 1193 STANWELL - TRADI 1ST ENERGY REBAT",
+              "amount": 536198.85,
+              "balance": "559580.70",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-04",
+              "description": "1194 ENERGY LOCALS 1ST ENERGY REBAT",
+              "amount": 369930.00,
+              "balance": "929510.70",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-04",
+              "description": "JEZTEK PLUMBING B9489512377 RC INV STCJEZ40225",
+              "amount": -40.98,
+              "balance": "929469.72",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-04",
+              "description": "BELINDA BAKER X2462402363 INV ESC REIMB",
+              "amount": -1500.00,
+              "balance": "927969.72",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-04",
+              "description": "BELINDA BAKER 280298758 INTEREST",
+              "amount": -2061.64,
+              "balance": "925908.08",
+              "type": "",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-04",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -11076.82,
+              "balance": "914831.26",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-04",
+              "description": "BELINDA BAKER 280298708 REPAY PART LOAN",
+              "amount": -400000.00,
+              "balance": "514831.26",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-05",
+              "description": "MRS BELINDA JANE BAKMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "539831.26",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-05",
+              "description": "/PMT 000280376389 SEEING GREEN",
+              "amount": -156469.80,
+              "balance": "383361.46",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-05",
+              "description": "/PMT 000280374042 SEEING GREEN",
+              "amount": -376696.67,
+              "balance": "6664.79",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-06",
+              "description": "057640 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 84128.00,
+              "balance": "90792.79",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-06",
+              "description": "ANGELA RYAN L7389162677 EXP REIMB OFFICEWO",
+              "amount": 341.44,
+              "balance": "91134.23",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-06",
+              "description": "SAND B BAKER G9589626377 INTEREST",
+              "amount": -13.70,
+              "balance": "91120.53",
+              "type": "",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-06",
+              "description": "BGC PARTNERS AUSTRALZ9989512393 INV 99690",
+              "amount": -220.00,
+              "balance": "90900.53",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-06",
+              "description": "BELINDA BAKER S2082737377 VACUMN REIMB",
+              "amount": -225.00,
+              "balance": "90675.53",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-06",
+              "description": "ANGELA RYAN L7389162677 EXP REIMB OFFICEWO",
+              "amount": -341.44,
+              "balance": "90334.09",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-06",
+              "description": "INTERNET TRANSFER RENT 13A",
+              "amount": -1750.00,
+              "balance": "88584.09",
+              "type": "",
+              "tags": [
+                {"category": "Rent"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-06",
+              "description": "S AND B BAKER L9362306877 REPAY LOAN",
+              "amount": -25000.00,
+              "balance": "63584.09",
+              "type": "General Payment",
+              "tags": [
+                {"category": "Non SACC Loans"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-07",
+              "description": "ANGELA RYAN E1856696296 EXP REIMBURSE TIP",
+              "amount": -47.00,
+              "balance": "63537.09",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-07",
+              "description": "INTERNET TRANSFER 240073",
+              "amount": -79.20,
+              "balance": "63457.89",
+              "type": "",
+              "tags": [
+                {"category": "External Transfers"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-07",
+              "description": "ANGELA RYAN G9069184396 EXP REIMBURSE",
+              "amount": -341.44,
+              "balance": "63116.45",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-07",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -5139.98,
+              "balance": "57976.47",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-10",
+              "description": "1202 SHELL ENERGY RET 1ST ENERGY REBAT",
+              "amount": 598125.00,
+              "balance": "656101.47",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-11",
+              "description": "057736 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 2992.00,
+              "balance": "659093.47",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-11",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -5897.23,
+              "balance": "653196.24",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-12",
+              "description": "MJ AND JM MCKELVIE L0574013877 VEEC BBMM120225",
+              "amount": -154.00,
+              "balance": "653042.24",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-12",
+              "description": "ES AND KA GLAZNER V9142003037 EXPENSE REIM",
+              "amount": -200.00,
+              "balance": "652842.24",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-12",
+              "description": "ALL WINDOW REPLACEME280936185 LT120225",
+              "amount": -616.00,
+              "balance": "652226.24",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-12",
+              "description": "CRAIG WOOD G9056376024 RC INV CR120225",
+              "amount": -900.00,
+              "balance": "651326.24",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-12",
+              "description": "WALDRON HEATING COOL280935941 WHCHW1202",
+              "amount": -3322.00,
+              "balance": "648004.24",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-12",
+              "description": "/PMT 000280934185 SEEING GREEN",
+              "amount": -83414.10,
+              "balance": "564590.14",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-12",
+              "description": "/PMT 000280934639 SEEING GREEN",
+              "amount": -327773.06,
+              "balance": "236817.08",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-13",
+              "description": "057821 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 9372.00,
+              "balance": "246189.08",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-13",
+              "description": "BELINDA BAKER Q0289714887 EXP REIMBURSEMENT",
+              "amount": -381.15,
+              "balance": "245807.93",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-13",
+              "description": "STELLAR BRANDED SOLUZ6689572437 INV 5683",
+              "amount": -707.85,
+              "balance": "245100.08",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-13",
+              "description": "INVINCIBLE ENERGY W9857093060 RC INV INVE1611",
+              "amount": -2002.00,
+              "balance": "243098.08",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-13",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -2973.08,
+              "balance": "240125.00",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-14",
+              "description": "INTERNET BPAY PRECISION CH 997714611680500226",
+              "amount": -1610.79,
+              "balance": "238514.21",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-14",
+              "description": "ES AND KA GLAZNER E6044350811 PAY KERRIE",
+              "amount": -2215.50,
+              "balance": "236298.71",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-14",
+              "description": "NIKKI BLACK S9144616911 NIKKI BLACK PAY",
+              "amount": -2262.00,
+              "balance": "234036.71",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-14",
+              "description": "MATTHEW DOWDE A0689747011 MATT PAY",
+              "amount": -2968.00,
+              "balance": "231068.71",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-14",
+              "description": "KEVIN JAMES G7074452111 KEVIN PAY",
+              "amount": -4260.61,
+              "balance": "226808.10",
+              "type": "",
+              "tags": [
+                {"category": "Wages"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-17",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "276808.10",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-17",
+              "description": "MRS BELINDA JANE BAKMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "301808.10",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-17",
+              "description": "STEPHEN JOHN BAKERLOAN MERRIGAL",
+              "amount": 25000.00,
+              "balance": "326808.10",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-17",
+              "description": "INTERNET BPAY MOMENTUM ENERGY 17329706",
+              "amount": -218.49,
+              "balance": "326589.61",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-17",
+              "description": "ALITSY PTY LTD A0689432027 150017",
+              "amount": -1210.00,
+              "balance": "325379.61",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-18",
+              "description": "BRAND REPUBLIC H0557144234 INV 27946",
+              "amount": -1952.50,
+              "balance": "323427.11",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-18",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -6297.99,
+              "balance": "317129.12",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-19",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "367129.12",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-19",
+              "description": "STEPHEN JOHN BAKERMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "392129.12",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-19",
+              "description": "BELINDA BAKER E4282112013 PARKING REIMB",
+              "amount": -99.00,
+              "balance": "392030.12",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-19",
+              "description": "/PMT 000281500494 SEEING GREEN",
+              "amount": -385901.81,
+              "balance": "6128.31",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-20",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "56128.31",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-20",
+              "description": "MRS BELINDA JANE BAKMERRIGAL LOAN",
+              "amount": 25000.00,
+              "balance": "81128.31",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-20",
+              "description": "058083 CLEAN ENERGY REG 1ST ENERGY REBAT",
+              "amount": 22616.00,
+              "balance": "103744.31",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-20",
+              "description": "BELINDA BAKER P4255724039 STELLAR EXP REIM",
+              "amount": -851.12,
+              "balance": "102893.19",
+              "type": "",
+              "tags": [
+                {"category": "All Other Debits"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-20",
+              "description": "INTERNET TRANSFER 13A 1880 FERNTREE",
+              "amount": -1750.00,
+              "balance": "101143.19",
+              "type": "",
+              "tags": [
+                {"category": "Rent"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-20",
+              "description": "STELLAR BRANDED SOLUE2862764239 INV 5702",
+              "amount": -2124.48,
+              "balance": "99018.71",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-20",
+              "description": "INTERNET BPAY ENERGYTARGETS ESC(V)02016366022512",
+              "amount": -3066.28,
+              "balance": "95952.43",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Utilities"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-20",
+              "description": "DARREN SCHRIEVER R6874432837 DARREN INTEREST",
+              "amount": -4246.58,
+              "balance": "91705.85",
+              "type": "",
+              "tags": [
+                {"category": "Fees"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-21",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "141705.85",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-21",
+              "description": "INTERNET BPAY ANZ CARDS 4564807014313629",
+              "amount": -7180.31,
+              "balance": "134525.54",
+              "type": "BPAY",
+              "tags": [
+                {"category": "Credit Card Repayments"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-21",
+              "description": "SOFTWARE CO PTY LTD 281723895 INV 17022501",
+              "amount": -121165.11,
+              "balance": "13360.43",
+              "type": "",
+              "tags": [
+                {"category": "Business Expenses"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-24",
+              "description": "V5796 21/02 COLES 0528 FERNTREE G 74363965052",
+              "amount": -18.00,
+              "balance": "710092.43",
+              "type": "",
+              "tags": [
+                {"category": "Groceries"},
+                {"creditDebit": "debit"}
+              ]
+            },
+            {
+              "date": "2025-02-24",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "660110.43",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-24",
+              "description": "MERRIGALMERRIGAL LOAN",
+              "amount": 50000.00,
+              "balance": "710110.43",
+              "type": "",
+              "tags": [
+                {"category": "All Other Credits"},
+                {"creditDebit": "credit"}
+              ]
+            },
+            {
+              "date": "2025-02-24",
+              "description": "1207 SHELL ENERGY RET 1ST ENERGY REBAT",
+              "amount": 596750.00,
+              "balance": "610110.43",
+              "type

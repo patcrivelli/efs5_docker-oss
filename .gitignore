@@ -4,6 +4,7 @@ __pycache__/
 *.log
 *.sqlite3
 
+# env/venv
 .env
 .env.*
 .venv/
@@ -13,4 +14,5 @@ env/
 **/venv/
 **/env/
 
+# Django
 **/settings.py

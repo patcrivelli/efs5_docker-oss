@@ -1,1 +1,115 @@
+EFS Open Source Licence (Hybrid Copyleft + Commercial)
+Version 1.0
+
+Copyright (c) 2026 Patrick Crivelli
+
+1. DEFINITIONS
+
+"Software" means this codebase, including all source code, documentation,
+and associated files.
+
+"Non-Commercial Use" means use for personal, educational, research, or internal
+business purposes where no direct revenue is generated from the Software itself.
+
+"Commercial Use" means any use intended to generate revenue, including but not
+limited to SaaS offerings, resale, licensing, or embedding within a paid product.
+
+"Derivative Work" means any modification, adaptation, extension, or reuse of the Software.
+
+---
+
+2. GRANT OF RIGHTS (NON-COMMERCIAL)
+
+Permission is hereby granted, free of charge, to any person to:
+
+- use, copy, modify, and distribute the Software
+- create Derivative Works
+- deploy internally within an organisation
+
+STRICTLY for Non-Commercial Use, subject to the conditions below.
+
+---
+
+3. STRONG COPYLEFT REQUIREMENT (GPL-STYLE)
+
+If you modify, extend, or build upon this Software:
+
+- You MUST make the full source code of the Derivative Work publicly available
+- You MUST include this licence in full
+- You MUST clearly document all changes made
+- You MUST not impose additional restrictions on downstream users
+
+This requirement applies to all Non-Commercial Use.
+
+---
+
+4. COMMERCIAL USE RESTRICTION
+
+Commercial Use of this Software is NOT permitted without explicit written permission
+from the copyright holder.
+
+This includes:
+
+- offering the Software (or Derivative Works) as a paid service (SaaS)
+- selling or licensing the Software
+- embedding the Software in a commercial product
+- using the Software to directly generate revenue
+
+To obtain a commercial licence, contact:
+patrickcrivelligmail.com
+
+---
+
+5. PATENT GRANT (APACHE-STYLE)
+
+Subject to the terms of this licence, the author grants a perpetual, worldwide,
+non-exclusive, royalty-free licence to any patents necessarily infringed by the
+use of this Software.
+
+If you initiate patent litigation against any party alleging that the Software
+infringes a patent, your rights under this licence terminate immediately.
+
+---
+
+6. ATTRIBUTION
+
+You must:
+
+- retain the original copyright notice
+- include this licence in all copies or substantial portions of the Software
+- provide attribution to the original author
+
+---
+
+7. DISCLAIMER OF WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT.
+
+---
+
+8. LIMITATION OF LIABILITY
+
+IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+---
+
+9. TERMINATION
+
+Any breach of this licence will automatically terminate your rights under it.
+
+Upon termination, you must cease all use and distribution of the Software.
+
+---
+
+10. GOVERNING PRINCIPLE
+
+This licence is intended to:
+
+- encourage open collaboration
+- enforce openness of derivative works
+- prevent unauthorised commercial exploitation
 
